@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Product — NexVault</title>
+  <meta name="description" content="Digital product details — instant delivery on NexVault."/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/pages/product.css"/>
+</head>
+<body>
+
+  <!-- Navbar mount -->
+  <div id="navbar"></div>
+
+  <!-- Product content injected here by product.js -->
+  <div id="product-container" style="min-height:100vh;padding-top:64px;position:relative;z-index:1"></div>
+
+  <!-- Footer mount -->
+  <div id="footer"></div>
+
+  <!-- Bottom nav mount (mobile) -->
+  <div id="bottom-nav"></div>
+
+  <!-- JS entry -->
+  <script type="module" src="js/main.js"></script>
+  <script type="module">
+    import { renderProduct } from './js/pages/product.js';
+    document.addEventListener('DOMContentLoaded', () => renderProduct());
+  </script>
+</body>
+</html>

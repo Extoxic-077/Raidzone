@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Catalog — NexVault</title>
+  <meta name="description" content="Browse thousands of digital products — games, gift cards, top-ups, streaming and software."/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/pages/catalog.css"/>
+</head>
+<body>
+
+  <!-- Navbar mount -->
+  <div id="navbar"></div>
+
+  <div class="catalog-page">
+    <div class="catalog-layout">
+
+      <!-- ── DESKTOP SIDEBAR ─────────────────────── -->
+      <aside class="catalog-sidebar">
+        <div class="sidebar-header">
+          <span class="sidebar-title">Filters</span>
+          <button class="clear-all-btn" id="clear-all-btn">Clear All</button>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Category</div>
+          <div class="filter-cat-list" id="cat-filter-list"></div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Price Range (₹)</div>
+          <div class="price-range">
+            <div class="price-input-wrap">
+              <label>Min ₹</label>
+              <input type="number" id="filter-min-price" placeholder="0" min="0"/>
+            </div>
+            <div class="price-input-wrap">
+              <label>Max ₹</label>
+              <input type="number" id="filter-max-price" placeholder="Any" min="0"/>
+            </div>
+          </div>
+        </div>
+
+        <div class="filter-section">
+          <div class="filter-section-title">Minimum Rating</div>
+          <div class="rating-stars">
+            <button class="rating-star-btn" data-value="1">★</button>
+            <button class="rating-star-btn" data-value="2">★</button>
+            <button class="rating-star-btn" data-value="3">★</button>
+            <button class="rating-star-btn" data-value="4">★</button>
+            <button class="rating-star-btn" data-value="5">★</button>
+          </div>
+        </div>
+
+        <button class="apply-filters-btn" id="apply-filters-btn">Apply Filters</button>
+      </aside>
+
+      <!-- ── MAIN CONTENT ────────────────────────── -->
+      <main class="catalog-main">
+
+        <!-- Top bar -->
+        <div class="catalog-topbar">
+          <div class="catalog-search-wrap">
+            <span class="search-icon-left">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+              </svg>
+            </span>
+            <input type="search" id="catalog-search" placeholder="Search products..." autocomplete="off"/>
+            <div class="search-spinner" id="search-spinner"></div>
+          </div>
+
+          <div class="catalog-sort">
+            <select id="sort-select" aria-label="Sort products">
+              <option value="">Popular</option>
+              <option value="newest">Newest</option>
+              <option value="price_asc">Price: Low to High</option>
+              <option value="price_desc">Price: High to Low</option>
+            </select>
+          </div>
+
+          <div class="view-toggle">
+            <button class="view-btn active" data-view="grid" aria-label="Grid view">
+              <svg viewBox="0 0 24 24" fill="currentColor">
+                <rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/>
+                <rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/>
+              </svg>
+            </button>
+            <button class="view-btn" data-view="list" aria-label="List view">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/>
+                <line x1="8" y1="18" x2="21" y2="18"/>
+                <line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/>
+                <line x1="3" y1="18" x2="3.01" y2="18"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Status bar -->
+        <div class="catalog-status-bar">
+          <span class="catalog-count" id="product-count">Loading products…</span>
+          <button class="catalog-mobile-filter-btn" id="mobile-filter-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14">
+              <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="10" y1="18" x2="14" y2="18"/>
+            </svg>
+            Filters
+          </button>
+        </div>
+
+        <!-- Product grid -->
+        <div class="products-grid" id="products-grid"></div>
+
+        <!-- Infinite scroll sentinel -->
+        <div id="scroll-sentinel" style="height:1px"></div>
+
+        <!-- End message -->
+        <div class="end-message" id="end-message" style="display:none">
+          You have seen all products
+        </div>
+
+      </main>
+    </div>
+  </div>
+
+  <!-- Mobile filter overlay & sheet -->
+  <div class="filter-overlay" id="filter-overlay"></div>
+  <div class="filter-sheet" id="filter-sheet">
+    <div class="filter-sheet-handle"></div>
+    <div class="sidebar-header">
+      <span class="sidebar-title">Filters</span>
+      <button class="clear-all-btn" id="close-filter-sheet">✕ Close</button>
+    </div>
+    <div id="filter-sheet-content"></div>
+  </div>
+
+  <!-- Footer mount -->
+  <div id="footer"></div>
+
+  <!-- Bottom nav mount (mobile) -->
+  <div id="bottom-nav"></div>
+
+  <!-- JS entry -->
+  <script type="module" src="js/main.js"></script>
+  <script type="module">
+    import { renderCatalog } from './js/pages/catalog.js';
+    document.addEventListener('DOMContentLoaded', () => renderCatalog());
+  </script>
+</body>
+</html>

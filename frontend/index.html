@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NexVault — Digital Goods Marketplace</title>
+  <meta name="description" content="Instant delivery of Steam keys, gift cards, top-ups and subscriptions. Pay with UPI, cards, or crypto."/>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/pages/home.css"/>
+</head>
+<body>
+
+  <!-- Navbar mount -->
+  <div id="navbar"></div>
+
+  <!-- Page content -->
+  <main>
+    <!-- ── HERO ─────────────────────────────────── -->
+    <section class="hero-section">
+      <div class="hero-inner">
+        <!-- Left column -->
+        <div class="hero-left">
+          <div class="hero-badge">
+            <span class="hero-badge-dot"></span>
+            ✦ Flash Sale — up to 45% off
+          </div>
+
+          <h1 class="hero-heading">
+            <span class="line line-1">Your Digital</span>
+            <span class="line line-2">Game Vault</span>
+            <span class="line line-3">Unlocked</span>
+          </h1>
+
+          <p class="hero-subtitle">
+            Instant delivery of Steam keys, gift cards, top-ups and subscriptions.
+            Pay with UPI, cards, or crypto.
+          </p>
+
+          <div class="hero-ctas">
+            <a href="catalog.html" class="btn btn-primary">Browse Store →</a>
+            <button class="btn btn-ghost" id="flash-deals-btn">⚡ Flash Deals</button>
+          </div>
+
+          <div class="hero-stats">
+            <div class="hero-stat">
+              <span class="hero-stat-num">2M+</span>
+              <span class="hero-stat-label">Orders</span>
+            </div>
+            <div class="hero-stat">
+              <span class="hero-stat-num">15K+</span>
+              <span class="hero-stat-label">Products</span>
+            </div>
+            <div class="hero-stat">
+              <span class="hero-stat-num">150+</span>
+              <span class="hero-stat-label">Countries</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right column: Promo Slider -->
+        <div id="promo-slider" class="promo-slider-wrap">
+          <div class="slider-track" id="slider-track"></div>
+          <div class="slider-controls">
+            <div class="slider-dots" id="slider-dots"></div>
+            <div class="slider-arrows">
+              <button class="slider-arrow" id="slider-prev" aria-label="Previous">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M15 18l-6-6 6-6"/>
+                </svg>
+              </button>
+              <button class="slider-arrow" id="slider-next" aria-label="Next">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M9 18l6-6-6-6"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── TRUST BAR ─────────────────────────────── -->
+    <div class="trust-bar">
+      <div class="trust-bar-inner">
+        <div class="trust-item">⚡ Instant Delivery</div>
+        <div class="trust-item">🔒 Secure Payments</div>
+        <div class="trust-item">₿ Crypto Accepted</div>
+        <div class="trust-item">🌍 150+ Countries</div>
+        <div class="trust-item">💬 24/7 Support</div>
+        <div class="trust-item">✅ Verified Keys</div>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- ── CATEGORIES ROW ─────────────────────── -->
+      <section class="section" style="padding-bottom:8px">
+        <div class="section-header">
+          <h2 class="section-title">Browse by Category</h2>
+        </div>
+        <div class="categories-scroll" id="categories-row"></div>
+      </section>
+
+      <!-- ── FEATURED PRODUCTS ──────────────────── -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">🔥 Hot Right Now</h2>
+          <a href="catalog.html" class="section-link">See all →</a>
+        </div>
+        <div class="products-grid" id="featured-grid"></div>
+      </section>
+
+      <!-- ── FLASH DEALS ────────────────────────── -->
+      <section class="section" id="flash-deals-section">
+        <div class="flash-header">
+          <h2 class="section-title">⚡ Flash Deals</h2>
+          <div class="flash-timer">
+            <div class="timer-block" id="timer-h">00</div>
+            <span class="timer-colon">:</span>
+            <div class="timer-block" id="timer-m">00</div>
+            <span class="timer-colon">:</span>
+            <div class="timer-block" id="timer-s">00</div>
+          </div>
+        </div>
+        <div class="deals-scroll" id="deals-scroll"></div>
+      </section>
+
+      <!-- ── NEWS & PROMOS ──────────────────────── -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">📰 News &amp; Promos</h2>
+          <a href="#" class="section-link">All news →</a>
+        </div>
+        <div class="news-scroll" id="news-scroll"></div>
+      </section>
+
+      <!-- ── BRANDS ─────────────────────────────── -->
+      <section class="section">
+        <div class="section-header">
+          <h2 class="section-title">🤝 Featured Brands</h2>
+        </div>
+        <div class="brands-row" id="brands-row"></div>
+      </section>
+    </div>
+  </main>
+
+  <!-- Footer mount -->
+  <div id="footer"></div>
+
+  <!-- Bottom nav mount (mobile) -->
+  <div id="bottom-nav"></div>
+
+  <!-- JS entry -->
+  <script type="module" src="js/main.js"></script>
+  <script type="module">
+    import { renderHome } from './js/pages/home.js';
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHome();
+
+      // Flash deals scroll button
+      document.getElementById('flash-deals-btn')?.addEventListener('click', () => {
+        document.getElementById('flash-deals-section')?.scrollIntoView({ behavior: 'smooth' });
+      });
+    });
+  </script>
+</body>
+</html>
