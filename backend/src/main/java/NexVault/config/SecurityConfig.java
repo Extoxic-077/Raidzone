@@ -1,49 +1,88 @@
 package NexVault.config;
 
+import NexVault.security.JwtAuthenticationFilter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
+import org.springframework.http.HttpMethod;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.http.SessionCreationPolicy;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 /**
- * Spring Security configuration for Phase 1 of HashVault.
+ * Spring Security configuration for HashVault Phase 2.
  *
- * <p>Phase 1 only exposes a public read-only product catalogue, so all requests
- * are permitted without authentication.  CSRF protection and session management
- * are disabled because the API is fully stateless.</p>
- *
- * <p>Phase 2 will replace {@code anyRequest().permitAll()} with role-based rules
- * once JWT authentication and the user registration endpoints are added.</p>
+ * <p>Registers the {@link JwtAuthenticationFilter} to parse Bearer tokens on every
+ * request, configures per-path authorisation rules, and keeps the session policy
+ * stateless (all state lives in the JWT).</p>
  */
 @Configuration
 @EnableWebSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final JwtAuthenticationFilter jwtAuthenticationFilter;
+
     /**
-     * Builds the {@link SecurityFilterChain} that governs all incoming HTTP requests.
+     * BCrypt password encoder bean used by {@link NexVault.service.AuthService}.
      *
-     * <p>Current rules:
+     * @return a {@link BCryptPasswordEncoder} with default strength (10)
+     */
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
+
+    /**
+     * Builds the {@link SecurityFilterChain} governing all incoming HTTP requests.
+     *
+     * <p>Authorisation rules:
      * <ul>
-     *   <li>CSRF disabled (stateless REST API – no session cookies)</li>
-     *   <li>Session creation policy: STATELESS</li>
-     *   <li>All requests are permitted without credentials</li>
+     *   <li>Public: auth endpoints, product/category reads, uploads, Swagger, actuator</li>
+     *   <li>ADMIN only: everything under {@code /api/v1/admin/**}</li>
+     *   <li>Authenticated: all other requests</li>
      * </ul>
      * </p>
      *
-     * @param http the {@link HttpSecurity} builder provided by Spring Security
-     * @return the fully configured {@link SecurityFilterChain}
+     * @param http the {@link HttpSecurity} builder
+     * @return the configured {@link SecurityFilterChain}
      * @throws Exception if any security configuration step fails
      */
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
+            .cors(Customizer.withDefaults())
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+            .authorizeHttpRequests(auth -> auth
+                    // ── Auth (public) ────────────────────────────────────────────
+                    .requestMatchers(
+                            "/api/v1/auth/register",
+                            "/api/v1/auth/login",
+                            "/api/v1/auth/refresh"
+                    ).permitAll()
+                    // ── Public read-only product catalogue ───────────────────────
+                    .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+                    // ── Static uploaded files ────────────────────────────────────
+                    .requestMatchers("/uploads/**").permitAll()
+                    // ── OpenAPI / Swagger ────────────────────────────────────────
+                    .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**").permitAll()
+                    // ── Actuator ─────────────────────────────────────────────────
+                    .requestMatchers("/actuator/**").permitAll()
+                    // ── Admin (requires ADMIN role) ──────────────────────────────
+                    .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+                    // ── Everything else requires authentication ──────────────────
+                    .anyRequest().authenticated()
+            )
+            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

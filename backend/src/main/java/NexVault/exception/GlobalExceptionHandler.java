@@ -74,6 +74,46 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles {@link DuplicateResourceException}: logs a WARN and returns 409 Conflict.
+     *
+     * @param ex      the exception carrying the duplicate field details
+     * @param request the current HTTP request
+     * @return 409 response with an {@link ApiResponse} error envelope
+     */
+    @ExceptionHandler(DuplicateResourceException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDuplicate(
+            DuplicateResourceException ex,
+            HttpServletRequest request) {
+
+        log.warn("Duplicate resource [{} {}]: {}",
+                request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.CONFLICT)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles {@link UnauthorizedException}: logs a WARN and returns 401 Unauthorized.
+     *
+     * @param ex      the exception carrying the auth failure reason
+     * @param request the current HTTP request
+     * @return 401 response with an {@link ApiResponse} error envelope
+     */
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<ApiResponse<Void>> handleUnauthorized(
+            UnauthorizedException ex,
+            HttpServletRequest request) {
+
+        log.warn("Unauthorized [{} {}]: {}",
+                request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.UNAUTHORIZED)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
      * Catch-all handler for unexpected exceptions: logs the full stack trace at
      * ERROR level (including the HTTP method and URL) and returns 500.
      *

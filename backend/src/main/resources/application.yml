@@ -39,6 +39,12 @@ spring:
       port: ${REDIS_PORT:6379}
       connect-timeout: 2000ms
 
+  # ── Multipart (file uploads) ─────────────────────────────────────────────────
+  servlet:
+    multipart:
+      max-file-size: 5MB
+      max-request-size: 10MB
+
   # ── Disable unused auto-configurations to keep Phase 1 lean ─────────────────
   autoconfigure:
     exclude:
@@ -67,6 +73,17 @@ management:
   info:
     env:
       enabled: true
+
+# ── App-specific settings ─────────────────────────────────────────────────────
+app:
+  jwt:
+    secret: ${JWT_SECRET:my-super-secret-key-that-is-at-least-32-characters-long-for-hmac-sha256}
+    access-token-expiry: 900000       # 15 minutes in ms
+    refresh-token-expiry: 604800000   # 7 days in ms
+  upload:
+    dir: ${UPLOAD_DIR:./uploads}
+    max-file-size: 5MB
+    allowed-types: image/jpeg,image/png,image/webp,image/gif
 
 # ── SpringDoc / Swagger UI ────────────────────────────────────────────────────
 springdoc:

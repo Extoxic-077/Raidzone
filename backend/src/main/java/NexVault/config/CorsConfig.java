@@ -1,38 +1,44 @@
 package NexVault.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.lang.NonNull;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 /**
  * CORS configuration for the HashVault API.
  *
- * <p>Phase 1 intentionally allows all origins, methods, and headers so that
- * the React frontend (running on any localhost port or deployed origin) can
- * reach the API without CORS errors during development and staging.</p>
- *
- * <p><strong>Note:</strong> Before going to production this class should be
- * replaced with origin allow-list restricted to the canonical frontend URL.</p>
+ * <p>Exposes a {@link CorsConfigurationSource} bean so that both Spring Security
+ * (which runs before the MVC layer) and Spring MVC share the same CORS rules.
+ * Without this, CORS pre-flight OPTIONS requests would be blocked by the security
+ * filter chain before reaching the MVC CORS handler.</p>
  */
 @Configuration
-public class CorsConfig implements WebMvcConfigurer {
+public class CorsConfig {
 
     /**
-     * Registers a permissive CORS mapping that applies to every API path.
+     * Defines the CORS policy applied to every endpoint.
      *
-     * <p>Allows all origins, all HTTP methods, all headers, and enables
-     * pre-flight response caching for 1 hour.</p>
+     * <p>Allows all {@code http://localhost:*} origins (covers any dev port),
+     * all standard HTTP methods, all headers, and credentials (needed for
+     * the HttpOnly refresh-token cookie).</p>
      *
-     * @param registry the Spring MVC CORS registry to configure
+     * @return a {@link CorsConfigurationSource} used by both Spring Security and Spring MVC
      */
-    @Override
-    public void addCorsMappings(@NonNull CorsRegistry registry) {
-        registry.addMapping("/**")
-                .allowedOriginPatterns("*")
-                .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
-                .allowedHeaders("*")
-                .allowCredentials(false)
-                .maxAge(3600);
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+        config.setAllowedOriginPatterns(List.of("http://localhost:*"));
+        config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
+        config.setAllowedHeaders(List.of("*"));
+        config.setAllowCredentials(true);
+        config.setMaxAge(3600L);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
