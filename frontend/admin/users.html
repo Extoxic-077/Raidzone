@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Users — Admin — NexVault</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/animations.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/pages/admin.css"/>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- Sidebar -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">NexVault <span>Admin Panel</span></div>
+    <div class="admin-nav-section">Overview</div>
+    <a href="index.html"    class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </a>
+    <div class="admin-nav-section">Catalogue</div>
+    <a href="products.html" class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+      Products
+    </a>
+    <div class="admin-nav-section">Users</div>
+    <a href="users.html" class="admin-nav-link active">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Users
+    </a>
+    <div class="admin-nav-back">
+      <a href="../index.html" class="admin-nav-link">
+        <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Store
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <h1 class="admin-page-title">Users</h1>
+    <p class="admin-page-subtitle">View and manage registered accounts</p>
+
+    <div class="admin-table-card">
+      <div class="admin-table-header">
+        <div class="admin-table-title" id="users-count">Users</div>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Name</th><th>Email</th><th>Role</th><th>Provider</th>
+              <th>Joined</th><th>Status</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="users-tbody">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-pagination" id="pagination"></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script type="module">
+import { showToast } from '../js/components/toast.js';
+import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
+import { adminGetUsers, adminUpdateUserRole } from '../js/api.js';
+
+await initAuth();
+if (!isLoggedIn() || !isAdmin()) window.location.href = '../login.html';
+
+let currentPage = 0;
+
+async function loadUsers(page = 0) {
+  const tbody = document.getElementById('users-tbody');
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
+  try {
+    const result = await adminGetUsers(page, 20);
+    const users  = result.content || [];
+    document.getElementById('users-count').textContent = `Users (${result.totalElements ?? users.length})`;
+    currentPage = result.number ?? page;
+    renderTable(users, tbody);
+    renderPagination(result);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
+  }
+}
+
+function formatDate(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('en-IN', { year:'numeric', month:'short', day:'numeric' }); }
+  catch { return '—'; }
+}
+
+function renderTable(users, tbody) {
+  if (!users.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">No users found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = users.map(u => {
+    const initial = (u.name || u.email || 'U')[0].toUpperCase();
+    const roleBadge = u.role === 'ADMIN'
+      ? `<span class="admin-badge badge-admin">ADMIN</span>`
+      : `<span class="admin-badge badge-user">USER</span>`;
+    const statusBadge = u.active !== false
+      ? `<span class="admin-badge badge-active">Active</span>`
+      : `<span class="admin-badge badge-inactive">Inactive</span>`;
+    const toggleRole = u.role === 'ADMIN' ? 'USER' : 'ADMIN';
+    const toggleLabel = u.role === 'ADMIN' ? 'Demote' : 'Promote';
+    return `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#fff;flex-shrink:0">${initial}</div>
+            <span style="color:var(--text-1);font-weight:500">${u.name || '—'}</span>
+          </div>
+        </td>
+        <td>${u.email}</td>
+        <td>${roleBadge}</td>
+        <td style="font-size:0.8rem;color:var(--text-3)">${u.provider || 'LOCAL'}</td>
+        <td style="font-size:0.8rem">${formatDate(u.createdAt)}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <button class="btn-table-action" onclick="changeRole('${u.id}','${toggleRole}','${u.name || u.email}')">${toggleLabel}</button>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+function renderPagination(page) {
+  const pag = document.getElementById('pagination');
+  if (!page || page.totalPages <= 1) { pag.innerHTML = ''; return; }
+  const prev = `<button class="page-btn" onclick="loadUsers(${page.number - 1})" ${page.first ? 'disabled' : ''}>← Prev</button>`;
+  const next = `<button class="page-btn" onclick="loadUsers(${page.number + 1})" ${page.last  ? 'disabled' : ''}>Next →</button>`;
+  pag.innerHTML = `${prev}<span class="page-info">Page ${page.number + 1} / ${page.totalPages}</span>${next}`;
+}
+
+window.changeRole = async function(id, role, name) {
+  if (!confirm(`Change ${name}'s role to ${role}?`)) return;
+  try {
+    await adminUpdateUserRole(id, role);
+    showToast(`${name} is now ${role}`, 'success');
+    loadUsers(currentPage);
+  } catch (err) { showToast(err.message, 'error'); }
+};
+
+loadUsers(0);
+</script>
+
+</body>
+</html>

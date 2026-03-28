@@ -269,10 +269,12 @@ async function renderFlashDeals() {
         ? Math.round((1 - p.price / p.originalPrice) * 100)
         : null;
 
+      const dealIconHTML = p.imageUrl
+        ? `<div class="deal-icon" style="background:${grad};overflow:hidden;"><img src="http://localhost:8080${p.imageUrl}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>`
+        : `<div class="deal-icon" style="background:${grad}"><span style="font-size:28px">${p.imageEmoji || p.emoji || '🎮'}</span></div>`;
+
       card.innerHTML = `
-        <div class="deal-icon" style="background:${grad}">
-          <span style="font-size:28px">${p.imageEmoji || p.emoji || '🎮'}</span>
-        </div>
+        ${dealIconHTML}
         <div class="deal-info">
           <div class="deal-name" title="${p.name}">${p.name}</div>
           <div class="deal-delivery">⚡ Instant Delivery</div>

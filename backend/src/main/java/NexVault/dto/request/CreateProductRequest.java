@@ -1,0 +1,25 @@
+package NexVault.dto.request;
+
+import jakarta.validation.constraints.*;
+
+import java.math.BigDecimal;
+import java.util.UUID;
+
+/**
+ * Admin request to create a new product.
+ */
+public record CreateProductRequest(
+        @NotBlank @Size(max = 255) String name,
+        @NotNull UUID categoryId,
+        @NotNull @DecimalMin("0.01") BigDecimal price,
+        BigDecimal originalPrice,
+        @Size(max = 255) String description,
+        String howToRedeem,
+        @Size(max = 100) String brand,
+        @Size(max = 100) String productType,
+        @Size(max = 50)  String region,
+        @Size(max = 10)  String emoji,
+        @Size(max = 20)  String badge,
+        boolean isFlashDeal,
+        int sortOrder
+) {}

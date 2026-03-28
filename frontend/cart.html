@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cart — NexVault</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/pages/cart.css"/>
+</head>
+<body>
+
+  <div id="navbar"></div>
+
+  <div class="cart-page">
+    <div class="cart-inner">
+      <div class="page-heading">
+        <h1 class="page-title">Shopping Cart</h1>
+        <span class="cart-item-count" id="cart-count-label">0 items</span>
+      </div>
+      <div class="cart-layout" id="cart-root">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <div id="bottom-nav"></div>
+
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { showToast }  from './js/components/toast.js';
+import { initAuth, isLoggedIn } from './js/auth.js';
+import { getCart, updateCartItem, removeCartItem, clearCart } from './js/api.js';
+
+await initAuth();
+if (!isLoggedIn()) {
+  sessionStorage.setItem('redirectAfterLogin', 'cart.html');
+  window.location.href = 'login.html';
+}
+
+await initNavbar();
+
+const root = document.getElementById('cart-root');
+const countLabel = document.getElementById('cart-count-label');
+
+async function load() {
+  root.innerHTML = '<div class="cart-loading">Loading cart…</div>';
+  try {
+    const cart = await getCart();
+    render(cart);
+  } catch (err) {
+    root.innerHTML = `<div class="cart-empty"><div class="cart-empty-icon">⚠️</div><p>${err.message}</p></div>`;
+  }
+}
+
+function render(cart) {
+  const count = cart.totalItems ?? 0;
+  countLabel.textContent = `${count} item${count !== 1 ? 's' : ''}`;
+
+  if (!cart.items || cart.items.length === 0) {
+    root.innerHTML = `
+      <div class="cart-empty">
+        <div class="cart-empty-icon">🛒</div>
+        <p>Your cart is empty</p>
+        <a href="catalog.html" class="btn-cart-shop">Browse Products</a>
+      </div>`;
+    return;
+  }
+
+  const itemsHtml = cart.items.map(item => {
+    const pct = item.originalPrice && item.price
+      ? Math.round((1 - item.price / item.originalPrice) * 100) : null;
+    const imgHtml = item.imageUrl
+      ? `<img src="http://localhost:8080${item.imageUrl}" alt="${item.name}" class="cart-item-img"/>`
+      : `<div class="cart-item-emoji">${item.imageEmoji || '🎮'}</div>`;
+    return `
+      <div class="cart-item" data-id="${item.productId}">
+        <div class="cart-item-thumb">${imgHtml}</div>
+        <div class="cart-item-details">
+          <div class="cart-item-name">${item.name}</div>
+          <div class="cart-item-price-row">
+            <span class="cart-item-price">₹${item.price.toLocaleString('en-IN')}</span>
+            ${item.originalPrice ? `<span class="cart-item-orig">₹${item.originalPrice.toLocaleString('en-IN')}</span>` : ''}
+            ${pct ? `<span class="cart-item-disc">-${pct}%</span>` : ''}
+          </div>
+        </div>
+        <div class="cart-item-controls">
+          <button class="qty-btn" data-action="dec" data-id="${item.productId}">−</button>
+          <span class="qty-val">${item.quantity}</span>
+          <button class="qty-btn" data-action="inc" data-id="${item.productId}">+</button>
+        </div>
+        <div class="cart-item-line">₹${item.lineTotal.toLocaleString('en-IN')}</div>
+        <button class="cart-remove-btn" data-id="${item.productId}" aria-label="Remove">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
+            <path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>
+          </svg>
+        </button>
+      </div>`;
+  }).join('');
+
+  root.innerHTML = `
+    <div class="cart-items-col">
+      <div class="cart-items-list">${itemsHtml}</div>
+      <button class="btn-clear-cart" id="clear-cart-btn">Clear Cart</button>
+    </div>
+    <div class="cart-summary-col">
+      <div class="cart-summary-card">
+        <div class="cart-summary-title">Order Summary</div>
+        <div class="cart-summary-row"><span>Subtotal (${count} items)</span><span>₹${cart.subtotal.toLocaleString('en-IN')}</span></div>
+        <div class="cart-summary-row"><span>Delivery</span><span class="text-success">Free</span></div>
+        <div class="cart-summary-divider"></div>
+        <div class="cart-summary-row total"><span>Total</span><span>₹${cart.subtotal.toLocaleString('en-IN')}</span></div>
+        <button class="btn-checkout" id="checkout-btn">Proceed to Checkout</button>
+        <div class="cart-summary-note">🔐 Secure checkout · Instant delivery</div>
+      </div>
+    </div>`;
+
+  // Qty controls
+  root.querySelectorAll('.qty-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      const action = btn.dataset.action;
+      const item = cart.items.find(i => i.productId === id);
+      if (!item) return;
+      const newQty = action === 'inc' ? item.quantity + 1 : item.quantity - 1;
+      try {
+        const updated = await updateCartItem(id, newQty);
+        render(updated);
+      } catch (err) { showToast(err.message, 'error'); }
+    });
+  });
+
+  // Remove buttons
+  root.querySelectorAll('.cart-remove-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try {
+        const updated = await removeCartItem(btn.dataset.id);
+        render(updated);
+        showToast('Item removed', 'info');
+      } catch (err) { showToast(err.message, 'error'); }
+    });
+  });
+
+  // Clear cart
+  document.getElementById('clear-cart-btn')?.addEventListener('click', async () => {
+    try {
+      await clearCart();
+      showToast('Cart cleared', 'info');
+      load();
+    } catch (err) { showToast(err.message, 'error'); }
+  });
+
+  // Checkout placeholder
+  document.getElementById('checkout-btn')?.addEventListener('click', () => {
+    showToast('Checkout coming in Phase 4', 'info');
+  });
+}
+
+load();
+</script>
+
+</body>
+</html>

@@ -2,6 +2,7 @@ package NexVault.controller;
 
 import NexVault.dto.request.LoginRequest;
 import NexVault.dto.request.RegisterRequest;
+import NexVault.dto.request.UpdateProfileRequest;
 import NexVault.dto.response.ApiResponse;
 import NexVault.dto.response.AuthResponse;
 import NexVault.dto.response.UserResponse;
@@ -134,6 +135,23 @@ public class AuthController {
         UUID userId = (UUID) authentication.getPrincipal();
         UserResponse user = authService.getCurrentUser(userId);
         return ResponseEntity.ok(ApiResponse.ok(user));
+    }
+
+    /**
+     * Updates the authenticated user's profile (name, phone, nickname).
+     *
+     * @param request        the fields to update
+     * @param authentication the current user's security context
+     * @return 200 OK with the updated {@link UserResponse}
+     */
+    @PutMapping("/me")
+    @Operation(summary = "Update the current user's profile")
+    public ResponseEntity<ApiResponse<UserResponse>> updateMe(
+            @Valid @RequestBody UpdateProfileRequest request,
+            Authentication authentication) {
+        UUID userId = (UUID) authentication.getPrincipal();
+        UserResponse user = authService.updateProfile(userId, request);
+        return ResponseEntity.ok(ApiResponse.ok(user, "Profile updated"));
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

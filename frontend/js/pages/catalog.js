@@ -167,7 +167,21 @@ async function fetchAndRenderProducts(append = false) {
 
     if (!append) totalCount = total;
 
-    if (countEl) countEl.textContent = `Showing ${totalCount > 0 ? totalCount : items.length} products`;
+    if (countEl) {
+      const base = `Showing ${totalCount > 0 ? totalCount : items.length} product${(totalCount || items.length) !== 1 ? 's' : ''}`;
+      if (filters.search) {
+        countEl.innerHTML = `${base} for "<strong>${filters.search}</strong>"
+          <button id="clear-search-btn" style="margin-left:8px;background:none;border:none;color:var(--violet-light);cursor:pointer;font-size:0.8rem;text-decoration:underline;">clear</button>`;
+        document.getElementById('clear-search-btn')?.addEventListener('click', () => {
+          filters.search = '';
+          const si = document.getElementById('catalog-search');
+          if (si) si.value = '';
+          applyAndFetch();
+        });
+      } else {
+        countEl.textContent = base;
+      }
+    }
 
     if (items.length === 0 && !append) {
       grid.innerHTML = '';

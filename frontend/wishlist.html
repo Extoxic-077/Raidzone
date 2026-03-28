@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wishlist — NexVault</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/pages/wishlist.css"/>
+</head>
+<body>
+
+  <div id="navbar"></div>
+
+  <div class="wishlist-page">
+    <div class="wishlist-inner">
+      <div class="page-heading">
+        <h1 class="page-title">My Wishlist</h1>
+        <span class="cart-item-count" id="wishlist-count-label">0 items</span>
+      </div>
+      <div id="wishlist-root" class="wishlist-grid">
+        <!-- Rendered by JS -->
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <div id="bottom-nav"></div>
+
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { createProductCard } from './js/components/productCard.js';
+import { showToast }  from './js/components/toast.js';
+import { initAuth, isLoggedIn } from './js/auth.js';
+import { getWishlist } from './js/api.js';
+
+await initAuth();
+if (!isLoggedIn()) {
+  sessionStorage.setItem('redirectAfterLogin', 'wishlist.html');
+  window.location.href = 'login.html';
+}
+
+await initNavbar();
+
+const root = document.getElementById('wishlist-root');
+const label = document.getElementById('wishlist-count-label');
+
+async function load() {
+  root.innerHTML = '<div style="padding:48px;text-align:center;color:var(--text-3)">Loading…</div>';
+  try {
+    const products = await getWishlist();
+    label.textContent = `${products.length} item${products.length !== 1 ? 's' : ''}`;
+
+    if (products.length === 0) {
+      root.innerHTML = `
+        <div class="wishlist-empty">
+          <div class="wishlist-empty-icon">♡</div>
+          <p>Your wishlist is empty</p>
+          <a href="catalog.html" class="btn-cart-shop">Discover Products</a>
+        </div>`;
+      return;
+    }
+
+    root.innerHTML = '';
+    products.forEach(p => {
+      const card = createProductCard(p);
+      root.appendChild(card);
+    });
+  } catch (err) {
+    root.innerHTML = `<div style="padding:48px;text-align:center;color:var(--danger)">${err.message}</div>`;
+    showToast('Failed to load wishlist', 'error');
+  }
+}
+
+load();
+</script>
+
+</body>
+</html>

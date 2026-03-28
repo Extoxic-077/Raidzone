@@ -9,6 +9,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
+import java.io.IOException;
 import java.util.stream.Collectors;
 
 /**
@@ -111,6 +112,53 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .status(HttpStatus.UNAUTHORIZED)
                 .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles {@link PurchaseRequiredException}: returns 403 Forbidden with a clear message.
+     * Thrown when a user tries to review a product they have not purchased.
+     */
+    @ExceptionHandler(PurchaseRequiredException.class)
+    public ResponseEntity<ApiResponse<Void>> handlePurchaseRequired(
+            PurchaseRequiredException ex,
+            HttpServletRequest request) {
+
+        log.warn("Review without purchase [{} {}]", request.getMethod(), request.getRequestURI());
+
+        return ResponseEntity
+                .status(HttpStatus.FORBIDDEN)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles {@link IllegalArgumentException}: returns 400 with the actual message.
+     * Covers file-type/size validation errors and null ID arguments from Spring Data.
+     */
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalArgument(
+            IllegalArgumentException ex,
+            HttpServletRequest request) {
+
+        log.warn("Bad argument [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles {@link IOException} from file storage operations: returns 500 with a clear message.
+     */
+    @ExceptionHandler(IOException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIo(
+            IOException ex,
+            HttpServletRequest request) {
+
+        log.error("File IO error [{} {}]", request.getMethod(), request.getRequestURI(), ex);
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(ApiResponse.error("Failed to save file. Please try again."));
     }
 
     /**

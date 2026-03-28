@@ -78,6 +78,27 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
      * @param pageable   pagination and sorting parameters
      * @return a {@link Page} of products matching all supplied filters
      */
+    long countByIsActiveTrue();
+
+    /**
+     * Full-text search across product name, description, brand, and category name.
+     * Accepts an optional categoryId filter alongside the search term.
+     */
+    @Query("""
+            SELECT p FROM Product p
+            WHERE p.isActive = true
+              AND (:categoryId IS NULL OR p.category.id = :categoryId)
+              AND (
+                LOWER(p.name)        LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(p.brand)    LIKE LOWER(CONCAT('%', :query, '%'))
+              )
+            """)
+    Page<Product> searchProducts(
+            @Param("query")      String query,
+            @Param("categoryId") UUID categoryId,
+            Pageable pageable);
+
     @Query("""
             SELECT p FROM Product p
             WHERE p.isActive = true

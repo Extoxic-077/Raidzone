@@ -2,6 +2,7 @@ package NexVault.service;
 
 import NexVault.dto.request.LoginRequest;
 import NexVault.dto.request.RegisterRequest;
+import NexVault.dto.request.UpdateProfileRequest;
 import NexVault.dto.response.AuthResponse;
 import NexVault.dto.response.UserResponse;
 import NexVault.exception.DuplicateResourceException;
@@ -143,6 +144,41 @@ public class AuthService {
         jwtUtil.generateRefreshToken(user.getId());
         long expiresIn = jwtUtil.getAccessTokenExpiry() / 1000;
         return new AuthResponse(accessToken, "Bearer", expiresIn, UserResponse.from(user));
+    }
+
+    /**
+     * Updates mutable profile fields (name, phone, nickname) for an authenticated user.
+     *
+     * @param userId  the UUID of the user to update
+     * @param request the fields to update (all optional — null means no change)
+     * @return the updated {@link UserResponse}
+     * @throws DuplicateResourceException if the requested nickname is already taken
+     * @throws ResourceNotFoundException  if the user no longer exists
+     */
+    @Transactional
+    public UserResponse updateProfile(UUID userId, UpdateProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        if (request.nickname() != null && !request.nickname().isBlank()
+                && !request.nickname().equals(user.getNickname())
+                && userRepository.existsByNickname(request.nickname())) {
+            throw new DuplicateResourceException("User", "nickname", request.nickname());
+        }
+
+        if (request.name() != null && !request.name().isBlank()) {
+            user.setName(request.name());
+        }
+        if (request.phone() != null) {
+            user.setPhone(request.phone().isBlank() ? null : request.phone());
+        }
+        if (request.nickname() != null) {
+            user.setNickname(request.nickname().isBlank() ? null : request.nickname());
+        }
+
+        user = userRepository.save(user);
+        log.info("User {} updated profile", userId);
+        return UserResponse.from(user);
     }
 
     /**

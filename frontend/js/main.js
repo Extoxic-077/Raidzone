@@ -1,6 +1,7 @@
 import { initNavbar } from './components/navbar.js';
 import { initFooter } from './components/footer.js';
 import { showToast }  from './components/toast.js';
+import { isLoggedIn } from './auth.js';
 
 function initBottomNav() {
   const el = document.getElementById('bottom-nav');
@@ -8,8 +9,9 @@ function initBottomNav() {
 
   const currentPage = window.location.pathname;
   let activePage = 'home';
-  if (currentPage.endsWith('catalog.html')) activePage = 'catalog';
+  if (currentPage.endsWith('catalog.html'))  activePage = 'catalog';
   else if (currentPage.endsWith('product.html')) activePage = 'product';
+  else if (currentPage.endsWith('profile.html')) activePage = 'profile';
 
   el.innerHTML = `
     <div class="bottom-nav-items">
@@ -45,7 +47,7 @@ function initBottomNav() {
         <span>Wishlist</span>
       </button>
 
-      <button class="bn-item" data-page="profile" aria-label="Profile">
+      <button class="bn-item${activePage === 'profile' ? ' active' : ''}" data-page="profile" aria-label="Profile">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
           <circle cx="12" cy="7" r="4"/>
@@ -62,11 +64,31 @@ function initBottomNav() {
       item.addEventListener('animationend', () => item.classList.remove('nav-animate'), { once: true });
 
       switch (page) {
-        case 'home':     window.location.href = 'index.html'; break;
-        case 'catalog':  window.location.href = 'catalog.html'; break;
-        case 'cart':     showToast('Cart coming in Phase 3', 'info'); break;
-        case 'wishlist': showToast('Wishlist coming in Phase 3', 'info'); break;
-        case 'profile':  showToast('Login coming in Phase 3', 'info'); break;
+        case 'home':
+          window.location.href = 'index.html';
+          break;
+        case 'catalog':
+          window.location.href = 'catalog.html';
+          break;
+        case 'cart':
+          if (!isLoggedIn()) {
+            showToast('Please sign in first', 'info');
+            setTimeout(() => { window.location.href = 'login.html'; }, 800);
+          } else {
+            window.location.href = 'cart.html';
+          }
+          break;
+        case 'wishlist':
+          if (!isLoggedIn()) {
+            showToast('Please sign in first', 'info');
+            setTimeout(() => { window.location.href = 'login.html'; }, 800);
+          } else {
+            window.location.href = 'wishlist.html';
+          }
+          break;
+        case 'profile':
+          window.location.href = isLoggedIn() ? 'profile.html' : 'login.html';
+          break;
       }
     });
   });
@@ -83,8 +105,8 @@ function syncCartBadges() {
   observer.observe(desktop, { childList: true, characterData: true, subtree: true });
 }
 
-document.addEventListener('DOMContentLoaded', () => {
-  initNavbar();
+document.addEventListener('DOMContentLoaded', async () => {
+  await initNavbar();
   initFooter();
   initBottomNav();
   syncCartBadges();

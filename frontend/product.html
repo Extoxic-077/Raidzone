@@ -36,7 +36,9 @@
   <script type="module" src="js/main.js"></script>
   <script type="module">
     import { renderProduct } from './js/pages/product.js';
-    document.addEventListener('DOMContentLoaded', () => renderProduct());
+    import { initAuth } from './js/auth.js';
+    await initAuth();
+    renderProduct();
   </script>
 </body>
 </html>

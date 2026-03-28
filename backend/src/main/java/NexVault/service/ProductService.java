@@ -8,6 +8,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,20 +54,34 @@ public class ProductService {
      */
     public Page<ProductResponse> getAllProducts(
             int page, int size,
-            UUID categoryId, BigDecimal minPrice, BigDecimal maxPrice) {
+            UUID categoryId, BigDecimal minPrice, BigDecimal maxPrice,
+            String search, String sort) {
 
         int cappedSize = Math.min(size, MAX_PAGE_SIZE);
-        Pageable pageable = PageRequest.of(page, cappedSize);
+        Sort sorting = buildSort(sort);
+        Pageable pageable = PageRequest.of(page, cappedSize, sorting);
 
-        log.info("getAllProducts page={} size={} categoryId={} minPrice={} maxPrice={}",
-                page, cappedSize, categoryId, minPrice, maxPrice);
+        log.info("getAllProducts page={} size={} categoryId={} minPrice={} maxPrice={} search={} sort={}",
+                page, cappedSize, categoryId, minPrice, maxPrice, search, sort);
 
         Page<ProductResponse> result;
 
-        if (categoryId == null && minPrice == null && maxPrice == null) {
+        if (search != null && !search.isBlank()) {
             result = productRepository
-                    .findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc(pageable)
+                    .searchProducts(search.trim(), categoryId, pageable)
                     .map(ProductResponse::from);
+        } else if (categoryId == null && minPrice == null && maxPrice == null) {
+            // Use the fast sorted query when there are no filters
+            if (sorting.equals(Sort.by(Sort.Direction.ASC, "sortOrder"))) {
+                // default order — use dedicated method (no pageable sort clash)
+                result = productRepository
+                        .findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc(PageRequest.of(page, cappedSize))
+                        .map(ProductResponse::from);
+            } else {
+                result = productRepository
+                        .findByFilters(null, null, null, pageable)
+                        .map(ProductResponse::from);
+            }
         } else {
             result = productRepository
                     .findByFilters(categoryId, minPrice, maxPrice, pageable)
@@ -77,6 +92,18 @@ public class ProductService {
                 result.getTotalElements(), result.getNumber(), result.getTotalPages());
 
         return result;
+    }
+
+    private Sort buildSort(String sort) {
+        if (sort == null) return Sort.by(Sort.Direction.ASC, "sortOrder");
+        return switch (sort) {
+            case "price_asc"    -> Sort.by(Sort.Direction.ASC,  "price");
+            case "price_desc"   -> Sort.by(Sort.Direction.DESC, "price");
+            case "rating_desc"  -> Sort.by(Sort.Direction.DESC, "avgRating");
+            case "newest"       -> Sort.by(Sort.Direction.DESC, "createdAt");
+            case "popular"      -> Sort.by(Sort.Direction.DESC, "reviewCount");
+            default             -> Sort.by(Sort.Direction.ASC,  "sortOrder");
+        };
     }
 
     /**

@@ -1,4 +1,6 @@
 import { showToast } from './toast.js';
+import { isLoggedIn } from '../auth.js';
+import { addToCart, toggleWishlist } from '../api.js';
 
 const CATEGORY_GRADIENTS = {
   'PC Games':       'linear-gradient(135deg, #0f0a2e, #1a0a3e)',
@@ -75,11 +77,21 @@ export function createProductCard(product) {
     imgArea.appendChild(badge);
   }
 
-  // Emoji
-  const emoji = document.createElement('div');
-  emoji.className = 'card-emoji';
-  emoji.textContent = product.imageEmoji || product.emoji || '🎮';
-  imgArea.appendChild(emoji);
+  // Image or emoji fallback
+  if (product.imageUrl) {
+    const img = document.createElement('img');
+    img.src = 'http://localhost:8080' + product.imageUrl;
+    img.alt = product.name;
+    img.loading = 'lazy';
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:inherit;';
+    imgArea.style.position = 'relative';
+    imgArea.appendChild(img);
+  } else {
+    const emoji = document.createElement('div');
+    emoji.className = 'card-emoji';
+    emoji.textContent = product.imageEmoji || product.emoji || '🎮';
+    imgArea.appendChild(emoji);
+  }
 
   // Wishlist button
   const wishBtn = document.createElement('button');
@@ -87,14 +99,24 @@ export function createProductCard(product) {
   wishBtn.setAttribute('aria-label', 'Add to wishlist');
   wishBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
 
-  wishBtn.addEventListener('click', (e) => {
+  wishBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    wishBtn.classList.toggle('active');
-    wishBtn.classList.add('pop');
-    wishBtn.addEventListener('animationend', () => wishBtn.classList.remove('pop'), { once: true });
-    burstParticles(wishBtn);
-    const isActive = wishBtn.classList.contains('active');
-    showToast(isActive ? `Added to wishlist` : `Removed from wishlist`, isActive ? 'success' : 'info');
+    if (!isLoggedIn()) {
+      showToast('Please sign in first', 'info');
+      setTimeout(() => { window.location.href = 'login.html'; }, 800);
+      return;
+    }
+    try {
+      const result = await toggleWishlist(product.id);
+      const added = result?.added ?? !wishBtn.classList.contains('active');
+      wishBtn.classList.toggle('active', added);
+      wishBtn.classList.add('pop');
+      wishBtn.addEventListener('animationend', () => wishBtn.classList.remove('pop'), { once: true });
+      burstParticles(wishBtn);
+      showToast(added ? 'Added to wishlist' : 'Removed from wishlist', added ? 'success' : 'info');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   });
 
   imgArea.appendChild(wishBtn);
@@ -144,12 +166,22 @@ export function createProductCard(product) {
   addBtn.setAttribute('aria-label', 'Add to cart');
   addBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>`;
 
-  addBtn.addEventListener('click', (e) => {
+  addBtn.addEventListener('click', async (e) => {
     e.stopPropagation();
-    addBtn.classList.add('click');
-    addBtn.addEventListener('animationend', () => addBtn.classList.remove('click'), { once: true });
-    animateCartBadge();
-    showToast(`${product.name} added to cart`, 'success');
+    if (!isLoggedIn()) {
+      showToast('Please sign in first', 'info');
+      setTimeout(() => { window.location.href = 'login.html'; }, 800);
+      return;
+    }
+    try {
+      await addToCart(product.id, 1);
+      addBtn.classList.add('click');
+      addBtn.addEventListener('animationend', () => addBtn.classList.remove('click'), { once: true });
+      animateCartBadge();
+      showToast(`${product.name} added to cart`, 'success');
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
   });
 
   footer.appendChild(priceBlock);
