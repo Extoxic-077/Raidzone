@@ -1,13 +1,16 @@
 package NexVault.controller;
 
+import NexVault.dto.request.CreateCategoryRequest;
 import NexVault.dto.request.CreateProductRequest;
 import NexVault.dto.request.UpdateProductRequest;
 import NexVault.dto.response.*;
 import NexVault.exception.ResourceNotFoundException;
+import NexVault.model.Category;
 import NexVault.model.Product;
 import NexVault.model.User;
 import NexVault.repository.CategoryRepository;
 import NexVault.repository.ProductRepository;
+import NexVault.repository.PurchaseRepository;
 import NexVault.repository.UserRepository;
 import NexVault.service.AdminProductService;
 import NexVault.service.FileStorageService;
@@ -25,15 +28,12 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.YearMonth;
+import java.time.Year;
+import java.util.List;
 import java.util.UUID;
 
-/**
- * Administration endpoints for HashVault, restricted to users with the ADMIN role.
- *
- * <p>Security is enforced at the {@link NexVault.config.SecurityConfig} level
- * ({@code .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")}), so no
- * additional annotations are needed on each method.</p>
- */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -45,20 +45,84 @@ public class AdminController {
     private final ProductRepository productRepository;
     private final UserRepository userRepository;
     private final CategoryRepository categoryRepository;
+    private final PurchaseRepository purchaseRepository;
     private final FileStorageService fileStorageService;
     private final AdminProductService adminProductService;
 
-    // ── Dashboard ─────────────────────────────────────────────────────────────
+    // ── Dashboard stats ───────────────────────────────────────────────────────
 
     @GetMapping("/stats")
     @Operation(summary = "Get dashboard statistics (ADMIN)")
     public ResponseEntity<ApiResponse<DashboardStatsResponse>> getStats() {
-        long totalUsers     = userRepository.count();
-        long totalProducts  = productRepository.count();
-        long activeProducts = productRepository.countByIsActiveTrue();
+        long totalUsers      = userRepository.count();
+        long totalProducts   = productRepository.count();
+        long activeProducts  = productRepository.countByIsActiveTrue();
         long totalCategories = categoryRepository.count();
         return ResponseEntity.ok(ApiResponse.ok(
                 new DashboardStatsResponse(totalUsers, totalProducts, activeProducts, totalCategories)));
+    }
+
+    // ── Analytics ─────────────────────────────────────────────────────────────
+
+    /**
+     * period values: THIS_MONTH, PREV_MONTH, THIS_YEAR, PREV_YEAR
+     */
+    @GetMapping("/analytics")
+    @Operation(summary = "Get sales analytics (ADMIN)")
+    public ResponseEntity<ApiResponse<AnalyticsResponse>> getAnalytics(
+            @RequestParam(defaultValue = "THIS_MONTH") String period) {
+
+        LocalDateTime[] range = resolvePeriod(period);
+        LocalDateTime from = range[0];
+        LocalDateTime to   = range[1];
+
+        long totalSales    = purchaseRepository.countByCreatedAtBetween(from, to);
+        Double rev         = purchaseRepository.sumRevenueByDateRange(from, to);
+        double totalRevenue = rev != null ? rev : 0.0;
+
+        List<Object[]> topRaw  = purchaseRepository.findTopProductsByDateRange(from, to);
+        List<Object[]> dailyRaw = purchaseRepository.findDailySalesByDateRange(from, to);
+
+        List<AnalyticsResponse.ProductSalesItem> topProducts = topRaw.stream().map(row -> {
+            String pid      = row[0] != null ? row[0].toString() : "";
+            String pname    = row[1] != null ? row[1].toString() : "";
+            String catName  = row[2] != null ? row[2].toString() : "";
+            long cnt        = row[3] != null ? ((Number) row[3]).longValue() : 0L;
+            double revenue  = row[4] != null ? ((Number) row[4]).doubleValue() : 0.0;
+            return new AnalyticsResponse.ProductSalesItem(pid, pname, catName, cnt, revenue);
+        }).toList();
+
+        List<AnalyticsResponse.DailySalesItem> salesByDate = dailyRaw.stream().map(row -> {
+            String date    = row[0] != null ? row[0].toString() : "";
+            long cnt       = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+            double revenue = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
+            return new AnalyticsResponse.DailySalesItem(date, cnt, revenue);
+        }).toList();
+
+        return ResponseEntity.ok(ApiResponse.ok(
+                new AnalyticsResponse(totalSales, totalRevenue, topProducts, salesByDate)));
+    }
+
+    private LocalDateTime[] resolvePeriod(String period) {
+        LocalDateTime now = LocalDateTime.now();
+        return switch (period) {
+            case "PREV_MONTH" -> {
+                YearMonth prev = YearMonth.now().minusMonths(1);
+                yield new LocalDateTime[]{ prev.atDay(1).atStartOfDay(), prev.atEndOfMonth().atTime(23, 59, 59) };
+            }
+            case "THIS_YEAR" -> {
+                int y = Year.now().getValue();
+                yield new LocalDateTime[]{ LocalDateTime.of(y, 1, 1, 0, 0), now };
+            }
+            case "PREV_YEAR" -> {
+                int y = Year.now().getValue() - 1;
+                yield new LocalDateTime[]{ LocalDateTime.of(y, 1, 1, 0, 0), LocalDateTime.of(y, 12, 31, 23, 59, 59) };
+            }
+            default -> { // THIS_MONTH
+                YearMonth cur = YearMonth.now();
+                yield new LocalDateTime[]{ cur.atDay(1).atStartOfDay(), now };
+            }
+        };
     }
 
     // ── Product management ────────────────────────────────────────────────────
@@ -94,8 +158,6 @@ public class AdminController {
         return ResponseEntity.ok(ApiResponse.ok(null, "Product deactivated"));
     }
 
-    // ── Image upload / delete ─────────────────────────────────────────────────
-
     @PostMapping("/products/{id}/image")
     @Transactional
     @Operation(summary = "Upload a product image (ADMIN)")
@@ -105,15 +167,12 @@ public class AdminController {
 
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id));
-
         if (product.getImageUrl() != null) {
             fileStorageService.deleteImage(product.getImageUrl());
         }
         String imageUrl = fileStorageService.storeProductImage(file, product.getSlug());
         product.setImageUrl(imageUrl);
         productRepository.save(product);
-
-        log.info("Updated image for product {} → {}", id, imageUrl);
         return ResponseEntity.ok(ApiResponse.ok(ProductResponse.from(product), "Image uploaded successfully"));
     }
 
@@ -123,15 +182,70 @@ public class AdminController {
     public ResponseEntity<ApiResponse<ProductResponse>> deleteProductImage(@PathVariable UUID id) {
         Product product = productRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Product", id));
-
         if (product.getImageUrl() != null) {
             fileStorageService.deleteImage(product.getImageUrl());
             product.setImageUrl(null);
             productRepository.save(product);
         }
-
-        log.info("Deleted image for product {}", id);
         return ResponseEntity.ok(ApiResponse.ok(ProductResponse.from(product), "Image deleted"));
+    }
+
+    // ── Category management ───────────────────────────────────────────────────
+
+    @GetMapping("/categories")
+    @Operation(summary = "List all categories including inactive (ADMIN)")
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> listCategories() {
+        List<CategoryResponse> categories = categoryRepository
+                .findAll(org.springframework.data.domain.Sort.by("sortOrder").ascending())
+                .stream()
+                .map(CategoryResponse::from)
+                .toList();
+        return ResponseEntity.ok(ApiResponse.ok(categories));
+    }
+
+    @PostMapping("/categories")
+    @Transactional
+    @Operation(summary = "Create a new category (ADMIN)")
+    public ResponseEntity<ApiResponse<CategoryResponse>> createCategory(
+            @Valid @RequestBody CreateCategoryRequest req) {
+        Category cat = new Category();
+        cat.setName(req.name());
+        cat.setSlug(req.slug());
+        cat.setDescription(req.description());
+        cat.setEmoji(req.emoji());
+        cat.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
+        cat.setIsActive(req.isActive() != null ? req.isActive() : true);
+        categoryRepository.save(cat);
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(CategoryResponse.from(cat), "Category created"));
+    }
+
+    @PutMapping("/categories/{id}")
+    @Transactional
+    @Operation(summary = "Update a category (ADMIN)")
+    public ResponseEntity<ApiResponse<CategoryResponse>> updateCategory(
+            @PathVariable UUID id,
+            @Valid @RequestBody CreateCategoryRequest req) {
+        Category cat = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+        cat.setName(req.name());
+        cat.setSlug(req.slug());
+        cat.setDescription(req.description());
+        cat.setEmoji(req.emoji());
+        if (req.sortOrder() != null) cat.setSortOrder(req.sortOrder());
+        if (req.isActive() != null)  cat.setIsActive(req.isActive());
+        categoryRepository.save(cat);
+        return ResponseEntity.ok(ApiResponse.ok(CategoryResponse.from(cat)));
+    }
+
+    @DeleteMapping("/categories/{id}")
+    @Transactional
+    @Operation(summary = "Deactivate a category (ADMIN)")
+    public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable UUID id) {
+        Category cat = categoryRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
+        cat.setIsActive(false);
+        categoryRepository.save(cat);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Category deactivated"));
     }
 
     // ── User management ───────────────────────────────────────────────────────
@@ -161,5 +275,32 @@ public class AdminController {
             userRepository.save(user);
         }
         return ResponseEntity.ok(ApiResponse.ok(UserResponse.from(user)));
+    }
+
+    @PutMapping("/users/{id}/status")
+    @Transactional
+    @Operation(summary = "Toggle a user's active status (ADMIN)")
+    public ResponseEntity<ApiResponse<UserResponse>> toggleUserStatus(
+            @PathVariable UUID id,
+            @RequestBody java.util.Map<String, Boolean> body) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("User", id));
+        Boolean active = body.get("isActive");
+        if (active != null) {
+            user.setIsActive(active);
+            userRepository.save(user);
+        }
+        return ResponseEntity.ok(ApiResponse.ok(UserResponse.from(user)));
+    }
+
+    @DeleteMapping("/users/{id}")
+    @Transactional
+    @Operation(summary = "Permanently delete a user (ADMIN)")
+    public ResponseEntity<ApiResponse<Void>> deleteUser(@PathVariable UUID id) {
+        if (!userRepository.existsById(id)) {
+            throw new ResourceNotFoundException("User", id);
+        }
+        userRepository.deleteById(id);
+        return ResponseEntity.ok(ApiResponse.ok(null, "User deleted"));
     }
 }

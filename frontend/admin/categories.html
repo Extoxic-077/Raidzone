@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Categories — Admin — NexVault</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/animations.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/pages/admin.css"/>
+</head>
+<body>
+
+<div class="admin-layout">
+
+  <!-- Sidebar (desktop) -->
+  <aside class="admin-sidebar">
+    <div class="admin-logo">NexVault <span>Admin Panel</span></div>
+    <div class="admin-nav-section">Overview</div>
+    <a href="index.html" class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
+    </a>
+    <div class="admin-nav-section">Catalogue</div>
+    <a href="products.html" class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+      Products
+    </a>
+    <a href="categories.html" class="admin-nav-link active">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Categories
+    </a>
+    <div class="admin-nav-section">Users</div>
+    <a href="users.html" class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+      Users
+    </a>
+    <div class="admin-nav-back">
+      <a href="../index.html" class="admin-nav-link">
+        <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+        Back to Store
+      </a>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="admin-main">
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Categories</span></div>
+    <h1 class="admin-page-title" style="margin-top:28px">Categories</h1>
+    <p class="admin-page-subtitle">Create and manage product categories</p>
+
+    <div class="admin-table-card">
+      <div class="admin-table-header">
+        <div class="admin-table-title" id="cat-count">Categories</div>
+        <button class="btn-admin-primary" id="add-cat-btn">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Add Category
+        </button>
+      </div>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>Emoji</th><th>Name</th><th>Slug</th><th>Order</th><th>Status</th><th>Actions</th></tr>
+          </thead>
+          <tbody id="cat-tbody">
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Category Modal -->
+<div class="admin-modal-overlay" id="cat-modal" style="display:none">
+  <div class="admin-modal" style="max-width:480px">
+    <h2 class="admin-modal-title" id="modal-title">Add Category</h2>
+    <form id="cat-form">
+      <div class="admin-form-grid">
+        <div class="admin-form-group">
+          <label class="admin-form-label">Name *</label>
+          <input class="admin-form-input" name="name" required placeholder="e.g. Gift Cards"/>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Slug *</label>
+          <input class="admin-form-input" name="slug" required placeholder="e.g. gift-cards"/>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Emoji</label>
+          <input class="admin-form-input" name="emoji" placeholder="🎁" maxlength="10"/>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Sort Order</label>
+          <input class="admin-form-input" name="sortOrder" type="number" value="0" min="0"/>
+        </div>
+        <div class="admin-form-group full">
+          <label class="admin-form-label">Description</label>
+          <textarea class="admin-form-textarea" name="description" rows="2" placeholder="Short description…"></textarea>
+        </div>
+        <div class="admin-form-group full">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text-2);font-size:0.875rem;">
+            <input type="checkbox" name="isActive" checked style="width:16px;height:16px;accent-color:var(--violet)"/>
+            Active (visible on storefront)
+          </label>
+        </div>
+      </div>
+      <div class="admin-modal-footer">
+        <button type="button" class="btn-admin-cancel" id="modal-cancel">Cancel</button>
+        <button type="submit" class="btn-admin-primary" id="modal-submit">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Mobile bottom nav -->
+<nav class="admin-bottom-nav">
+  <a href="index.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Analytics
+  </a>
+  <a href="products.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+    Products
+  </a>
+  <a href="categories.html" class="admin-bottom-tab active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Categories
+  </a>
+  <a href="users.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Users
+  </a>
+</nav>
+
+<div id="toast-container"></div>
+
+<script type="module">
+import { showToast } from '../js/components/toast.js';
+import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
+import { adminGetCategories, adminCreateCategory, adminUpdateCategory, adminDeleteCategory } from '../js/api.js';
+
+await initAuth();
+if (!isLoggedIn() || !isAdmin()) window.location.href = '../login.html';
+
+// ── State ───────────────────────────────────────────────────────────────────
+let editingId   = null;
+let catCache    = {};
+const tbody     = document.getElementById('cat-tbody');
+const modal     = document.getElementById('cat-modal');
+const form      = document.getElementById('cat-form');
+
+// ── Auto-slug from name ─────────────────────────────────────────────────────
+form.elements['name'].addEventListener('input', () => {
+  if (editingId) return; // don't auto-fill when editing
+  form.elements['slug'].value = form.elements['name'].value
+    .toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
+});
+
+// ── Load categories ─────────────────────────────────────────────────────────
+async function loadCategories() {
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
+  try {
+    const cats = await adminGetCategories();
+    document.getElementById('cat-count').textContent = `Categories (${cats.length})`;
+    catCache = {};
+    cats.forEach(c => { catCache[c.id] = c; });
+    renderTable(cats);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
+  }
+}
+
+function renderTable(cats) {
+  if (!cats.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">No categories yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = cats.map(c => {
+    const status = c.isActive !== false
+      ? `<span class="admin-badge badge-active">Active</span>`
+      : `<span class="admin-badge badge-inactive">Inactive</span>`;
+    return `
+      <tr>
+        <td style="font-size:1.4rem;text-align:center">${c.emoji || '—'}</td>
+        <td><span style="color:var(--text-1);font-weight:500">${c.name}</span></td>
+        <td style="font-size:0.8rem;color:var(--text-4)">${c.slug}</td>
+        <td style="color:var(--text-3)">${c.sortOrder ?? 0}</td>
+        <td>${status}</td>
+        <td>
+          <div class="admin-actions-cell">
+            <button class="btn-table-action" onclick="openEdit('${c.id}')">Edit</button>
+            <button class="btn-table-action danger" onclick="deleteCategory('${c.id}','${c.name.replace(/'/g,'')}')">Deactivate</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+// ── Modal helpers ───────────────────────────────────────────────────────────
+function openAdd() {
+  editingId = null;
+  document.getElementById('modal-title').textContent = 'Add Category';
+  form.reset();
+  form.elements['isActive'].checked = true;
+  modal.style.display = 'flex';
+}
+
+window.openEdit = function(id) {
+  editingId = id;
+  document.getElementById('modal-title').textContent = 'Edit Category';
+  const c = catCache[id];
+  if (c) {
+    form.elements['name'].value        = c.name || '';
+    form.elements['slug'].value        = c.slug || '';
+    form.elements['emoji'].value       = c.emoji || '';
+    form.elements['sortOrder'].value   = c.sortOrder ?? 0;
+    form.elements['description'].value = c.description || '';
+    form.elements['isActive'].checked  = c.isActive !== false;
+  }
+  modal.style.display = 'flex';
+};
+
+window.deleteCategory = async function(id, name) {
+  if (!confirm(`Deactivate category "${name}"?`)) return;
+  try {
+    await adminDeleteCategory(id);
+    showToast(`"${name}" deactivated`, 'info');
+    loadCategories();
+  } catch (err) { showToast(err.message, 'error'); }
+};
+
+document.getElementById('add-cat-btn').addEventListener('click', openAdd);
+document.getElementById('modal-cancel').addEventListener('click', () => { modal.style.display = 'none'; });
+modal.addEventListener('click', e => { if (e.target === modal) modal.style.display = 'none'; });
+
+// ── Form submit ─────────────────────────────────────────────────────────────
+form.addEventListener('submit', async e => {
+  e.preventDefault();
+  const fd  = new FormData(form);
+  const btn = document.getElementById('modal-submit');
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const data = {
+    name:        fd.get('name'),
+    slug:        fd.get('slug'),
+    emoji:       fd.get('emoji') || null,
+    sortOrder:   parseInt(fd.get('sortOrder')) || 0,
+    description: fd.get('description') || null,
+    isActive:    form.elements['isActive'].checked,
+  };
+
+  try {
+    if (editingId) {
+      await adminUpdateCategory(editingId, data);
+      showToast('Category updated', 'success');
+    } else {
+      await adminCreateCategory(data);
+      showToast('Category created', 'success');
+    }
+    modal.style.display = 'none';
+    loadCategories();
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save';
+  }
+});
+
+loadCategories();
+</script>
+
+</body>
+</html>

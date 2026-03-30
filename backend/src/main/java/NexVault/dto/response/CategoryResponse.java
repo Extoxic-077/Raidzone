@@ -23,7 +23,8 @@ public record CategoryResponse(
         String slug,
         String description,
         String emoji,
-        Integer sortOrder
+        Integer sortOrder,
+        Boolean isActive
 ) {
 
     /**
@@ -39,7 +40,8 @@ public record CategoryResponse(
                 category.getSlug(),
                 category.getDescription(),
                 category.getEmoji(),
-                category.getSortOrder()
+                category.getSortOrder(),
+                category.getIsActive()
         );
     }
 }

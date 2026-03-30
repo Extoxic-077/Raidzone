@@ -218,10 +218,49 @@ export async function hasPurchased(productId) {
   return authApiFetch(`/purchases/product/${productId}`, { method: 'GET' });
 }
 
+// ─── Orders ───────────────────────────────────────────────────────────────────
+
+export async function createOrder(data) {
+  return authApiFetch('/orders', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function getMyOrders() {
+  return authApiFetch('/orders/my', { method: 'GET' });
+}
+
 // ─── Admin ────────────────────────────────────────────────────────────────────
 
 export async function adminGetStats() {
   return authApiFetch('/admin/stats', { method: 'GET' });
+}
+
+export async function adminGetAnalytics(period = 'THIS_MONTH') {
+  return authApiFetch(`/admin/analytics?period=${period}`, { method: 'GET' });
+}
+
+export async function adminGetCategories() {
+  return authApiFetch('/admin/categories', { method: 'GET' });
+}
+
+export async function adminCreateCategory(data) {
+  return authApiFetch('/admin/categories', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function adminUpdateCategory(id, data) {
+  return authApiFetch(`/admin/categories/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function adminDeleteCategory(id) {
+  return authApiFetch(`/admin/categories/${id}`, { method: 'DELETE' });
 }
 
 export async function adminGetProducts(page = 0, size = 20) {
@@ -268,4 +307,15 @@ export async function adminUpdateUserRole(userId, role) {
     method: 'PUT',
     body: JSON.stringify({ role }),
   });
+}
+
+export async function adminToggleUserStatus(userId, isActive) {
+  return authApiFetch(`/admin/users/${userId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ isActive }),
+  });
+}
+
+export async function adminDeleteUser(userId) {
+  return authApiFetch(`/admin/users/${userId}`, { method: 'DELETE' });
 }

@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>My Orders — NexVault</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/pages/orders.css"/>
+</head>
+<body>
+
+  <div id="navbar"></div>
+
+  <div class="orders-page">
+    <div class="orders-inner">
+      <div class="page-heading">
+        <h1 class="page-title">My Orders</h1>
+        <p class="page-subtitle">Your purchase history</p>
+      </div>
+      <div id="orders-root">
+        <div class="orders-loading">Loading orders…</div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+  <div id="bottom-nav"></div>
+
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initAuth, isLoggedIn } from './js/auth.js';
+import { getMyOrders } from './js/api.js';
+
+await initAuth();
+if (!isLoggedIn()) {
+  sessionStorage.setItem('redirectAfterLogin', 'orders.html');
+  window.location.href = 'login.html';
+}
+await initNavbar();
+
+const root = document.getElementById('orders-root');
+
+function fmtPrice(v) {
+  return '₹' + Number(v).toLocaleString('en-IN');
+}
+
+function fmtDate(iso) {
+  return new Date(iso).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit'
+  });
+}
+
+function statusBadge(status) {
+  const map = {
+    CONFIRMED: 'badge-confirmed',
+    PROCESSING: 'badge-processing',
+    DELIVERED: 'badge-delivered',
+    CANCELLED: 'badge-cancelled',
+  };
+  return `<span class="order-status-badge ${map[status] || 'badge-confirmed'}">${status}</span>`;
+}
+
+function renderOrders(orders) {
+  if (!orders.length) {
+    root.innerHTML = `
+      <div class="orders-empty">
+        <div class="orders-empty-icon">📦</div>
+        <p>You haven't placed any orders yet.</p>
+        <a href="catalog.html" class="btn-orders-shop">Start Shopping</a>
+      </div>`;
+    return;
+  }
+
+  root.innerHTML = orders.map(order => {
+    const itemsHtml = order.items.map(item => {
+      const thumb = item.imageUrl
+        ? `<img src="http://localhost:8080${item.imageUrl}" alt="${item.productName}" class="oi-img"/>`
+        : `<div class="oi-emoji">${item.productEmoji || '🎮'}</div>`;
+      return `
+        <div class="order-item">
+          <div class="oi-thumb">${thumb}</div>
+          <div class="oi-info">
+            <div class="oi-name">${item.productName}</div>
+            <div class="oi-qty">Qty: ${item.quantity} · ${fmtPrice(item.lineTotal)}</div>
+          </div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="order-card">
+        <div class="order-card-header">
+          <div class="order-id-wrap">
+            <span class="order-id-label">Order</span>
+            <span class="order-id">#${order.id.slice(0,8).toUpperCase()}</span>
+          </div>
+          <div class="order-meta">
+            ${statusBadge(order.status)}
+            <span class="order-date">${fmtDate(order.createdAt)}</span>
+          </div>
+        </div>
+        <div class="order-items">${itemsHtml}</div>
+        <div class="order-card-footer">
+          <div class="order-shipping">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            ${order.shippingName} &nbsp;·&nbsp; ${order.shippingEmail}
+          </div>
+          <div class="order-total">${fmtPrice(order.totalAmount)}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+try {
+  const orders = await getMyOrders();
+  renderOrders(orders);
+} catch (err) {
+  root.innerHTML = `<div class="orders-error">${err.message}</div>`;
+}
+</script>
+
+</body>
+</html>

@@ -19,18 +19,22 @@
 
 <div class="admin-layout">
 
-  <!-- Sidebar -->
+  <!-- Sidebar (desktop) -->
   <aside class="admin-sidebar">
     <div class="admin-logo">NexVault <span>Admin Panel</span></div>
     <div class="admin-nav-section">Overview</div>
-    <a href="index.html"    class="admin-nav-link">
-      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Dashboard
+    <a href="index.html" class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
     </a>
     <div class="admin-nav-section">Catalogue</div>
     <a href="products.html" class="admin-nav-link active">
       <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
       Products
+    </a>
+    <a href="categories.html" class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Categories
     </a>
     <div class="admin-nav-section">Users</div>
     <a href="users.html" class="admin-nav-link">
@@ -47,7 +51,8 @@
 
   <!-- Main -->
   <main class="admin-main">
-    <h1 class="admin-page-title">Products</h1>
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Products</span></div>
+    <h1 class="admin-page-title" style="margin-top:28px">Products</h1>
     <p class="admin-page-subtitle">Create, edit, and manage product listings</p>
 
     <div class="admin-table-card">
@@ -158,6 +163,26 @@
     </form>
   </div>
 </div>
+
+<!-- Mobile bottom nav -->
+<nav class="admin-bottom-nav">
+  <a href="index.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Analytics
+  </a>
+  <a href="products.html" class="admin-bottom-tab active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+    Products
+  </a>
+  <a href="categories.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Categories
+  </a>
+  <a href="users.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Users
+  </a>
+</nav>
 
 <div id="toast-container"></div>
 

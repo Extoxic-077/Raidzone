@@ -19,18 +19,22 @@
 
 <div class="admin-layout">
 
-  <!-- Sidebar -->
+  <!-- Sidebar (desktop) -->
   <aside class="admin-sidebar">
     <div class="admin-logo">NexVault <span>Admin Panel</span></div>
     <div class="admin-nav-section">Overview</div>
-    <a href="index.html"    class="admin-nav-link">
-      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Dashboard
+    <a href="index.html" class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
     </a>
     <div class="admin-nav-section">Catalogue</div>
     <a href="products.html" class="admin-nav-link">
       <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
       Products
+    </a>
+    <a href="categories.html" class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Categories
     </a>
     <div class="admin-nav-section">Users</div>
     <a href="users.html" class="admin-nav-link active">
@@ -47,7 +51,13 @@
 
   <!-- Main -->
   <main class="admin-main">
-    <h1 class="admin-page-title">Users</h1>
+
+    <!-- Mobile title -->
+    <div class="admin-mobile-topbar">
+      <span class="admin-mobile-topbar-title">Users</span>
+    </div>
+
+    <h1 class="admin-page-title" style="margin-top:28px">Users</h1>
     <p class="admin-page-subtitle">View and manage registered accounts</p>
 
     <div class="admin-table-card">
@@ -58,12 +68,11 @@
         <table class="admin-table">
           <thead>
             <tr>
-              <th>Name</th><th>Email</th><th>Role</th><th>Provider</th>
-              <th>Joined</th><th>Status</th><th>Actions</th>
+              <th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Status</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="users-tbody">
-            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
+            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -72,12 +81,32 @@
   </main>
 </div>
 
+<!-- Mobile bottom nav -->
+<nav class="admin-bottom-nav">
+  <a href="index.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Analytics
+  </a>
+  <a href="products.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+    Products
+  </a>
+  <a href="categories.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Categories
+  </a>
+  <a href="users.html" class="admin-bottom-tab active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Users
+  </a>
+</nav>
+
 <div id="toast-container"></div>
 
 <script type="module">
 import { showToast } from '../js/components/toast.js';
 import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
-import { adminGetUsers, adminUpdateUserRole } from '../js/api.js';
+import { adminGetUsers, adminUpdateUserRole, adminToggleUserStatus, adminDeleteUser } from '../js/api.js';
 
 await initAuth();
 if (!isLoggedIn() || !isAdmin()) window.location.href = '../login.html';
@@ -86,7 +115,7 @@ let currentPage = 0;
 
 async function loadUsers(page = 0) {
   const tbody = document.getElementById('users-tbody');
-  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
   try {
     const result = await adminGetUsers(page, 20);
     const users  = result.content || [];
@@ -95,7 +124,7 @@ async function loadUsers(page = 0) {
     renderTable(users, tbody);
     renderPagination(result);
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
   }
 }
 
@@ -107,34 +136,40 @@ function formatDate(iso) {
 
 function renderTable(users, tbody) {
   if (!users.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">No users found</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">No users found</td></tr>`;
     return;
   }
   tbody.innerHTML = users.map(u => {
-    const initial = (u.name || u.email || 'U')[0].toUpperCase();
-    const roleBadge = u.role === 'ADMIN'
+    const initial     = (u.name || u.email || 'U')[0].toUpperCase();
+    const roleBadge   = u.role === 'ADMIN'
       ? `<span class="admin-badge badge-admin">ADMIN</span>`
       : `<span class="admin-badge badge-user">USER</span>`;
-    const statusBadge = u.active !== false
+    const active      = u.isActive !== false;
+    const statusBadge = active
       ? `<span class="admin-badge badge-active">Active</span>`
       : `<span class="admin-badge badge-inactive">Inactive</span>`;
-    const toggleRole = u.role === 'ADMIN' ? 'USER' : 'ADMIN';
+    const toggleRole  = u.role === 'ADMIN' ? 'USER' : 'ADMIN';
     const toggleLabel = u.role === 'ADMIN' ? 'Demote' : 'Promote';
+    const statusLabel = active ? 'Deactivate' : 'Activate';
+    const safeName    = (u.name || u.email || '').replace(/'/g, '');
     return `
       <tr>
         <td>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:32px;height:32px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;color:#fff;flex-shrink:0">${initial}</div>
-            <span style="color:var(--text-1);font-weight:500">${u.name || '—'}</span>
+          <div style="display:flex;align-items:center;gap:9px">
+            <div style="width:30px;height:30px;border-radius:50%;background:var(--gradient);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.8rem;color:#fff;flex-shrink:0">${initial}</div>
+            <span style="color:var(--text-1);font-weight:500;white-space:nowrap">${u.name || '—'}</span>
           </div>
         </td>
-        <td>${u.email}</td>
+        <td style="font-size:0.82rem;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${u.email}</td>
         <td>${roleBadge}</td>
-        <td style="font-size:0.8rem;color:var(--text-3)">${u.provider || 'LOCAL'}</td>
-        <td style="font-size:0.8rem">${formatDate(u.createdAt)}</td>
+        <td style="font-size:0.8rem;white-space:nowrap">${formatDate(u.createdAt)}</td>
         <td>${statusBadge}</td>
         <td>
-          <button class="btn-table-action" onclick="changeRole('${u.id}','${toggleRole}','${u.name || u.email}')">${toggleLabel}</button>
+          <div class="admin-actions-cell">
+            <button class="btn-table-action" onclick="changeRole('${u.id}','${toggleRole}','${safeName}')">${toggleLabel}</button>
+            <button class="btn-table-action" onclick="toggleStatus('${u.id}',${active},'${safeName}')">${statusLabel}</button>
+            <button class="btn-table-action danger" onclick="deleteUser('${u.id}','${safeName}')">Delete</button>
+          </div>
         </td>
       </tr>`;
   }).join('');
@@ -153,6 +188,27 @@ window.changeRole = async function(id, role, name) {
   try {
     await adminUpdateUserRole(id, role);
     showToast(`${name} is now ${role}`, 'success');
+    loadUsers(currentPage);
+  } catch (err) { showToast(err.message, 'error'); }
+};
+
+window.toggleStatus = async function(id, currentlyActive, name) {
+  const newStatus = !currentlyActive;
+  const action    = newStatus ? 'activate' : 'deactivate';
+  if (!confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} account of ${name}?`)) return;
+  try {
+    await adminToggleUserStatus(id, newStatus);
+    showToast(`${name} ${newStatus ? 'activated' : 'deactivated'}`, 'info');
+    loadUsers(currentPage);
+  } catch (err) { showToast(err.message, 'error'); }
+};
+
+window.deleteUser = async function(id, name) {
+  if (!confirm(`Permanently delete user "${name}"? This cannot be undone.`)) return;
+  if (!confirm(`Are you sure? All data for "${name}" will be removed.`)) return;
+  try {
+    await adminDeleteUser(id);
+    showToast(`${name} deleted`, 'info');
     loadUsers(currentPage);
   } catch (err) { showToast(err.message, 'error'); }
 };

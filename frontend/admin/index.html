@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Dashboard — NexVault</title>
+  <title>Analytics — Admin — NexVault</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -14,27 +14,34 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
   <link rel="stylesheet" href="../css/pages/admin.css"/>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
 
 <div class="admin-layout">
 
-  <!-- Sidebar -->
+  <!-- Sidebar (desktop) -->
   <aside class="admin-sidebar">
     <div class="admin-logo">NexVault <span>Admin Panel</span></div>
     <div class="admin-nav-section">Overview</div>
-    <a href="index.html"    class="admin-nav-link active">
-      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Dashboard
+    <a href="index.html" class="admin-nav-link active">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+      Analytics
     </a>
     <div class="admin-nav-section">Catalogue</div>
     <a href="products.html" class="admin-nav-link">
       <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
       Products
     </a>
+    <a href="categories.html" class="admin-nav-link">
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+      Categories
+    </a>
     <div class="admin-nav-section">Users</div>
     <a href="users.html" class="admin-nav-link">
-      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
       Users
     </a>
     <div class="admin-nav-back">
@@ -47,64 +54,385 @@
 
   <!-- Main -->
   <main class="admin-main">
-    <h1 class="admin-page-title">Dashboard</h1>
-    <p class="admin-page-subtitle" id="welcome-text">Welcome back!</p>
 
+    <!-- Mobile title -->
+    <div class="admin-mobile-topbar">
+      <span class="admin-mobile-topbar-title">Analytics</span>
+    </div>
+
+    <h1 class="admin-page-title" style="margin-top:28px">Analytics</h1>
+    <p class="admin-page-subtitle" id="welcome-text">Sales overview</p>
+
+    <!-- Period selector + export -->
+    <div class="analytics-toolbar">
+      <select class="analytics-period-select" id="period-select">
+        <option value="THIS_MONTH">This Month</option>
+        <option value="PREV_MONTH">Previous Month</option>
+        <option value="THIS_YEAR">This Year</option>
+        <option value="PREV_YEAR">Previous Year</option>
+      </select>
+      <button class="btn-export" id="export-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export Excel
+      </button>
+    </div>
+
+    <!-- Stat cards -->
     <div class="stats-grid" id="stats-grid">
       <div class="stat-card"><div class="stat-card-icon">⏳</div><div class="stat-card-value">—</div><div class="stat-card-label">Loading…</div></div>
     </div>
 
+    <!-- Charts -->
+    <div class="chart-grid">
+      <div class="chart-card">
+        <div class="chart-card-title">Units Sold</div>
+        <div class="chart-canvas-wrap"><canvas id="sales-chart"></canvas></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-title">Revenue (₹)</div>
+        <div class="chart-canvas-wrap"><canvas id="revenue-chart"></canvas></div>
+      </div>
+    </div>
+
+    <!-- Top products -->
     <div class="admin-table-card">
       <div class="admin-table-header">
-        <div class="admin-table-title">Quick Actions</div>
+        <div class="admin-table-title">Top Products</div>
       </div>
-      <div style="padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;">
-        <a href="products.html" class="btn-admin-primary">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/></svg>
-          Manage Products
-        </a>
-        <a href="users.html" class="btn-admin-primary" style="background:linear-gradient(135deg,#1a1a2e,#22D3EE)">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-          Manage Users
-        </a>
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr><th>#</th><th>Product</th><th>Category</th><th>Units Sold</th><th>Revenue</th></tr>
+          </thead>
+          <tbody id="top-products-tbody">
+            <tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Loading…</td></tr>
+          </tbody>
+        </table>
       </div>
     </div>
   </main>
 </div>
+
+<!-- Mobile bottom nav -->
+<nav class="admin-bottom-nav">
+  <a href="index.html" class="admin-bottom-tab active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+    Analytics
+  </a>
+  <a href="products.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
+    Products
+  </a>
+  <a href="categories.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    Categories
+  </a>
+  <a href="users.html" class="admin-bottom-tab">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
+    Users
+  </a>
+</nav>
 
 <div id="toast-container"></div>
 
 <script type="module">
 import { showToast } from '../js/components/toast.js';
 import { initAuth, isLoggedIn, isAdmin, getUser } from '../js/auth.js';
-import { adminGetStats } from '../js/api.js';
+import { adminGetStats, adminGetAnalytics } from '../js/api.js';
 
 await initAuth();
-if (!isLoggedIn() || !isAdmin()) {
-  window.location.href = '../login.html';
-}
+if (!isLoggedIn() || !isAdmin()) { window.location.href = '../login.html'; }
 
 const user = getUser();
 document.getElementById('welcome-text').textContent =
   `Welcome back, ${user?.name || 'Admin'} · ${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}`;
 
+// ── Tooltip config ──────────────────────────────────────────────────────────
+const TOOLTIP = {
+  backgroundColor: 'rgba(7,7,15,0.92)',
+  titleColor: '#e2e8f0',
+  bodyColor: '#94a3b8',
+  borderColor: 'rgba(255,255,255,0.12)',
+  borderWidth: 1,
+  padding: 10,
+  cornerRadius: 8,
+  displayColors: false,
+};
+
+const SCALE_BASE = {
+  grid: { color: 'rgba(255,255,255,0.05)' },
+  ticks: { color: '#94a3b8', font: { size: 11 } },
+};
+
+// ── Chart helpers ───────────────────────────────────────────────────────────
+let salesChart = null, revenueChart = null;
+
+function buildSalesChart(labels, data) {
+  const ctx = document.getElementById('sales-chart').getContext('2d');
+  if (salesChart) salesChart.destroy();
+  salesChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Units Sold',
+        data,
+        backgroundColor: 'rgba(124,58,237,0.55)',
+        borderColor: '#7C3AED',
+        borderWidth: 1,
+        borderRadius: 4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...TOOLTIP,
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => ` Units Sold: ${ctx.parsed.y}`,
+          }
+        }
+      },
+      scales: {
+        x: { ...SCALE_BASE, ticks: { ...SCALE_BASE.ticks, maxRotation: 45 } },
+        y: {
+          ...SCALE_BASE,
+          beginAtZero: true,
+          ticks: { ...SCALE_BASE.ticks, stepSize: 1, precision: 0 }
+        }
+      }
+    }
+  });
+}
+
+function buildRevenueChart(labels, data) {
+  const ctx = document.getElementById('revenue-chart').getContext('2d');
+  if (revenueChart) revenueChart.destroy();
+  revenueChart = new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        label: 'Revenue (₹)',
+        data,
+        borderColor: '#22D3EE',
+        backgroundColor: 'rgba(34,211,238,0.08)',
+        borderWidth: 2,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+        pointBackgroundColor: '#22D3EE',
+        fill: true,
+        tension: 0.4,
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      animation: { duration: 400 },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          ...TOOLTIP,
+          callbacks: {
+            title: ctx => ctx[0].label,
+            label: ctx => ` Revenue: ₹${Number(ctx.parsed.y).toLocaleString('en-IN', { maximumFractionDigits: 0 })}`,
+          }
+        }
+      },
+      scales: {
+        x: { ...SCALE_BASE, ticks: { ...SCALE_BASE.ticks, maxRotation: 45 } },
+        y: {
+          ...SCALE_BASE,
+          beginAtZero: true,
+          ticks: {
+            ...SCALE_BASE.ticks,
+            callback: v => `₹${v >= 1000 ? (v/1000).toFixed(1) + 'k' : v}`
+          }
+        }
+      }
+    }
+  });
+}
+
+// ── Date-range filling ──────────────────────────────────────────────────────
+function periodBounds(period) {
+  const today = new Date();
+  switch (period) {
+    case 'PREV_MONTH': {
+      const y = today.getMonth() === 0 ? today.getFullYear() - 1 : today.getFullYear();
+      const m = today.getMonth() === 0 ? 11 : today.getMonth() - 1;
+      return { start: new Date(y, m, 1), end: new Date(y, m + 1, 0), isYearly: false };
+    }
+    case 'THIS_YEAR':
+      return { start: new Date(today.getFullYear(), 0, 1), end: today, isYearly: true };
+    case 'PREV_YEAR': {
+      const y = today.getFullYear() - 1;
+      return { start: new Date(y, 0, 1), end: new Date(y, 11, 31), isYearly: true };
+    }
+    default: // THIS_MONTH
+      return { start: new Date(today.getFullYear(), today.getMonth(), 1), end: today, isYearly: false };
+  }
+}
+
+function fillChartSeries(salesByDate, period) {
+  const { start, end, isYearly } = periodBounds(period);
+
+  if (isYearly) {
+    // Aggregate daily → monthly buckets
+    const bucket = {};
+    salesByDate.forEach(d => {
+      const m = d.date.substring(0, 7); // "YYYY-MM"
+      if (!bucket[m]) bucket[m] = { count: 0, revenue: 0 };
+      bucket[m].count   += Number(d.count);
+      bucket[m].revenue += Number(d.revenue);
+    });
+
+    const labels = [], counts = [], revenues = [];
+    let cur = new Date(start.getFullYear(), start.getMonth(), 1);
+    const endM = new Date(end.getFullYear(), end.getMonth(), 1);
+    while (cur <= endM) {
+      const key   = `${cur.getFullYear()}-${String(cur.getMonth() + 1).padStart(2, '0')}`;
+      const label = cur.toLocaleDateString('en-IN', { month: 'short', year: '2-digit' });
+      labels.push(label);
+      counts.push(bucket[key]?.count ?? 0);
+      revenues.push(bucket[key]?.revenue ?? 0);
+      cur = new Date(cur.getFullYear(), cur.getMonth() + 1, 1);
+    }
+    return { labels, counts, revenues };
+  } else {
+    // Daily
+    const map = {};
+    salesByDate.forEach(d => { map[d.date] = { count: Number(d.count), revenue: Number(d.revenue) }; });
+
+    const labels = [], counts = [], revenues = [];
+    const MS_DAY = 86400000;
+    let cur = new Date(start);
+    cur.setHours(0, 0, 0, 0);
+    const endDay = new Date(end);
+    endDay.setHours(0, 0, 0, 0);
+
+    while (cur <= endDay) {
+      const key   = cur.toISOString().substring(0, 10);
+      const label = cur.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+      labels.push(label);
+      counts.push(map[key]?.count ?? 0);
+      revenues.push(map[key]?.revenue ?? 0);
+      cur = new Date(cur.getTime() + MS_DAY);
+    }
+    return { labels, counts, revenues };
+  }
+}
+
+// ── State ───────────────────────────────────────────────────────────────────
+let currentAnalytics = null;
+
+// ── Load stats ──────────────────────────────────────────────────────────────
 async function loadStats() {
   try {
-    const stats = adminGetStats ? await adminGetStats() : null;
-    if (!stats) return;
-    const grid = document.getElementById('stats-grid');
-    grid.innerHTML = `
+    const stats = await adminGetStats();
+    document.getElementById('stats-grid').innerHTML = `
       <div class="stat-card"><div class="stat-card-icon">👥</div><div class="stat-card-value">${stats.totalUsers}</div><div class="stat-card-label">Total Users</div></div>
       <div class="stat-card"><div class="stat-card-icon">📦</div><div class="stat-card-value">${stats.totalProducts}</div><div class="stat-card-label">Total Products</div></div>
       <div class="stat-card"><div class="stat-card-icon">✅</div><div class="stat-card-value">${stats.activeProducts}</div><div class="stat-card-label">Active Products</div></div>
       <div class="stat-card"><div class="stat-card-icon">🏷️</div><div class="stat-card-value">${stats.totalCategories}</div><div class="stat-card-label">Categories</div></div>
     `;
+  } catch { showToast('Failed to load stats', 'error'); }
+}
+
+// ── Load analytics ──────────────────────────────────────────────────────────
+async function loadAnalytics(period) {
+  const tbody = document.getElementById('top-products-tbody');
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">Loading…</td></tr>`;
+
+  try {
+    const data = await adminGetAnalytics(period);
+    currentAnalytics = { ...data, _period: period };
+
+    // Sales + Revenue summary cards (refresh each time)
+    const grid = document.getElementById('stats-grid');
+    grid.querySelectorAll('.stat-card-analytics').forEach(el => el.remove());
+    const sc = document.createElement('div');
+    sc.className = 'stat-card stat-card-analytics';
+    sc.innerHTML = `<div class="stat-card-icon">🛒</div><div class="stat-card-value">${data.totalSales}</div><div class="stat-card-label">Units Sold</div>`;
+    grid.appendChild(sc);
+    const rc = document.createElement('div');
+    rc.className = 'stat-card stat-card-analytics';
+    rc.innerHTML = `<div class="stat-card-icon">💰</div><div class="stat-card-value">₹${Number(data.totalRevenue).toLocaleString('en-IN', {maximumFractionDigits:0})}</div><div class="stat-card-label">Revenue</div>`;
+    grid.appendChild(rc);
+
+    // Fill full date range and build charts
+    const { labels, counts, revenues } = fillChartSeries(data.salesByDate, period);
+    buildSalesChart(labels, counts);
+    buildRevenueChart(labels, revenues);
+
+    // Top products table
+    if (!data.topProducts.length) {
+      tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--text-3)">No sales data for this period</td></tr>`;
+      return;
+    }
+    tbody.innerHTML = data.topProducts.map((p, i) => `
+      <tr>
+        <td style="color:var(--text-4);font-weight:600;width:36px">${i + 1}</td>
+        <td><div class="table-product-name">${p.productName}</div></td>
+        <td style="color:var(--text-3);font-size:0.82rem">${p.categoryName || '—'}</td>
+        <td><strong>${p.salesCount}</strong></td>
+        <td style="color:var(--success);font-weight:600">₹${Number(p.revenue).toLocaleString('en-IN', {maximumFractionDigits:0})}</td>
+      </tr>`).join('');
   } catch (err) {
-    showToast('Failed to load stats: ' + err.message, 'error');
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
   }
 }
 
+// ── Period selector ─────────────────────────────────────────────────────────
+document.getElementById('period-select').addEventListener('change', e => loadAnalytics(e.target.value));
+
+// ── Excel export ────────────────────────────────────────────────────────────
+document.getElementById('export-btn').addEventListener('click', () => {
+  if (!currentAnalytics) { showToast('Load analytics first', 'info'); return; }
+
+  const periodLabel = document.getElementById('period-select').selectedOptions[0].text;
+  const wb = XLSX.utils.book_new();
+
+  // Sheet 1 – Summary
+  const ws1 = XLSX.utils.aoa_to_sheet([
+    ['NexVault Sales Report'],
+    ['Period', periodLabel],
+    ['Generated', new Date().toLocaleString('en-IN')],
+    [],
+    ['Metric', 'Value'],
+    ['Total Units Sold', currentAnalytics.totalSales],
+    ['Total Revenue (₹)', Number(currentAnalytics.totalRevenue).toFixed(2)],
+  ]);
+  ws1['!cols'] = [{ wch: 25 }, { wch: 22 }];
+  XLSX.utils.book_append_sheet(wb, ws1, 'Summary');
+
+  // Sheet 2 – Top Products
+  const ws2 = XLSX.utils.aoa_to_sheet([
+    ['#', 'Product Name', 'Category', 'Units Sold', 'Revenue (₹)'],
+    ...currentAnalytics.topProducts.map((p, i) => [i + 1, p.productName, p.categoryName || '', p.salesCount, Number(p.revenue).toFixed(2)])
+  ]);
+  ws2['!cols'] = [{ wch: 4 }, { wch: 35 }, { wch: 18 }, { wch: 12 }, { wch: 14 }];
+  XLSX.utils.book_append_sheet(wb, ws2, 'Top Products');
+
+  // Sheet 3 – Daily Sales (full range including 0s)
+  const { labels, counts, revenues } = fillChartSeries(currentAnalytics.salesByDate, currentAnalytics._period);
+  const ws3 = XLSX.utils.aoa_to_sheet([
+    ['Date', 'Units Sold', 'Revenue (₹)'],
+    ...labels.map((lbl, i) => [lbl, counts[i], Number(revenues[i]).toFixed(2)])
+  ]);
+  ws3['!cols'] = [{ wch: 14 }, { wch: 12 }, { wch: 14 }];
+  XLSX.utils.book_append_sheet(wb, ws3, 'Sales by Date');
+
+  XLSX.writeFile(wb, `nexvault-sales-${periodLabel.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.xlsx`);
+  showToast('Excel file downloaded', 'success');
+});
+
 loadStats();
+loadAnalytics('THIS_MONTH');
 </script>
 
 </body>

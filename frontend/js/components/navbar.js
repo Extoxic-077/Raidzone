@@ -1,15 +1,6 @@
 import { showToast } from './toast.js';
 import { initAuth, isLoggedIn, getUser, isAdmin, clearAuth } from '../auth.js';
-import { logout, getCartCount } from '../api.js';
-
-const CATEGORIES = [
-  { label: 'All',         slug: '' },
-  { label: 'Games',       slug: 'games' },
-  { label: 'Gift Cards',  slug: 'gift-cards' },
-  { label: 'Top-Up',      slug: 'top-up' },
-  { label: 'Streaming',   slug: 'streaming' },
-  { label: 'Software',    slug: 'software' },
-];
+import { logout, getCartCount, getCategories } from '../api.js';
 
 function hexagonSVG() {
   return `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -47,10 +38,10 @@ function userButtonHTML() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
           My Profile
         </a>
-        <button class="dropdown-item disabled" disabled title="Coming soon">
+        <a href="orders.html" class="dropdown-item" role="menuitem">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           My Orders
-        </button>
+        </a>
         <a href="wishlist.html" class="dropdown-item" role="menuitem">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           My Wishlist
@@ -82,32 +73,31 @@ export async function initNavbar() {
   const el = document.getElementById('navbar');
   if (!el) return;
 
-  const params = new URLSearchParams(window.location.search);
-  const activeCat = params.get('category') || '';
+  const params    = new URLSearchParams(window.location.search);
+  const activeCatId = params.get('categoryId') || '';
+
+  // Fetch categories from the API so slugs/IDs are always in sync with the backend
+  let categories = [];
+  try {
+    categories = await getCategories();
+  } catch { /* render without categories if API fails */ }
 
   el.innerHTML = `
     <nav class="navbar-inner">
-      <a href="/" class="navbar-logo">
+      <a href="index.html" class="navbar-logo">
         ${hexagonSVG()}
         NexVault
       </a>
 
       <div class="navbar-cats">
-        ${CATEGORIES.map(c => `
-          <button class="nav-cat-btn${activeCat === c.slug ? ' active' : ''}" data-slug="${c.slug}">
-            ${c.label}
+        <button class="nav-cat-btn${!activeCatId ? ' active' : ''}" data-id="">
+          All
+        </button>
+        ${categories.map(c => `
+          <button class="nav-cat-btn${activeCatId === c.id ? ' active' : ''}" data-id="${c.id}">
+            ${c.emoji ? c.emoji + ' ' : ''}${c.name}
           </button>
         `).join('')}
-      </div>
-
-      <div class="navbar-search">
-        <span class="search-icon">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
-          </svg>
-        </span>
-        <input type="search" id="navbar-search-input" placeholder="Search products..." autocomplete="off"/>
-        <span class="search-shortcut">⌘K</span>
       </div>
 
       <div class="navbar-spacer"></div>
@@ -147,32 +137,13 @@ export async function initNavbar() {
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  // Category nav
+  // Category nav — use categoryId (UUID) so catalog.js filters correctly
   el.querySelectorAll('.nav-cat-btn').forEach(btn => {
     btn.addEventListener('click', () => {
-      const slug = btn.dataset.slug;
-      window.location.href = slug === '' ? 'catalog.html' : `catalog.html?category=${slug}`;
+      const id = btn.dataset.id;
+      window.location.href = id ? `catalog.html?categoryId=${id}` : 'catalog.html';
     });
   });
-
-  // Search keyboard shortcut
-  const searchInput = document.getElementById('navbar-search-input');
-  if (searchInput) {
-    window.addEventListener('keydown', (e) => {
-      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
-        e.preventDefault();
-        searchInput.focus();
-        searchInput.select();
-      }
-    });
-    searchInput.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') {
-        const q = searchInput.value.trim();
-        if (q) window.location.href = `catalog.html?search=${encodeURIComponent(q)}`;
-      }
-      if (e.key === 'Escape') searchInput.blur();
-    });
-  }
 
   // Notification button
   document.getElementById('notif-btn')?.addEventListener('click', () => {

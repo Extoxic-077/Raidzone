@@ -161,9 +161,9 @@ function render(cart) {
     } catch (err) { showToast(err.message, 'error'); }
   });
 
-  // Checkout placeholder
+  // Go to checkout wizard
   document.getElementById('checkout-btn')?.addEventListener('click', () => {
-    showToast('Checkout coming in Phase 4', 'info');
+    window.location.href = 'checkout.html';
   });
 }
 

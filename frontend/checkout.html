@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NexVault Pay — NexVault</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/pages/checkout.css"/>
+</head>
+<body>
+
+  <header class="co-topbar">
+    <a href="index.html" class="co-topbar-logo">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" width="26" height="26">
+        <defs>
+          <linearGradient id="hg-tb" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stop-color="#C084FC"/>
+            <stop offset="100%" stop-color="#22D3EE"/>
+          </linearGradient>
+        </defs>
+        <path d="M14 2L25.26 8.5V21.5L14 28L2.74 21.5V8.5L14 2Z" fill="url(#hg-tb)"/>
+        <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(7,7,15,0.6)"/>
+      </svg>
+      NexVault <span>Pay</span>
+    </a>
+  </header>
+
+  <div class="checkout-page">
+    <div class="checkout-inner">
+
+      <!-- 2-step indicator -->
+      <div class="checkout-steps" id="checkout-steps">
+        <div class="checkout-step active" id="step-ind-1">
+          <div class="step-circle">1</div>
+          <span>Review Cart</span>
+        </div>
+        <div class="checkout-step-line" id="step-line"></div>
+        <div class="checkout-step" id="step-ind-2">
+          <div class="step-circle">2</div>
+          <span>NexVault Pay</span>
+        </div>
+      </div>
+
+      <div id="checkout-body"></div>
+
+    </div>
+  </div>
+
+  <div id="toast-container"></div>
+
+<script type="module">
+import { showToast }  from './js/components/toast.js';
+import { initAuth, isLoggedIn, getUser } from './js/auth.js';
+import { getCart, getMe, createOrder }   from './js/api.js';
+
+await initAuth();
+if (!isLoggedIn()) {
+  sessionStorage.setItem('redirectAfterLogin', 'checkout.html');
+  window.location.href = 'login.html';
+}
+
+// ── Module-level state ───────────────────────────────────────────────────────
+let step           = 1;
+let cart           = null;
+let profile        = null;    // full profile from /auth/me
+let totals         = null;
+let selectedMethod = 'upi';
+
+// Generate once per page load — stable across re-renders
+const payRef   = 'NVP-' + (Date.now().toString(36) + Math.random().toString(36).slice(2)).toUpperCase().slice(0, 10);
+const createdAt = new Date();
+const expiresAt = new Date(createdAt.getTime() + 86400000);
+
+const METHODS = {
+  upi:    { id: 'upi',    label: 'UPI',           icon: '📱', feeLabel: 'Free',         fee: () => 0 },
+  bank:   { id: 'bank',   label: 'Bank Transfer', icon: '🏦', feeLabel: '₹25 flat',     fee: () => 25 },
+  paypal: { id: 'paypal', label: 'PayPal',        icon: '🅿️', feeLabel: '2.9% + ₹30',  fee: s => Math.ceil(s * 0.029) + 30 },
+  crypto: { id: 'crypto', label: 'Crypto',        icon: '₿',  feeLabel: '1%',           fee: s => Math.ceil(s * 0.01) },
+  credit: { id: 'credit', label: 'Credit Card',   icon: '💳', feeLabel: '2.5%',         fee: s => Math.ceil(s * 0.025) },
+  debit:  { id: 'debit',  label: 'Debit Card',    icon: '🏧', feeLabel: '1.5%',         fee: s => Math.ceil(s * 0.015) },
+};
+
+const body = document.getElementById('checkout-body');
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+function fmtPrice(v) {
+  return '₹' + Number(v).toLocaleString('en-IN');
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+    + ', ' + d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+}
+
+function fmtDateLong(d) {
+  return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function computeTotals(c) {
+  let originalTotal = 0;
+  c.items.forEach(item => {
+    const op = (item.originalPrice && Number(item.originalPrice) > Number(item.price))
+      ? Number(item.originalPrice) : Number(item.price);
+    originalTotal += op * item.quantity;
+  });
+  const subtotal    = Number(c.subtotal);
+  const discount    = Math.max(0, originalTotal - subtotal);
+  const discountPct = originalTotal > subtotal ? Math.round(discount / originalTotal * 100) : 0;
+  return { originalTotal, subtotal, discount, discountPct };
+}
+
+// ── Step indicator ───────────────────────────────────────────────────────────
+function setStep(n) {
+  step = n;
+  [1, 2].forEach(i => {
+    const el = document.getElementById(`step-ind-${i}`);
+    el.classList.toggle('active',    i === n);
+    el.classList.toggle('completed', i < n);
+  });
+  renderStep();
+}
+
+// ── Step 1: Review Cart ──────────────────────────────────────────────────────
+function cartItemRow(item) {
+  const thumb = item.imageUrl
+    ? `<img src="http://localhost:8080${item.imageUrl}" alt="${item.name}" class="co-thumb-img"/>`
+    : `<div class="co-thumb-emoji">${item.imageEmoji || '🎮'}</div>`;
+
+  const hasDiscount = item.originalPrice && Number(item.originalPrice) > Number(item.price);
+  const discPct     = hasDiscount ? Math.round((1 - item.price / item.originalPrice) * 100) : 0;
+  const origLine    = hasDiscount ? Number(item.originalPrice) * item.quantity : null;
+
+  return `
+    <div class="co-item">
+      <div class="co-thumb">${thumb}</div>
+      <div class="co-item-info">
+        <div class="co-item-name">${item.name}</div>
+        <div class="co-item-qty">Qty: ${item.quantity} · ${fmtPrice(item.price)} each</div>
+      </div>
+      <div class="co-item-price-col">
+        <div class="co-item-total">${fmtPrice(item.lineTotal)}</div>
+        ${hasDiscount ? `
+          <div class="co-item-orig-total">${fmtPrice(origLine)}</div>
+          <span class="co-disc-badge">-${discPct}%</span>
+        ` : ''}
+      </div>
+    </div>`;
+}
+
+async function renderStep1() {
+  body.innerHTML = '<div class="co-loading">Loading cart…</div>';
+  try {
+    cart = await getCart();
+  } catch (err) {
+    body.innerHTML = `<div class="co-error">⚠️ ${err.message}</div>`;
+    return;
+  }
+
+  if (!cart.items || cart.items.length === 0) {
+    body.innerHTML = `
+      <div class="co-empty">
+        <div class="co-empty-icon">🛒</div>
+        <p>Your cart is empty.</p>
+        <a href="catalog.html" class="btn-co-primary">Browse Products</a>
+      </div>`;
+    return;
+  }
+
+  totals = computeTotals(cart);
+
+  const savingsBanner = totals.discount > 0 ? `
+    <div class="co-savings-banner">
+      🎉 You save ${fmtPrice(totals.discount)} (${totals.discountPct}% off) on this order!
+    </div>` : '';
+
+  body.innerHTML = `
+    <div class="co-layout">
+
+      <!-- Left: item list -->
+      <div class="co-card co-left">
+        <div class="co-col-title">Review your order</div>
+        <div class="co-items-list">
+          ${cart.items.map(cartItemRow).join('')}
+        </div>
+      </div>
+
+      <!-- Right: summary + actions -->
+      <div class="co-card co-right">
+        ${savingsBanner}
+        <div class="co-summary">
+          ${totals.discount > 0 ? `
+            <div class="co-summary-row">
+              <span>Original price</span>
+              <span class="co-orig-val">${fmtPrice(totals.originalTotal)}</span>
+            </div>
+            <div class="co-summary-row">
+              <span>Discount <span class="co-disc-pct-badge">-${totals.discountPct}%</span></span>
+              <span class="co-discount-val">-${fmtPrice(totals.discount)}</span>
+            </div>
+          ` : ''}
+          <div class="co-summary-row">
+            <span>Subtotal (${cart.totalItems} item${cart.totalItems !== 1 ? 's' : ''})</span>
+            <span>${fmtPrice(totals.subtotal)}</span>
+          </div>
+          <div class="co-summary-row">
+            <span>Delivery</span>
+            <span class="text-success">Free</span>
+          </div>
+          <div class="co-summary-divider"></div>
+          <div class="co-summary-row co-total">
+            <span>Total</span>
+            <span>${fmtPrice(totals.subtotal)}</span>
+          </div>
+        </div>
+        <div class="co-spacer"></div>
+        <div class="co-actions">
+          <a href="cart.html" class="btn-co-ghost">← Cart</a>
+          <button class="btn-co-primary" id="next-to-pay">Continue to Payment</button>
+        </div>
+      </div>
+
+    </div>`;
+
+  document.getElementById('next-to-pay').addEventListener('click', () => setStep(2));
+}
+
+// ── Step 2: NexVault Pay ─────────────────────────────────────────────────────
+function hexSVG() {
+  return `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" width="26" height="26">
+    <defs>
+      <linearGradient id="hg2" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0%" stop-color="#C084FC"/>
+        <stop offset="100%" stop-color="#22D3EE"/>
+      </linearGradient>
+    </defs>
+    <path d="M14 2L25.26 8.5V21.5L14 28L2.74 21.5V8.5L14 2Z" fill="url(#hg2)"/>
+    <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(7,7,15,0.55)"/>
+  </svg>`;
+}
+
+function methodFormHTML(id) {
+  switch (id) {
+    case 'upi':
+      return `
+        <div class="pm-form-row">
+          <div class="co-form-group">
+            <label class="co-label">UPI ID</label>
+            <input class="co-input" id="pf-upi-id" placeholder="yourname@upi" autocomplete="off"/>
+          </div>
+        </div>`;
+    case 'bank':
+      return `
+        <div class="pm-form-row two">
+          <div class="co-form-group">
+            <label class="co-label">Account Holder Name</label>
+            <input class="co-input" id="pf-acc-name" placeholder="As on bank account"/>
+          </div>
+          <div class="co-form-group">
+            <label class="co-label">Bank Name</label>
+            <input class="co-input" id="pf-bank-name" placeholder="e.g. HDFC Bank"/>
+          </div>
+        </div>
+        <div class="pm-form-row two">
+          <div class="co-form-group">
+            <label class="co-label">Account Number</label>
+            <input class="co-input" id="pf-acc-no" placeholder="12-digit account number" maxlength="18"/>
+          </div>
+          <div class="co-form-group">
+            <label class="co-label">IFSC Code</label>
+            <input class="co-input" id="pf-ifsc" placeholder="HDFC0001234" maxlength="11" style="text-transform:uppercase"/>
+          </div>
+        </div>`;
+    case 'paypal':
+      return `
+        <div class="pm-form-row">
+          <div class="co-form-group">
+            <label class="co-label">PayPal Email</label>
+            <input class="co-input" id="pf-paypal-email" type="email" placeholder="your@paypal.com"/>
+          </div>
+        </div>`;
+    case 'crypto':
+      return `
+        <div class="pm-form-row two">
+          <div class="co-form-group">
+            <label class="co-label">Coin</label>
+            <select class="co-input" id="pf-coin">
+              <option value="BTC">Bitcoin (BTC)</option>
+              <option value="ETH">Ethereum (ETH)</option>
+              <option value="USDT">Tether (USDT)</option>
+              <option value="BNB">BNB</option>
+              <option value="SOL">Solana (SOL)</option>
+            </select>
+          </div>
+          <div class="co-form-group">
+            <label class="co-label">Wallet Address</label>
+            <input class="co-input" id="pf-wallet" placeholder="0x... or 1BvBMSE..." style="font-family:var(--font-mono);font-size:12px"/>
+          </div>
+        </div>`;
+    case 'credit':
+    case 'debit':
+      return `
+        <div class="pm-form-row">
+          <div class="co-form-group">
+            <label class="co-label">Cardholder Name</label>
+            <input class="co-input" id="pf-ch-name" placeholder="Name on card" style="text-transform:uppercase"/>
+          </div>
+        </div>
+        <div class="pm-form-row">
+          <div class="co-form-group">
+            <label class="co-label">Card Number</label>
+            <input class="co-input" id="pf-card-no" placeholder="1234  5678  9012  3456" maxlength="19" inputmode="numeric"/>
+          </div>
+        </div>
+        <div class="pm-form-row three">
+          <div class="co-form-group">
+            <label class="co-label">Expiry</label>
+            <input class="co-input" id="pf-expiry" placeholder="MM / YY" maxlength="7" inputmode="numeric"/>
+          </div>
+          <div class="co-form-group">
+            <label class="co-label">CVV</label>
+            <input class="co-input" id="pf-cvv" placeholder="•••" maxlength="4" type="password" inputmode="numeric"/>
+          </div>
+          <div class="co-form-group">
+            <label class="co-label">Network</label>
+            <select class="co-input" id="pf-network">
+              <option>Visa</option>
+              <option>Mastercard</option>
+              <option>RuPay</option>
+              <option>Amex</option>
+            </select>
+          </div>
+        </div>`;
+    default:
+      return '';
+  }
+}
+
+function breakdownHTML(methodId) {
+  const m          = METHODS[methodId];
+  const serviceFee = m.fee(totals.subtotal);
+  const grand      = totals.subtotal + serviceFee;
+
+  return `
+    <div class="pay-breakdown">
+      <div class="pb-section-label">Order Breakdown</div>
+      ${totals.discount > 0 ? `
+        <div class="pb-row">
+          <span>Original price</span>
+          <span class="pb-orig">${fmtPrice(totals.originalTotal)}</span>
+        </div>
+        <div class="pb-row">
+          <span>Discount <span class="pb-disc-pct">-${totals.discountPct}%</span></span>
+          <span class="pb-disc-val">−${fmtPrice(totals.discount)}</span>
+        </div>
+      ` : ''}
+      <div class="pb-row">
+        <span>Subtotal</span>
+        <span>${fmtPrice(totals.subtotal)}</span>
+      </div>
+      <div class="pb-row">
+        <span>Delivery</span>
+        <span class="text-success">Free</span>
+      </div>
+      <div class="pb-row">
+        <span>Service fee <span class="pb-fee-label">${m.feeLabel}</span></span>
+        <span class="${serviceFee === 0 ? 'text-success' : 'pb-fee-val'}">${serviceFee === 0 ? 'Free' : fmtPrice(serviceFee)}</span>
+      </div>
+      <div class="pb-divider"></div>
+      <div class="pb-row pb-total">
+        <span>Total Due</span>
+        <span id="pb-grand-val">${fmtPrice(grand)}</span>
+      </div>
+    </div>`;
+}
+
+async function renderPayment() {
+  body.innerHTML = '<div class="co-loading">Preparing payment…</div>';
+
+  // Load full profile if we don't have it yet
+  if (!profile) {
+    try { profile = await getMe(); } catch { profile = getUser(); }
+  }
+  if (!totals) totals = computeTotals(cart);
+
+  const user = profile;
+  const grand = () => totals.subtotal + METHODS[selectedMethod].fee(totals.subtotal);
+
+  const methodCards = Object.values(METHODS).map(m => `
+    <div class="pm-card ${m.id === selectedMethod ? 'selected' : ''}" data-method="${m.id}" role="radio" aria-checked="${m.id === selectedMethod}" tabindex="0">
+      <div class="pm-card-check"><div class="pm-check-dot"></div></div>
+      <div class="pm-card-icon">${m.icon}</div>
+      <div class="pm-card-name">${m.label}</div>
+      <div class="pm-card-fee">${m.feeLabel}</div>
+    </div>`).join('');
+
+  body.innerHTML = `
+    <div class="co-layout">
+
+      <!-- Left: payment methods + form + back -->
+      <div class="co-card co-left">
+        <div class="co-col-title">Payment Method</div>
+        <div class="pm-grid" id="pm-grid" role="radiogroup">
+          ${methodCards}
+        </div>
+        <div class="pm-details-area" id="pm-details">
+          ${methodFormHTML(selectedMethod)}
+        </div>
+        <div class="co-spacer"></div>
+        <div class="nvpay-back-row">
+          <button class="btn-co-ghost" id="back-to-review">← Back to Review</button>
+        </div>
+      </div>
+
+      <!-- Right: invoice + breakdown + pay now + disclaimer -->
+      <div class="co-card co-right">
+        <div class="nvpay-secure-row">
+          🔐 <span>256-bit SSL · Encrypted Checkout</span>
+        </div>
+
+        <div class="invoice-card">
+          <div class="invoice-top">
+            <div class="invoice-ref-wrap">
+              <div class="invoice-ref">${payRef}</div>
+              <div class="invoice-ref-label">Payment Reference</div>
+            </div>
+            <div class="invoice-status-badge">● Pending</div>
+          </div>
+          <div class="invoice-body">
+            <div class="invoice-row"><span>Created</span><span>${fmtDate(createdAt)}</span></div>
+            <div class="invoice-row"><span>Expires</span><span>${fmtDate(expiresAt)}</span></div>
+            <div class="invoice-row"><span>Amount</span><span class="invoice-amount" id="invoice-amount">${fmtPrice(grand())}</span></div>
+          </div>
+          <div class="invoice-divider"></div>
+          <div class="invoice-body">
+            <div class="invoice-row"><span>Billed to</span><span>${user?.name || '—'}</span></div>
+            <div class="invoice-row"><span>Email</span><span class="invoice-email">${user?.email || '—'}</span></div>
+            ${user?.phone ? `<div class="invoice-row"><span>Phone</span><span>${user.phone}</span></div>` : ''}
+          </div>
+        </div>
+
+        <div id="pay-breakdown-wrap">
+          ${breakdownHTML(selectedMethod)}
+        </div>
+
+        <button class="btn-pay-now" id="pay-now-btn">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          Pay Now · <span id="pay-btn-total">${fmtPrice(grand())}</span>
+        </button>
+
+        <div class="pay-disclaimer">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          By proceeding, I acknowledge I have read and agreed to
+          <a href="#" class="disclaimer-link">Terms of Sale</a>,
+          <a href="#" class="disclaimer-link">Terms of Use</a> &amp;
+          <a href="#" class="disclaimer-link">Privacy Policy</a>.
+          <br/>Effective and today's date: <strong>${fmtDateLong(new Date())}</strong>
+        </div>
+      </div>
+
+    </div>`;
+
+  // ── Payment method selection ───────────────────────────────────────────────
+  function refreshMethod(id) {
+    selectedMethod = id;
+    document.querySelectorAll('.pm-card').forEach(c => {
+      const sel = c.dataset.method === id;
+      c.classList.toggle('selected', sel);
+      c.setAttribute('aria-checked', sel);
+    });
+    document.getElementById('pm-details').innerHTML = methodFormHTML(id);
+    document.getElementById('pay-breakdown-wrap').innerHTML = breakdownHTML(id);
+    const g = fmtPrice(totals.subtotal + METHODS[id].fee(totals.subtotal));
+    document.getElementById('pay-btn-total').textContent = g;
+    document.getElementById('invoice-amount').textContent = g;
+    // card format input
+    if (id === 'credit' || id === 'debit') attachCardFormatting();
+  }
+
+  document.getElementById('pm-grid').addEventListener('click', e => {
+    const card = e.target.closest('.pm-card');
+    if (card) refreshMethod(card.dataset.method);
+  });
+
+  document.getElementById('pm-grid').addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      const card = e.target.closest('.pm-card');
+      if (card) { e.preventDefault(); refreshMethod(card.dataset.method); }
+    }
+  });
+
+  // ── Card number formatting ─────────────────────────────────────────────────
+  function attachCardFormatting() {
+    const cardNo = document.getElementById('pf-card-no');
+    const expiry = document.getElementById('pf-expiry');
+    if (cardNo) {
+      cardNo.addEventListener('input', () => {
+        let v = cardNo.value.replace(/\D/g,'').slice(0,16);
+        cardNo.value = v.replace(/(.{4})/g,'$1  ').trim();
+      });
+    }
+    if (expiry) {
+      expiry.addEventListener('input', () => {
+        let v = expiry.value.replace(/\D/g,'').slice(0,4);
+        if (v.length > 2) v = v.slice(0,2) + ' / ' + v.slice(2);
+        expiry.value = v;
+      });
+    }
+  }
+  if (selectedMethod === 'credit' || selectedMethod === 'debit') attachCardFormatting();
+
+  // ── Back button ────────────────────────────────────────────────────────────
+  document.getElementById('back-to-review').addEventListener('click', () => setStep(1));
+
+  // ── Pay Now ────────────────────────────────────────────────────────────────
+  document.getElementById('pay-now-btn').addEventListener('click', async () => {
+    const btn = document.getElementById('pay-now-btn');
+    btn.disabled = true;
+    btn.innerHTML = `<span class="pay-spinner"></span> Processing…`;
+
+    const orderData = {
+      name:    user?.name  || '',
+      email:   user?.email || '',
+      phone:   user?.phone || null,
+      address: null,
+    };
+
+    try {
+      const order = await createOrder(orderData);
+      renderConfirmation(order);
+    } catch (err) {
+      showToast(err.message, 'error');
+      btn.disabled = false;
+      btn.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg> Pay Now &nbsp;·&nbsp; <span id="pay-btn-total">${fmtPrice(grand())}</span>`;
+    }
+  });
+}
+
+// ── Confirmation ─────────────────────────────────────────────────────────────
+function renderConfirmation(order) {
+  document.getElementById('checkout-steps').style.display = 'none';
+
+  body.innerHTML = `
+    <div class="co-confirmation">
+      <div class="co-confirm-glow"></div>
+      <div class="co-confirm-icon">🎉</div>
+      <h2 class="co-confirm-title">Payment Successful!</h2>
+      <p class="co-confirm-sub">Order <strong class="co-confirm-ref">#${order.id.slice(0,8).toUpperCase()}</strong> confirmed.</p>
+      <p class="co-confirm-email">Confirmation sent to <strong>${order.shippingEmail}</strong></p>
+
+      <div class="co-confirm-summary">
+        ${order.items.map(i => `
+          <div class="co-item">
+            <div class="co-thumb">
+              ${i.imageUrl
+                ? `<img src="http://localhost:8080${i.imageUrl}" class="co-thumb-img" alt="${i.productName}"/>`
+                : `<div class="co-thumb-emoji">${i.productEmoji || '🎮'}</div>`}
+            </div>
+            <div class="co-item-info">
+              <div class="co-item-name">${i.productName}</div>
+              <div class="co-item-qty">Qty: ${i.quantity}</div>
+            </div>
+            <div class="co-item-total">${fmtPrice(i.lineTotal)}</div>
+          </div>`).join('')}
+        <div class="co-summary-divider"></div>
+        <div class="co-summary-row co-total"><span>Total Paid</span><span>${fmtPrice(order.totalAmount)}</span></div>
+      </div>
+
+      <div class="co-confirm-actions">
+        <a href="orders.html" class="btn-co-primary">View My Orders</a>
+        <a href="catalog.html" class="btn-co-ghost">Continue Shopping</a>
+      </div>
+    </div>`;
+}
+
+// ── Router ────────────────────────────────────────────────────────────────────
+function renderStep() {
+  if (step === 1) renderStep1();
+  else if (step === 2) renderPayment();
+}
+
+setStep(1);
+</script>
+
+</body>
+</html>

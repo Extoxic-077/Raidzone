@@ -5,12 +5,6 @@ import NexVault.model.User;
 import java.time.LocalDateTime;
 import java.util.UUID;
 
-/**
- * Public-facing representation of a {@link User} entity.
- *
- * <p>Omits sensitive fields (passwordHash) and maps camelCase
- * field names for consistent JSON serialisation.</p>
- */
 public record UserResponse(
         UUID id,
         String email,
@@ -20,15 +14,10 @@ public record UserResponse(
         String role,
         String provider,
         Boolean isEmailVerified,
+        Boolean isActive,
         LocalDateTime createdAt
 ) {
 
-    /**
-     * Maps a {@link User} entity to a {@link UserResponse} DTO.
-     *
-     * @param user the entity to convert
-     * @return a new {@link UserResponse} with all safe fields populated
-     */
     public static UserResponse from(User user) {
         return new UserResponse(
                 user.getId(),
@@ -39,6 +28,7 @@ public record UserResponse(
                 user.getRole(),
                 user.getProvider(),
                 user.getIsEmailVerified(),
+                user.getIsActive(),
                 user.getCreatedAt()
         );
     }
