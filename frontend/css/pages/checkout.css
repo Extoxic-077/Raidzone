@@ -882,3 +882,368 @@
 @media (max-width: 400px) {
   .pm-grid { grid-template-columns: repeat(2, 1fr); }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   PAYMENT TABS — Stripe / Razorpay / Coinbase
+   ═══════════════════════════════════════════════════════════════════════════ */
+
+/* ── Tab strip ───────────────────────────────────────────────────────────── */
+
+.payment-tabs {
+  display: flex;
+  gap: 6px;
+  margin-bottom: 12px;
+  flex-shrink: 0;
+}
+
+.pay-tab {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 9px 6px 7px;
+  border-radius: var(--r-md);
+  border: 1px solid var(--glass-border);
+  background: var(--bg2);
+  cursor: pointer;
+  font-family: var(--font-body);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-3);
+  transition: all var(--ease-fast);
+  user-select: none;
+}
+
+.pay-tab:hover {
+  border-color: var(--glass-border-accent);
+  color: var(--text-2);
+}
+
+.pay-tab.active {
+  border-color: var(--violet);
+  background: rgba(124,58,237,0.1);
+  color: var(--violet-light);
+  box-shadow: 0 0 0 1px rgba(124,58,237,0.2);
+}
+
+.pay-tab-icon { font-size: 1.1rem; line-height: 1; }
+.pay-tab-label { font-size: 10px; }
+.pay-tab-note  { font-size: 8.5px; color: var(--text-4); }
+.pay-tab.active .pay-tab-note { color: rgba(124,58,237,0.7); }
+
+/* ── Panel wrapper ───────────────────────────────────────────────────────── */
+
+.pay-panel { animation: staggerIn 180ms ease forwards; }
+.pay-panel.hidden { display: none; }
+
+/* ── Section label ───────────────────────────────────────────────────────── */
+
+.pay-section-label {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-4);
+  margin-bottom: 8px;
+}
+
+/* ── Stripe card element wrapper ─────────────────────────────────────────── */
+
+.stripe-mount-wrap {
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  padding: 11px 12px;
+  margin-bottom: 10px;
+  transition: border-color var(--ease-fast), box-shadow var(--ease-fast);
+  min-height: 44px;
+}
+
+.stripe-mount-wrap:focus-within {
+  border-color: var(--violet);
+  box-shadow: 0 0 0 3px rgba(124,58,237,0.15);
+}
+
+.stripe-card-logos {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.stripe-card-logos img {
+  height: 18px;
+  opacity: 0.6;
+  border-radius: 3px;
+  filter: grayscale(40%);
+}
+
+.stripe-card-logos span {
+  font-size: 9px;
+  color: var(--text-4);
+  font-weight: 600;
+  padding: 2px 6px;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-full);
+  background: var(--bg3);
+}
+
+/* ── UPI / NetBanking ────────────────────────────────────────────────────── */
+
+.upi-badges {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.upi-badge {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.upi-badge-icon { font-size: 1rem; }
+
+/* ── Crypto coins row ────────────────────────────────────────────────────── */
+
+.crypto-coins-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.crypto-coin {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  background: var(--bg3);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-full);
+  font-size: 10px;
+  font-weight: 600;
+  color: var(--text-2);
+}
+
+.crypto-coin-icon { font-size: 0.9rem; }
+
+/* ── Pay action buttons ──────────────────────────────────────────────────── */
+
+.btn-pay-tab {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 13px 20px;
+  border-radius: var(--r-full);
+  background: linear-gradient(135deg, #7C3AED, #22D3EE);
+  color: #fff;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  border: none;
+  box-shadow: 0 6px 20px rgba(124,58,237,0.35);
+  margin-bottom: 8px;
+  flex-shrink: 0;
+  transition: opacity var(--ease-fast), transform var(--ease-fast), box-shadow var(--ease-fast);
+}
+
+.btn-pay-tab:hover   { opacity: 0.9; transform: translateY(-1px); box-shadow: 0 10px 28px rgba(124,58,237,0.45); }
+.btn-pay-tab:active  { transform: translateY(0); }
+.btn-pay-tab:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
+
+.btn-pay-razorpay {
+  background: linear-gradient(135deg, #004C8F, #0EA5E9);
+  box-shadow: 0 6px 20px rgba(14,165,233,0.3);
+}
+
+.btn-pay-razorpay:hover { box-shadow: 0 10px 28px rgba(14,165,233,0.4); }
+
+.btn-pay-coinbase {
+  background: linear-gradient(135deg, #1652F0, #22D3EE);
+  box-shadow: 0 6px 20px rgba(22,82,240,0.3);
+}
+
+.btn-pay-coinbase:hover { box-shadow: 0 10px 28px rgba(22,82,240,0.4); }
+
+/* ── Pay divider line ────────────────────────────────────────────────────── */
+
+.pay-tab-divider {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0;
+  font-size: 10px;
+  color: var(--text-4);
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.pay-tab-divider::before,
+.pay-tab-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--glass-border);
+}
+
+/* ── Error message ───────────────────────────────────────────────────────── */
+
+.pay-error {
+  background: rgba(239,68,68,0.08);
+  border: 1px solid rgba(239,68,68,0.3);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  font-size: 12px;
+  color: #F87171;
+  font-weight: 500;
+  margin-bottom: 8px;
+  flex-shrink: 0;
+  animation: staggerIn 180ms ease forwards;
+}
+
+/* ── Coinbase waiting panel ──────────────────────────────────────────────── */
+
+.coinbase-waiting {
+  text-align: center;
+  padding: 24px 16px;
+  background: var(--bg2);
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-md);
+  margin-bottom: 10px;
+  flex-shrink: 0;
+  animation: staggerIn 200ms ease forwards;
+}
+
+.coinbase-waiting-icon { font-size: 2.5rem; margin-bottom: 10px; }
+
+.coinbase-waiting-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-1);
+  margin-bottom: 6px;
+}
+
+.coinbase-waiting-sub {
+  font-size: 11px;
+  color: var(--text-3);
+  margin-bottom: 16px;
+  line-height: 1.6;
+}
+
+.coinbase-waiting-spinner {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(34,211,238,0.2);
+  border-top-color: #22D3EE;
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+  margin-bottom: 8px;
+}
+
+.coinbase-waiting-status {
+  font-size: 10px;
+  color: var(--text-4);
+  font-family: var(--font-mono);
+}
+
+.btn-coinbase-cancel {
+  margin-top: 12px;
+  padding: 7px 18px;
+  background: transparent;
+  border: 1px solid var(--glass-border);
+  border-radius: var(--r-full);
+  color: var(--text-3);
+  font-size: 11px;
+  cursor: pointer;
+  transition: border-color var(--ease-fast), color var(--ease-fast);
+}
+
+.btn-coinbase-cancel:hover { border-color: var(--danger); color: var(--danger); }
+
+/* ── Stripe lock note ────────────────────────────────────────────────────── */
+
+.stripe-lock-note {
+  font-size: 11px;
+  color: var(--text-4);
+  text-align: center;
+  padding: 10px 0 14px;
+  line-height: 1.5;
+}
+
+/* ── Razorpay / panel intro notes ────────────────────────────────────────── */
+
+.rzp-note {
+  font-size: 12px;
+  color: var(--text-3);
+  background: rgba(124,58,237,0.05);
+  border: 1px solid rgba(124,58,237,0.12);
+  border-radius: var(--r-md);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  line-height: 1.5;
+}
+
+.pay-security-note {
+  font-size: 10.5px;
+  color: var(--text-4);
+  margin: 8px 0 14px;
+}
+
+/* ── QR placeholder ──────────────────────────────────────────────────────── */
+
+.qr-placeholder {
+  text-align: center;
+  padding: 16px;
+  background: var(--bg3);
+  border: 1px dashed var(--glass-border);
+  border-radius: var(--r-md);
+  font-size: 11px;
+  color: var(--text-4);
+  margin-bottom: 8px;
+}
+
+/* ── Panel animation ─────────────────────────────────────────────────────── */
+
+@keyframes pay-panel-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.pay-panel-anim { animation: pay-panel-in 200ms ease forwards; }
+
+/* ── Coupon row in invoice ───────────────────────────────────────────────── */
+
+.invoice-coupon-val {
+  color: #22D3EE;
+  font-weight: 700;
+  font-family: var(--font-mono);
+}
+
+.invoice-coupon-badge {
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  font-weight: 700;
+  background: rgba(124,58,237,0.12);
+  color: var(--violet-light);
+  border: 1px solid rgba(124,58,237,0.25);
+  border-radius: var(--r-full);
+  padding: 1px 6px;
+  margin-left: 4px;
+}

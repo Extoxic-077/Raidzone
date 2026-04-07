@@ -19,6 +19,15 @@
 
   <div id="navbar"></div>
 
+  <!-- Success banner (shown when ?success=true) -->
+  <div id="order-success-banner" style="display:none" class="order-success-banner">
+    <span class="order-success-icon">🎉</span>
+    <div>
+      <strong>Payment confirmed!</strong> Your order is being processed.
+    </div>
+    <button class="order-success-close" id="success-banner-close" aria-label="Dismiss">×</button>
+  </div>
+
   <div class="orders-page">
     <div class="orders-inner">
       <div class="page-heading">
@@ -46,6 +55,21 @@ if (!isLoggedIn()) {
 }
 await initNavbar();
 
+// ── Success banner ────────────────────────────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+if (params.get('success') === 'true') {
+  const banner = document.getElementById('order-success-banner');
+  banner.style.display = 'flex';
+  // Auto-hide after 5s
+  const timer = setTimeout(() => banner.style.display = 'none', 5000);
+  document.getElementById('success-banner-close').addEventListener('click', () => {
+    clearTimeout(timer);
+    banner.style.display = 'none';
+  });
+  // Clean URL
+  history.replaceState({}, '', 'orders.html');
+}
+
 const root = document.getElementById('orders-root');
 
 function fmtPrice(v) {
@@ -59,14 +83,22 @@ function fmtDate(iso) {
   });
 }
 
+const PROVIDER_LABEL = {
+  STRIPE:   '💳 Card',
+  RAZORPAY: '🇮🇳 UPI/NetBanking',
+  COINBASE: '₿ Crypto',
+};
+
 function statusBadge(status) {
   const map = {
-    CONFIRMED: 'badge-confirmed',
-    PROCESSING: 'badge-processing',
-    DELIVERED: 'badge-delivered',
-    CANCELLED: 'badge-cancelled',
+    CONFIRMED:       'badge-confirmed',
+    PROCESSING:      'badge-processing',
+    DELIVERED:       'badge-delivered',
+    CANCELLED:       'badge-cancelled',
+    PENDING_PAYMENT: 'badge-pending-payment',
   };
-  return `<span class="order-status-badge ${map[status] || 'badge-confirmed'}">${status}</span>`;
+  const label = status === 'PENDING_PAYMENT' ? 'Pending Payment' : status;
+  return `<span class="order-status-badge ${map[status] || 'badge-confirmed'}">${label}</span>`;
 }
 
 function renderOrders(orders) {
@@ -81,6 +113,8 @@ function renderOrders(orders) {
   }
 
   root.innerHTML = orders.map(order => {
+    const isPending = order.status === 'PENDING_PAYMENT';
+
     const itemsHtml = order.items.map(item => {
       const thumb = item.imageUrl
         ? `<img src="http://localhost:8080${item.imageUrl}" alt="${item.productName}" class="oi-img"/>`
@@ -95,8 +129,31 @@ function renderOrders(orders) {
         </div>`;
     }).join('');
 
+    // Coupon savings row
+    const couponRow = (order.discountAmount && Number(order.discountAmount) > 0)
+      ? `<div class="order-coupon-row">
+           <span class="order-coupon-label">
+             🏷️ Promo <span class="order-coupon-code">${order.couponCode || ''}</span>
+           </span>
+           <span class="order-coupon-saving">−${fmtPrice(order.discountAmount)}</span>
+         </div>`
+      : '';
+
+    // Payment info row (only for paid orders)
+    const paymentRow = (!isPending && order.paymentMethod)
+      ? `<div class="order-payment-row">
+           <span class="order-payment-method">${PROVIDER_LABEL[order.paymentMethod] || order.paymentMethod}</span>
+           ${order.paidAt ? `<span class="order-paid-at">${fmtDate(order.paidAt)}</span>` : ''}
+         </div>`
+      : '';
+
+    // Complete payment CTA for pending orders
+    const pendingCta = isPending
+      ? `<a href="checkout.html" class="btn-complete-payment">Complete Payment →</a>`
+      : '';
+
     return `
-      <div class="order-card">
+      <div class="order-card ${isPending ? 'order-card-pending' : ''}">
         <div class="order-card-header">
           <div class="order-id-wrap">
             <span class="order-id-label">Order</span>
@@ -108,12 +165,17 @@ function renderOrders(orders) {
           </div>
         </div>
         <div class="order-items">${itemsHtml}</div>
+        ${couponRow}
+        ${paymentRow}
         <div class="order-card-footer">
           <div class="order-shipping">
             <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             ${order.shippingName} &nbsp;·&nbsp; ${order.shippingEmail}
           </div>
-          <div class="order-total">${fmtPrice(order.totalAmount)}</div>
+          <div class="order-footer-right">
+            ${pendingCta}
+            <div class="order-total">${fmtPrice(order.totalAmount)}</div>
+          </div>
         </div>
       </div>`;
   }).join('');

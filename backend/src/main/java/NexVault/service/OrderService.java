@@ -2,11 +2,14 @@ package NexVault.service;
 
 import NexVault.dto.request.CreateOrderRequest;
 import NexVault.dto.response.CartResponse;
+import NexVault.dto.response.CouponApplyResponse;
 import NexVault.dto.response.OrderResponse;
 import NexVault.exception.ResourceNotFoundException;
+import NexVault.model.Coupon;
 import NexVault.model.Order;
 import NexVault.model.OrderItem;
 import NexVault.model.User;
+import NexVault.repository.CouponRepository;
 import NexVault.repository.OrderRepository;
 import NexVault.repository.ProductRepository;
 import NexVault.repository.UserRepository;
@@ -15,27 +18,22 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Handles order creation from the current Redis cart and order history retrieval.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final OrderRepository    orderRepository;
-    private final UserRepository     userRepository;
-    private final ProductRepository  productRepository;
-    private final CartService        cartService;
+    private final OrderRepository   orderRepository;
+    private final UserRepository    userRepository;
+    private final ProductRepository productRepository;
+    private final CartService       cartService;
+    private final CouponService     couponService;
+    private final CouponRepository  couponRepository;
 
-    /**
-     * Creates an order from the caller's current Redis cart, then clears the cart.
-     *
-     * @throws IllegalStateException if the cart is empty
-     */
     @Transactional
     public OrderResponse createOrder(UUID userId, CreateOrderRequest req) {
         CartResponse cart = cartService.getCart(userId);
@@ -48,7 +46,7 @@ public class OrderService {
 
         Order order = new Order();
         order.setUser(user);
-        order.setStatus("CONFIRMED");
+        order.setStatus("PENDING_PAYMENT");
         order.setTotalAmount(cart.subtotal());
         order.setTotalItems(cart.totalItems());
         order.setShippingName(req.name());
@@ -65,19 +63,40 @@ public class OrderService {
             item.setPrice(ci.price());
             item.setQuantity(ci.quantity());
             item.setLineTotal(ci.lineTotal());
-            // Soft-link to product (nullable FK — won't break if product is deleted later)
             productRepository.findById(ci.productId()).ifPresent(item::setProduct);
             order.getItems().add(item);
         });
 
-        Order saved = orderRepository.save(order);
-        cartService.clearCart(userId);
+        // ── Coupon handling ───────────────────────────────────────────────────
+        BigDecimal discountAmount = BigDecimal.ZERO;
+        String appliedCouponCode  = null;
 
-        log.info("Order created: id={} user={} total={}", saved.getId(), userId, saved.getTotalAmount());
+        if (req.couponCode() != null && !req.couponCode().isBlank()) {
+            CouponApplyResponse couponResp = couponService.validateAndPreview(
+                    req.couponCode(), cart.subtotal(), userId);
+            discountAmount    = couponResp.discountAmount();
+            appliedCouponCode = couponResp.code().toUpperCase();
+            order.setDiscountAmount(discountAmount);
+            order.setCouponCode(appliedCouponCode);
+            order.setTotalAmount(cart.subtotal().subtract(discountAmount));
+        }
+
+        Order saved = orderRepository.save(order);
+        // Cart is cleared only after payment is confirmed (see StripeService / RazorpayService / CoinbaseService)
+
+        // Redeem coupon only after order is persisted
+        if (appliedCouponCode != null) {
+            final String finalCouponCode = appliedCouponCode;
+            Coupon coupon = couponRepository.findByCodeIgnoreCaseAndIsActiveTrue(finalCouponCode)
+                    .orElseThrow(() -> new ResourceNotFoundException("Coupon not found", finalCouponCode));
+            couponService.redeemCoupon(coupon, user, saved, discountAmount);
+        }
+
+        log.info("Order created: id={} user={} total={} status=PENDING_PAYMENT",
+                saved.getId(), userId, saved.getTotalAmount());
         return OrderResponse.from(saved);
     }
 
-    /** Returns all orders for the authenticated user, newest first. */
     @Transactional(readOnly = true)
     public List<OrderResponse> getMyOrders(UUID userId) {
         return orderRepository.findByUserIdWithItems(userId)

@@ -14,13 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Represents a completed checkout by a user.
- *
- * <p>Created when the user submits the checkout wizard.  Cart items are
- * snapshotted into {@link OrderItem} rows so the order history is stable
- * even if products are later edited or deleted.</p>
- */
 @Entity
 @Table(name = "orders")
 @EntityListeners(AuditingEntityListener.class)
@@ -39,7 +32,7 @@ public class Order {
     private User user;
 
     @Column(name = "status", nullable = false, length = 20)
-    private String status = "CONFIRMED";
+    private String status = "PENDING_PAYMENT";
 
     @Column(name = "total_amount", nullable = false, precision = 12, scale = 2)
     private BigDecimal totalAmount;
@@ -58,6 +51,22 @@ public class Order {
 
     @Column(name = "shipping_address", columnDefinition = "TEXT")
     private String shippingAddress;
+
+    // ── Phase 9: payment tracking ─────────────────────────────────────────────
+
+    @Column(name = "payment_method", length = 20)
+    private String paymentMethod;
+
+    @Column(name = "paid_at")
+    private LocalDateTime paidAt;
+
+    @Column(name = "discount_amount", nullable = false, precision = 12, scale = 2)
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
+    @Column(name = "coupon_code", length = 50)
+    private String couponCode;
+
+    // ─────────────────────────────────────────────────────────────────────────
 
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<OrderItem> items = new ArrayList<>();

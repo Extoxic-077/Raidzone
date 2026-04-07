@@ -319,3 +319,50 @@ export async function adminToggleUserStatus(userId, isActive) {
 export async function adminDeleteUser(userId) {
   return authApiFetch(`/admin/users/${userId}`, { method: 'DELETE' });
 }
+
+// ─── Coupons ──────────────────────────────────────────────────────────────────
+
+export async function applyCoupon(code, orderAmount) {
+  return authApiFetch('/coupons/apply', {
+    method: 'POST',
+    body: JSON.stringify({ code, orderAmount }),
+  });
+}
+
+// ─── Payment — Stripe ─────────────────────────────────────────────────────────
+
+export async function createStripeIntent(orderId) {
+  return authApiFetch('/payments/stripe/intent', {
+    method: 'POST',
+    body: JSON.stringify({ orderId }),
+  });
+}
+
+// ─── Payment — Razorpay ───────────────────────────────────────────────────────
+
+export async function createRazorpayOrder(orderId) {
+  return authApiFetch('/payments/razorpay/order', {
+    method: 'POST',
+    body: JSON.stringify({ orderId }),
+  });
+}
+
+export async function verifyRazorpayPayment(orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature) {
+  return authApiFetch('/payments/razorpay/verify', {
+    method: 'POST',
+    body: JSON.stringify({ orderId, razorpayOrderId, razorpayPaymentId, razorpaySignature }),
+  });
+}
+
+// ─── Payment — Coinbase ───────────────────────────────────────────────────────
+
+export async function createCoinbaseCharge(orderId) {
+  return authApiFetch('/payments/coinbase/charge', {
+    method: 'POST',
+    body: JSON.stringify({ orderId }),
+  });
+}
+
+export async function pollOrderStatus(orderId) {
+  return authApiFetch(`/payments/order/${orderId}/status`, { method: 'GET' });
+}

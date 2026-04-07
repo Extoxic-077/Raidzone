@@ -131,6 +131,22 @@ public class GlobalExceptionHandler {
     }
 
     /**
+     * Handles {@link IllegalStateException}: returns 400 with the actual message.
+     * Covers coupon validation failures (expired, usage limit, already used, etc.).
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<ApiResponse<Void>> handleIllegalState(
+            IllegalStateException ex,
+            HttpServletRequest request) {
+
+        log.warn("Bad request [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
      * Handles {@link IllegalArgumentException}: returns 400 with the actual message.
      * Covers file-type/size validation errors and null ID arguments from Spring Data.
      */

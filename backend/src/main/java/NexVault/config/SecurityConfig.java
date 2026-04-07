@@ -77,6 +77,9 @@ public class SecurityConfig {
                     .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/api-docs/**").permitAll()
                     // ── Actuator ─────────────────────────────────────────────────
                     .requestMatchers("/actuator/**").permitAll()
+                    // ── Payment webhooks (public — reached without JWT) ──────────
+                    .requestMatchers("/api/v1/payments/stripe/webhook").permitAll()
+                    .requestMatchers("/api/v1/payments/coinbase/webhook").permitAll()
                     // ── Admin (requires ADMIN role) ──────────────────────────────
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                     // ── Everything else requires authentication ──────────────────

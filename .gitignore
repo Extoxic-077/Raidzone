@@ -32,3 +32,8 @@ build/
 ### VS Code ###
 .vscode/
 run_commands.md
+
+### Secrets ###
+backend/.env
+.env
+*.env

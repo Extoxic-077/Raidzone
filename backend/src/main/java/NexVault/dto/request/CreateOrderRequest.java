@@ -4,11 +4,6 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-/**
- * Payload submitted by the checkout wizard to create a new order.
- * Cart items are read from Redis server-side; the frontend sends only
- * shipping/contact information.
- */
 public record CreateOrderRequest(
 
         @NotBlank
@@ -24,5 +19,9 @@ public record CreateOrderRequest(
         String phone,
 
         @Size(max = 500)
-        String address
+        String address,
+
+        // Optional coupon code — null means no coupon
+        @Size(max = 50)
+        String couponCode
 ) {}

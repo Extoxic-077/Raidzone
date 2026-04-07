@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Cart — NexVault</title>
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 
-  <!-- CSS -->
   <link rel="stylesheet" href="css/variables.css"/>
   <link rel="stylesheet" href="css/animations.css"/>
   <link rel="stylesheet" href="css/base.css"/>
@@ -40,7 +38,7 @@
 import { initNavbar } from './js/components/navbar.js';
 import { showToast }  from './js/components/toast.js';
 import { initAuth, isLoggedIn } from './js/auth.js';
-import { getCart, updateCartItem, removeCartItem, clearCart } from './js/api.js';
+import { getCart, updateCartItem, removeCartItem, clearCart, applyCoupon } from './js/api.js';
 
 await initAuth();
 if (!isLoggedIn()) {
@@ -50,9 +48,67 @@ if (!isLoggedIn()) {
 
 await initNavbar();
 
-const root = document.getElementById('cart-root');
+const root       = document.getElementById('cart-root');
 const countLabel = document.getElementById('cart-count-label');
 
+// ── Coupon state ──────────────────────────────────────────────────────────────
+let cartData        = null;   // current cart from API
+let appliedCoupon   = null;   // CouponApplyResponse | null
+let couponDiscount  = 0;      // numeric discount amount
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function fmt(v) { return '₹' + Number(v).toLocaleString('en-IN'); }
+
+// ── Coupon section HTML ───────────────────────────────────────────────────────
+function couponSectionHTML() {
+  return `
+    <div class="coupon-section">
+      <div class="coupon-label">🏷️ Promo Code</div>
+      <div class="coupon-row">
+        <input class="coupon-input" id="coupon-input" placeholder="e.g. HASHVAULT10"
+               autocomplete="off" spellcheck="false"
+               value="${appliedCoupon ? appliedCoupon.code : ''}"/>
+        <button class="btn-coupon-apply" id="coupon-apply-btn"
+                ${appliedCoupon ? 'disabled' : ''}>
+          ${appliedCoupon ? 'Applied' : 'Apply'}
+        </button>
+      </div>
+      <div class="coupon-result ${appliedCoupon ? 'success' : ''}" id="coupon-result"
+           style="${appliedCoupon ? '' : 'display:none'}">
+        ${appliedCoupon
+          ? `<span>✓ <strong>${appliedCoupon.code}</strong> applied — saving ${fmt(appliedCoupon.discountAmount)}</span>
+             <button class="coupon-remove-btn" id="coupon-remove-btn" title="Remove coupon">×</button>`
+          : ''}
+      </div>
+    </div>`;
+}
+
+// ── Summary rows (re-rendered in place when coupon changes) ───────────────────
+function renderSummaryRows() {
+  const subtotal = cartData ? Number(cartData.subtotal) : 0;
+  const count    = cartData ? cartData.totalItems : 0;
+  const total    = Math.max(0, subtotal - couponDiscount);
+
+  const subtotalRow = document.getElementById('summary-subtotal');
+  const couponRow   = document.getElementById('summary-coupon-row');
+  const totalVal    = document.getElementById('summary-total-val');
+
+  if (subtotalRow) subtotalRow.textContent = fmt(subtotal);
+  if (totalVal)    totalVal.textContent    = fmt(total);
+
+  if (couponRow) {
+    if (appliedCoupon && couponDiscount > 0) {
+      couponRow.style.display = '';
+      couponRow.innerHTML = `
+        <span>Promo <span class="coupon-code-badge">${appliedCoupon.code}</span></span>
+        <span class="summary-coupon-val">−${fmt(couponDiscount)}</span>`;
+    } else {
+      couponRow.style.display = 'none';
+    }
+  }
+}
+
+// ── Main render function ──────────────────────────────────────────────────────
 async function load() {
   root.innerHTML = '<div class="cart-loading">Loading cart…</div>';
   try {
@@ -64,6 +120,7 @@ async function load() {
 }
 
 function render(cart) {
+  cartData = cart;
   const count = cart.totalItems ?? 0;
   countLabel.textContent = `${count} item${count !== 1 ? 's' : ''}`;
 
@@ -89,8 +146,8 @@ function render(cart) {
         <div class="cart-item-details">
           <div class="cart-item-name">${item.name}</div>
           <div class="cart-item-price-row">
-            <span class="cart-item-price">₹${item.price.toLocaleString('en-IN')}</span>
-            ${item.originalPrice ? `<span class="cart-item-orig">₹${item.originalPrice.toLocaleString('en-IN')}</span>` : ''}
+            <span class="cart-item-price">${fmt(item.price)}</span>
+            ${item.originalPrice ? `<span class="cart-item-orig">${fmt(item.originalPrice)}</span>` : ''}
             ${pct ? `<span class="cart-item-disc">-${pct}%</span>` : ''}
           </div>
         </div>
@@ -99,7 +156,7 @@ function render(cart) {
           <span class="qty-val">${item.quantity}</span>
           <button class="qty-btn" data-action="inc" data-id="${item.productId}">+</button>
         </div>
-        <div class="cart-item-line">₹${item.lineTotal.toLocaleString('en-IN')}</div>
+        <div class="cart-item-line">${fmt(item.lineTotal)}</div>
         <button class="cart-remove-btn" data-id="${item.productId}" aria-label="Remove">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
             <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/>
@@ -109,6 +166,9 @@ function render(cart) {
       </div>`;
   }).join('');
 
+  const subtotal = Number(cart.subtotal);
+  const total    = Math.max(0, subtotal - couponDiscount);
+
   root.innerHTML = `
     <div class="cart-items-col">
       <div class="cart-items-list">${itemsHtml}</div>
@@ -117,31 +177,61 @@ function render(cart) {
     <div class="cart-summary-col">
       <div class="cart-summary-card">
         <div class="cart-summary-title">Order Summary</div>
-        <div class="cart-summary-row"><span>Subtotal (${count} items)</span><span>₹${cart.subtotal.toLocaleString('en-IN')}</span></div>
+
+        ${couponSectionHTML()}
+
+        <div class="cart-summary-row">
+          <span>Subtotal (${count} items)</span>
+          <span id="summary-subtotal">${fmt(subtotal)}</span>
+        </div>
+        <div class="cart-summary-row" id="summary-coupon-row"
+             style="${appliedCoupon ? '' : 'display:none'}">
+          ${appliedCoupon
+            ? `<span>Promo <span class="coupon-code-badge">${appliedCoupon.code}</span></span>
+               <span class="summary-coupon-val">−${fmt(couponDiscount)}</span>`
+            : ''}
+        </div>
         <div class="cart-summary-row"><span>Delivery</span><span class="text-success">Free</span></div>
         <div class="cart-summary-divider"></div>
-        <div class="cart-summary-row total"><span>Total</span><span>₹${cart.subtotal.toLocaleString('en-IN')}</span></div>
+        <div class="cart-summary-row total">
+          <span>Total</span>
+          <span id="summary-total-val">${fmt(total)}</span>
+        </div>
         <button class="btn-checkout" id="checkout-btn">Proceed to Checkout</button>
         <div class="cart-summary-note">🔐 Secure checkout · Instant delivery</div>
       </div>
     </div>`;
 
-  // Qty controls
+  attachCartEvents(cart);
+  attachCouponEvents();
+}
+
+function attachCartEvents(cart) {
   root.querySelectorAll('.qty-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
-      const id = btn.dataset.id;
+      const id     = btn.dataset.id;
       const action = btn.dataset.action;
-      const item = cart.items.find(i => i.productId === id);
+      const item   = cart.items.find(i => i.productId === id);
       if (!item) return;
       const newQty = action === 'inc' ? item.quantity + 1 : item.quantity - 1;
       try {
         const updated = await updateCartItem(id, newQty);
+        // Re-validate coupon with new subtotal
+        if (appliedCoupon) {
+          try {
+            const resp = await applyCoupon(appliedCoupon.code, Number(updated.subtotal));
+            appliedCoupon  = resp;
+            couponDiscount = Number(resp.discountAmount);
+          } catch {
+            appliedCoupon  = null;
+            couponDiscount = 0;
+          }
+        }
         render(updated);
       } catch (err) { showToast(err.message, 'error'); }
     });
   });
 
-  // Remove buttons
   root.querySelectorAll('.cart-remove-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
       try {
@@ -152,19 +242,89 @@ function render(cart) {
     });
   });
 
-  // Clear cart
   document.getElementById('clear-cart-btn')?.addEventListener('click', async () => {
     try {
       await clearCart();
+      appliedCoupon  = null;
+      couponDiscount = 0;
       showToast('Cart cleared', 'info');
       load();
     } catch (err) { showToast(err.message, 'error'); }
   });
 
-  // Go to checkout wizard
   document.getElementById('checkout-btn')?.addEventListener('click', () => {
-    window.location.href = 'checkout.html';
+    const url = appliedCoupon
+      ? `checkout.html?coupon=${encodeURIComponent(appliedCoupon.code)}`
+      : 'checkout.html';
+    window.location.href = url;
   });
+}
+
+function attachCouponEvents() {
+  const input    = document.getElementById('coupon-input');
+  const applyBtn = document.getElementById('coupon-apply-btn');
+  const result   = document.getElementById('coupon-result');
+
+  if (!input || !applyBtn) return;
+
+  // Auto uppercase
+  input.addEventListener('input', () => {
+    const pos = input.selectionStart;
+    input.value = input.value.toUpperCase();
+    input.setSelectionRange(pos, pos);
+  });
+
+  applyBtn.addEventListener('click', async () => {
+    const code = input.value.trim().toUpperCase();
+    if (!code) return;
+
+    applyBtn.disabled = true;
+    applyBtn.innerHTML = '<span class="coupon-spinner"></span>';
+
+    try {
+      const resp = await applyCoupon(code, Number(cartData.subtotal));
+      appliedCoupon  = resp;
+      couponDiscount = Number(resp.discountAmount);
+
+      result.className  = 'coupon-result success';
+      result.style.display = '';
+      result.innerHTML  = `
+        <span>✓ <strong>${resp.code}</strong> applied — saving ${fmt(resp.discountAmount)}</span>
+        <button class="coupon-remove-btn" id="coupon-remove-btn" title="Remove">×</button>`;
+
+      applyBtn.disabled     = true;
+      applyBtn.textContent  = 'Applied';
+      renderSummaryRows();
+
+      document.getElementById('coupon-remove-btn')?.addEventListener('click', removeCoupon);
+    } catch (err) {
+      appliedCoupon  = null;
+      couponDiscount = 0;
+
+      result.className  = 'coupon-result error';
+      result.style.display = '';
+      result.innerHTML  = `<span>✗ ${err.message}</span>`;
+
+      applyBtn.disabled    = false;
+      applyBtn.textContent = 'Apply';
+      renderSummaryRows();
+    }
+  });
+
+  // Wire remove button if already applied
+  document.getElementById('coupon-remove-btn')?.addEventListener('click', removeCoupon);
+}
+
+function removeCoupon() {
+  appliedCoupon  = null;
+  couponDiscount = 0;
+  const result   = document.getElementById('coupon-result');
+  const input    = document.getElementById('coupon-input');
+  const applyBtn = document.getElementById('coupon-apply-btn');
+  if (result)   { result.style.display = 'none'; result.className = 'coupon-result'; }
+  if (input)    { input.value = ''; input.disabled = false; }
+  if (applyBtn) { applyBtn.disabled = false; applyBtn.textContent = 'Apply'; }
+  renderSummaryRows();
 }
 
 load();

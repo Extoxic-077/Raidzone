@@ -113,6 +113,20 @@
 			<scope>runtime</scope>
 		</dependency>
 
+		<!-- ── Stripe ──────────────────────────────────────────────────────────── -->
+		<dependency>
+			<groupId>com.stripe</groupId>
+			<artifactId>stripe-java</artifactId>
+			<version>24.3.0</version>
+		</dependency>
+
+		<!-- ── Razorpay ─────────────────────────────────────────────────────────── -->
+		<dependency>
+			<groupId>com.razorpay</groupId>
+			<artifactId>razorpay-java</artifactId>
+			<version>1.4.5</version>
+		</dependency>
+
 		<!-- ── Test ─────────────────────────────────────────────────────────── -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
