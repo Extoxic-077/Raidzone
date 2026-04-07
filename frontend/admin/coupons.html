@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Coupons — Admin — NexVault</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/animations.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/pages/admin.css"/>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar"></aside>
+
+  <main class="admin-main">
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Coupons</span></div>
+
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-page-title">Coupons</h1>
+        <p class="admin-page-subtitle">Create and manage discount codes</p>
+      </div>
+      <button class="btn-admin-primary" id="create-coupon-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create Coupon
+      </button>
+    </div>
+
+    <div class="admin-table-card">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Type</th>
+              <th>Value</th>
+              <th>Min Order</th>
+              <th>Usage</th>
+              <th>Expires</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="coupons-tbody">
+            <tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Slide panel (create / edit) -->
+<div class="admin-panel-overlay" id="panel-overlay"></div>
+<div class="admin-slide-panel" id="coupon-panel">
+  <div class="admin-panel-header">
+    <h3 id="panel-title">Create Coupon</h3>
+    <button class="admin-panel-close" id="panel-close">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+    </button>
+  </div>
+  <form id="coupon-form" class="admin-panel-body">
+    <div class="admin-form-group full">
+      <label class="admin-form-label">Code *</label>
+      <input class="admin-form-input mono-copy" name="code" required placeholder="SAVE20" style="text-transform:uppercase;letter-spacing:0.08em"/>
+      <span class="admin-form-hint">Letters and numbers only, no spaces</span>
+    </div>
+
+    <div class="admin-form-group full">
+      <label class="admin-form-label">Discount Type *</label>
+      <div style="display:flex;gap:10px;margin-top:4px">
+        <label class="coupon-type-radio" id="type-pct-label">
+          <input type="radio" name="discountType" value="PERCENTAGE" checked/>
+          <span class="coupon-type-pct">% Percentage</span>
+        </label>
+        <label class="coupon-type-radio" id="type-fixed-label">
+          <input type="radio" name="discountType" value="FIXED"/>
+          <span class="coupon-type-fixed">₹ Fixed</span>
+        </label>
+      </div>
+    </div>
+
+    <div class="admin-form-group">
+      <label class="admin-form-label">Value *</label>
+      <input class="admin-form-input" name="discountValue" type="number" step="0.01" min="0.01" required placeholder="20"/>
+    </div>
+    <div class="admin-form-group">
+      <label class="admin-form-label">Max Discount (₹) <span style="color:var(--text-4);font-weight:400">optional</span></label>
+      <input class="admin-form-input" name="maxDiscount" type="number" step="0.01" min="0" placeholder="500"/>
+    </div>
+    <div class="admin-form-group">
+      <label class="admin-form-label">Min Order Amount (₹)</label>
+      <input class="admin-form-input" name="minOrderAmount" type="number" step="0.01" min="0" value="0" placeholder="0"/>
+    </div>
+    <div class="admin-form-group">
+      <label class="admin-form-label">Max Uses <span style="color:var(--text-4);font-weight:400">0 = unlimited</span></label>
+      <input class="admin-form-input" name="maxUses" type="number" min="0" value="0"/>
+    </div>
+    <div class="admin-form-group full">
+      <label class="admin-form-label">Expiry Date <span style="color:var(--text-4);font-weight:400">optional</span></label>
+      <input class="admin-form-input" name="expiresAt" type="datetime-local"/>
+    </div>
+
+    <!-- Live preview -->
+    <div class="coupon-preview-card" id="coupon-preview">
+      <div class="coupon-preview-left">
+        <div class="coupon-preview-code" id="prev-code">CODE</div>
+        <div class="coupon-preview-sub" id="prev-sub">Discount coupon</div>
+      </div>
+      <div class="coupon-preview-right" id="prev-value">—</div>
+    </div>
+
+    <div class="admin-panel-footer">
+      <button type="button" class="btn-admin-cancel" id="panel-cancel">Cancel</button>
+      <button type="submit" class="btn-admin-primary" id="panel-submit">Create Coupon</button>
+    </div>
+  </form>
+</div>
+
+<!-- Usage modal -->
+<div class="admin-modal-overlay" id="usage-modal" style="display:none">
+  <div class="admin-modal" style="max-width:560px">
+    <h2 class="admin-modal-title">Coupon Usages — <span id="usage-modal-code" style="font-family:'JetBrains Mono',monospace;font-size:0.9em"></span></h2>
+    <div id="usage-modal-body" style="max-height:360px;overflow-y:auto">
+      <div style="text-align:center;padding:40px;color:var(--text-3)">Loading…</div>
+    </div>
+    <div class="admin-modal-footer">
+      <button class="btn-admin-cancel" id="usage-modal-close">Close</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script type="module">
+import { showToast } from '../js/components/toast.js';
+import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
+import { initAdminSidebar } from './js/adminSidebar.js';
+import {
+  adminGetCoupons, adminCreateCoupon, adminUpdateCoupon,
+  adminDeactivateCoupon, adminGetCouponUsages
+} from '../js/api.js';
+
+await initAuth();
+if (!isLoggedIn() || !isAdmin()) { window.location.href = '../login.html'; }
+await initAdminSidebar('coupons');
+
+let editingId   = null;
+let couponCache = {};
+
+// ── Load ────────────────────────────────────────────────────────────────────────
+async function load() {
+  const tbody = document.getElementById('coupons-tbody');
+  tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
+  try {
+    const coupons = await adminGetCoupons();
+    couponCache = {};
+    coupons.forEach(c => { couponCache[c.id] = c; });
+    renderTable(coupons, tbody);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
+  }
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleDateString('en-IN', { year:'numeric', month:'short', day:'numeric' }); }
+  catch { return '—'; }
+}
+
+function renderTable(coupons, tbody) {
+  if (!coupons.length) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--text-3)">No coupons yet</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = coupons.map(c => {
+    const typeBadge = c.discountType === 'PERCENTAGE'
+      ? `<span class="coupon-type-pct">% Off</span>`
+      : `<span class="coupon-type-fixed">₹ Fixed</span>`;
+    const value = c.discountType === 'PERCENTAGE'
+      ? `${c.discountValue}%`
+      : `₹${Number(c.discountValue).toLocaleString('en-IN')}`;
+    const minOrder = c.minOrderAmount > 0
+      ? `₹${Number(c.minOrderAmount).toLocaleString('en-IN')}`
+      : '—';
+    const usedPct = c.maxUses > 0
+      ? Math.round((c.usedCount / c.maxUses) * 100)
+      : null;
+    const usageBar = usedPct != null
+      ? `<div class="coupon-usage-bar"><div class="coupon-usage-fill" style="width:${Math.min(usedPct,100)}%"></div></div>
+         <span style="font-size:0.72rem;color:var(--text-4)">${c.usedCount}/${c.maxUses}</span>`
+      : `<span style="font-size:0.8rem;color:var(--text-4)">${c.usedCount} uses</span>`;
+    const active = c.isActive !== false;
+    const statusBadge = active
+      ? `<span class="admin-badge badge-active">Active</span>`
+      : `<span class="admin-badge badge-inactive">Inactive</span>`;
+    const safeCode = (c.code || '').replace(/'/g, '');
+    return `
+      <tr>
+        <td>
+          <div style="display:flex;align-items:center;gap:6px">
+            <span class="mono-copy" style="font-size:0.85rem;letter-spacing:0.06em">${c.code}</span>
+            <button class="btn-copy-icon" onclick="copyCode('${safeCode}')" title="Copy code">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+            </button>
+          </div>
+        </td>
+        <td>${typeBadge}</td>
+        <td style="font-weight:600;color:var(--text-1)">${value}</td>
+        <td style="color:var(--text-3)">${minOrder}</td>
+        <td>${usageBar}</td>
+        <td style="color:var(--text-3);font-size:0.8rem">${fmtDate(c.expiresAt)}</td>
+        <td>${statusBadge}</td>
+        <td>
+          <div class="admin-actions-cell">
+            <button class="btn-table-action" onclick="openEdit('${c.id}')">Edit</button>
+            <button class="btn-table-action" onclick="openUsages('${c.id}','${safeCode}')">Usages</button>
+            ${active ? `<button class="btn-table-action danger" onclick="deactivate('${c.id}','${safeCode}')">Deactivate</button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+}
+
+// ── Panel ───────────────────────────────────────────────────────────────────────
+function openPanel(title, submitLabel) {
+  document.getElementById('panel-title').textContent = title;
+  document.getElementById('panel-submit').textContent = submitLabel;
+  document.getElementById('coupon-panel').classList.add('open');
+  document.getElementById('panel-overlay').classList.add('open');
+}
+
+function closePanel() {
+  document.getElementById('coupon-panel').classList.remove('open');
+  document.getElementById('panel-overlay').classList.remove('open');
+}
+
+function openCreate() {
+  editingId = null;
+  document.getElementById('coupon-form').reset();
+  updatePreview();
+  openPanel('Create Coupon', 'Create Coupon');
+}
+
+window.openEdit = function(id) {
+  editingId = id;
+  const c = couponCache[id];
+  if (!c) return;
+  const form = document.getElementById('coupon-form');
+  form.elements['code'].value          = c.code || '';
+  form.elements['discountValue'].value = c.discountValue || '';
+  form.elements['maxDiscount'].value   = c.maxDiscount || '';
+  form.elements['minOrderAmount'].value = c.minOrderAmount || 0;
+  form.elements['maxUses'].value       = c.maxUses || 0;
+  if (c.expiresAt) {
+    const d = new Date(c.expiresAt);
+    form.elements['expiresAt'].value = d.toISOString().slice(0,16);
+  } else {
+    form.elements['expiresAt'].value = '';
+  }
+  // Set radio
+  const radios = form.querySelectorAll('input[name="discountType"]');
+  radios.forEach(r => { r.checked = r.value === c.discountType; });
+  updatePreview();
+  openPanel('Edit Coupon', 'Save Changes');
+};
+
+window.copyCode = function(code) {
+  navigator.clipboard.writeText(code).then(() => showToast(`Copied: ${code}`, 'success'));
+};
+
+window.deactivate = async function(id, code) {
+  if (!confirm(`Deactivate coupon "${code}"?`)) return;
+  try {
+    await adminDeactivateCoupon(id);
+    showToast(`"${code}" deactivated`, 'info');
+    load();
+  } catch (err) { showToast(err.message, 'error'); }
+};
+
+// ── Usages modal ────────────────────────────────────────────────────────────────
+window.openUsages = async function(id, code) {
+  document.getElementById('usage-modal-code').textContent = code;
+  document.getElementById('usage-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3)">Loading…</div>';
+  document.getElementById('usage-modal').style.display = 'flex';
+  try {
+    const usages = await adminGetCouponUsages(id);
+    if (!usages.length) {
+      document.getElementById('usage-modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-3)">No usages yet</div>';
+      return;
+    }
+    document.getElementById('usage-modal-body').innerHTML = `
+      <table class="admin-table">
+        <thead><tr><th>User</th><th>Email</th><th>Discount</th><th>Used At</th></tr></thead>
+        <tbody>
+          ${usages.map(u => `
+            <tr>
+              <td>${u.userName || '—'}</td>
+              <td style="font-size:0.8rem;color:var(--text-3)">${u.userEmail || '—'}</td>
+              <td style="color:var(--cyan);font-weight:600">-₹${Number(u.discountApplied || 0).toLocaleString('en-IN')}</td>
+              <td style="font-size:0.8rem;color:var(--text-4)">${fmtDate(u.usedAt)}</td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  } catch (err) {
+    document.getElementById('usage-modal-body').innerHTML = `<div style="color:var(--danger);padding:24px;text-align:center">${err.message}</div>`;
+  }
+};
+
+// ── Live preview ────────────────────────────────────────────────────────────────
+function updatePreview() {
+  const form  = document.getElementById('coupon-form');
+  const code  = (form.elements['code']?.value || 'CODE').toUpperCase() || 'CODE';
+  const val   = parseFloat(form.elements['discountValue']?.value) || 0;
+  const type  = form.querySelector('input[name="discountType"]:checked')?.value || 'PERCENTAGE';
+  const min   = parseFloat(form.elements['minOrderAmount']?.value) || 0;
+  document.getElementById('prev-code').textContent  = code;
+  document.getElementById('prev-value').textContent = type === 'PERCENTAGE' ? `${val}% OFF` : `₹${val} OFF`;
+  document.getElementById('prev-sub').textContent   = min > 0 ? `Min order ₹${min}` : 'No minimum order';
+}
+
+document.getElementById('coupon-form').addEventListener('input', updatePreview);
+
+// ── Form submit ─────────────────────────────────────────────────────────────────
+document.getElementById('coupon-form').addEventListener('submit', async e => {
+  e.preventDefault();
+  const form = document.getElementById('coupon-form');
+  const fd   = new FormData(form);
+  const btn  = document.getElementById('panel-submit');
+  btn.disabled = true;
+
+  const data = {
+    code:           (fd.get('code') || '').toUpperCase().trim(),
+    discountType:   fd.get('discountType'),
+    discountValue:  parseFloat(fd.get('discountValue')),
+    maxDiscount:    fd.get('maxDiscount') ? parseFloat(fd.get('maxDiscount')) : null,
+    minOrderAmount: parseFloat(fd.get('minOrderAmount')) || 0,
+    maxUses:        parseInt(fd.get('maxUses')) || 0,
+    expiresAt:      fd.get('expiresAt') ? new Date(fd.get('expiresAt')).toISOString() : null,
+  };
+
+  try {
+    if (editingId) {
+      await adminUpdateCoupon(editingId, data);
+      showToast('Coupon updated', 'success');
+    } else {
+      await adminCreateCoupon(data);
+      showToast('Coupon created', 'success');
+    }
+    closePanel();
+    load();
+  } catch (err) {
+    showToast(err.message, 'error');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+// ── Wiring ──────────────────────────────────────────────────────────────────────
+document.getElementById('create-coupon-btn').addEventListener('click', openCreate);
+document.getElementById('panel-close').addEventListener('click', closePanel);
+document.getElementById('panel-cancel').addEventListener('click', closePanel);
+document.getElementById('panel-overlay').addEventListener('click', closePanel);
+// also close on overlay click since we use the overlay as backdrop
+
+document.getElementById('usage-modal-close').addEventListener('click', () => {
+  document.getElementById('usage-modal').style.display = 'none';
+});
+document.getElementById('usage-modal').addEventListener('click', e => {
+  if (e.target === document.getElementById('usage-modal')) document.getElementById('usage-modal').style.display = 'none';
+});
+
+load();
+</script>
+
+</body>
+</html>

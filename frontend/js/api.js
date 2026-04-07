@@ -366,3 +366,106 @@ export async function createCoinbaseCharge(orderId) {
 export async function pollOrderStatus(orderId) {
   return authApiFetch(`/payments/order/${orderId}/status`, { method: 'GET' });
 }
+
+// ─── Admin — Orders ───────────────────────────────────────────────────────────
+
+export async function adminGetOrders(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.page     != null)  qs.set('page',   params.page);
+  if (params.size     != null)  qs.set('size',   params.size);
+  if (params.status)            qs.set('status', params.status);
+  if (params.search)            qs.set('search', params.search);
+  return authApiFetch(`/admin/orders${qs.toString() ? '?' + qs : ''}`, { method: 'GET' });
+}
+
+export async function adminGetOrder(orderId) {
+  return authApiFetch(`/admin/orders/${orderId}`, { method: 'GET' });
+}
+
+export async function adminUpdateOrderStatus(orderId, status) {
+  return authApiFetch(`/admin/orders/${orderId}/status`, {
+    method: 'PUT',
+    body: JSON.stringify({ status }),
+  });
+}
+
+// ─── Admin — Coupons ──────────────────────────────────────────────────────────
+
+export async function adminGetCoupons() {
+  return authApiFetch('/admin/coupons', { method: 'GET' });
+}
+
+export async function adminCreateCoupon(data) {
+  return authApiFetch('/admin/coupons', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function adminUpdateCoupon(id, data) {
+  return authApiFetch(`/admin/coupons/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function adminDeactivateCoupon(id) {
+  return authApiFetch(`/admin/coupons/${id}`, { method: 'DELETE' });
+}
+
+export async function adminGetCouponUsages(id) {
+  return authApiFetch(`/admin/coupons/${id}/usages`, { method: 'GET' });
+}
+
+// ─── Admin — Payments ─────────────────────────────────────────────────────────
+
+export async function adminGetPayments(params = {}) {
+  const qs = new URLSearchParams();
+  if (params.page     != null)  qs.set('page',     params.page);
+  if (params.size     != null)  qs.set('size',     params.size);
+  if (params.provider)          qs.set('provider', params.provider);
+  if (params.status)            qs.set('status',   params.status);
+  return authApiFetch(`/admin/payments${qs.toString() ? '?' + qs : ''}`, { method: 'GET' });
+}
+
+// ─── Admin — Product quick controls ──────────────────────────────────────────
+
+export async function adminToggleProductActive(id) {
+  return authApiFetch(`/admin/products/${id}/toggle-active`, { method: 'PATCH' });
+}
+
+export async function adminToggleFlashDeal(id) {
+  return authApiFetch(`/admin/products/${id}/toggle-flash-deal`, { method: 'PATCH' });
+}
+
+export async function adminSetBadge(id, badge) {
+  return authApiFetch(`/admin/products/${id}/badge`, {
+    method: 'PATCH',
+    body: JSON.stringify({ badge }),
+  });
+}
+
+export async function adminBulkToggleActive(productIds, isActive) {
+  return authApiFetch('/admin/products/bulk-toggle-active', {
+    method: 'POST',
+    body: JSON.stringify({ productIds, isActive }),
+  });
+}
+
+// ─── Admin — System / Monitoring ─────────────────────────────────────────────
+
+export async function adminGetSystemHealth() {
+  return authApiFetch('/admin/system/health', { method: 'GET' });
+}
+
+export async function adminGetSystemMetrics() {
+  return authApiFetch('/admin/system/metrics', { method: 'GET' });
+}
+
+export async function adminGetDbStats() {
+  return authApiFetch('/admin/system/db-stats', { method: 'GET' });
+}
+
+export async function adminGetRealtime() {
+  return authApiFetch('/admin/analytics/realtime', { method: 'GET' });
+}

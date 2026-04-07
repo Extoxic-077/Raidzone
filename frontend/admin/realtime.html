@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Real-time — Admin — NexVault</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/animations.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/pages/admin.css"/>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar"></aside>
+
+  <main class="admin-main">
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Real-time</span></div>
+
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-page-title">Real-time Activity</h1>
+        <p class="admin-page-subtitle">Live view of the last 60 minutes</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <div class="realtime-strip" style="margin:0">
+          <div class="realtime-dot"></div>
+          <span class="realtime-label">Live</span>
+        </div>
+        <span id="last-update" style="font-size:0.8rem;color:var(--text-4)">Refreshing every 10s</span>
+      </div>
+    </div>
+
+    <!-- Live KPI cards -->
+    <div class="admin-kpi-grid" style="grid-template-columns:repeat(3,1fr);margin-bottom:24px">
+      <div class="admin-kpi-card" style="border-color:rgba(192,132,252,0.3)">
+        <div class="admin-kpi-label">Orders last 1h</div>
+        <div class="admin-kpi-value" id="rt-orders" style="color:var(--violet-light)">—</div>
+        <div class="admin-kpi-sub">New since last hour</div>
+      </div>
+      <div class="admin-kpi-card" style="border-color:rgba(34,211,238,0.3)">
+        <div class="admin-kpi-label">Revenue last 1h</div>
+        <div class="admin-kpi-value" id="rt-revenue" style="color:var(--cyan)">—</div>
+        <div class="admin-kpi-sub">Confirmed in last hour</div>
+      </div>
+      <div class="admin-kpi-card">
+        <div class="admin-kpi-label">Last Updated</div>
+        <div class="admin-kpi-value" id="rt-time" style="font-size:1.1rem">—</div>
+        <div class="admin-kpi-sub" id="rt-ago"></div>
+      </div>
+    </div>
+
+    <!-- Orders feed + mini chart -->
+    <div class="dashboard-row dashboard-row-2">
+      <!-- Recent orders live feed -->
+      <div class="admin-chart-card" style="flex:1.5">
+        <div class="admin-chart-header">
+          <div class="admin-chart-title">Recent Orders Feed</div>
+          <a href="orders.html" style="font-size:12px;color:var(--violet-light);text-decoration:none">View all →</a>
+        </div>
+        <div class="recent-orders-list" id="orders-feed" style="max-height:420px;overflow-y:auto">
+          <div style="text-align:center;color:var(--text-4);padding:40px;font-size:13px">Loading…</div>
+        </div>
+      </div>
+
+      <!-- Orders per hour spark -->
+      <div class="admin-chart-card">
+        <div class="admin-chart-header"><div class="admin-chart-title">Orders / Hour (rolling 24h)</div></div>
+        <div style="position:relative;height:260px"><canvas id="spark-chart"></canvas></div>
+        <div id="spark-note" style="font-size:11px;color:var(--text-4);margin-top:8px;text-align:center"></div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script type="module">
+import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
+import { initAdminSidebar } from './js/adminSidebar.js';
+import { adminGetRealtime } from '../js/api.js';
+
+await initAuth();
+if (!isLoggedIn() || !isAdmin()) { window.location.href = '../login.html'; }
+await initAdminSidebar('realtime');
+
+const fmt = v => '₹' + Number(v ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
+const fmtK = v => v >= 10000 ? '₹' + (v/1000).toFixed(1) + 'K' : fmt(v);
+
+const timeAgo = iso => {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now';
+  if (m < 60) return `${m}m ago`;
+  return `${Math.floor(m/60)}h ago`;
+};
+
+let sparkChart = null;
+let lastUpdated = null;
+
+// Build a fake rolling 24-bar sparkline from current data
+function buildSparkData(ordersLast1h) {
+  // We only have the "last 1h" count from the API; show it in the last bar
+  const bars = Array(24).fill(0);
+  bars[23] = ordersLast1h ?? 0;
+  return bars;
+}
+
+function renderSpark(ordersLast1h) {
+  const ctx = document.getElementById('spark-chart');
+  if (!ctx) return;
+
+  const labels = Array.from({ length: 24 }, (_, i) => {
+    const h = new Date().getHours() - 23 + i;
+    return ((h % 24) + 24) % 24 + ':00';
+  });
+  const data = buildSparkData(ordersLast1h);
+
+  if (sparkChart) {
+    sparkChart.data.labels = labels;
+    sparkChart.data.datasets[0].data = data;
+    sparkChart.update('none');
+    return;
+  }
+
+  sparkChart = new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        backgroundColor: data.map((v, i) => i === 23
+          ? 'rgba(192,132,252,0.8)'
+          : 'rgba(255,255,255,0.06)'),
+        borderRadius: 3,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        backgroundColor: 'rgba(7,7,15,0.95)', borderColor: 'rgba(255,255,255,0.08)',
+        borderWidth: 1, titleColor: '#F1F0F7', bodyColor: '#9CA3AF', padding: 8,
+        callbacks: { label: ctx => `${ctx.raw} orders` },
+      }},
+      scales: {
+        x: { grid: { display: false }, ticks: { color: '#4B5563', font: { size: 9 }, maxRotation: 0, maxTicksLimit: 8 } },
+        y: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#6B7280', font: { size: 10 }, precision: 0 }, beginAtZero: true },
+      },
+    },
+  });
+  document.getElementById('spark-note').textContent = 'Note: only the current hour bucket is live data; historical bars are estimates.';
+}
+
+function renderFeed(orders) {
+  const feed = document.getElementById('orders-feed');
+  if (!orders || !orders.length) {
+    feed.innerHTML = '<div style="text-align:center;color:var(--text-4);font-size:13px;padding:40px">No recent orders</div>';
+    return;
+  }
+  const STATUS_CLASS = {
+    PENDING_PAYMENT: 'badge-pending-payment',
+    CONFIRMED:       'badge-confirmed',
+    CANCELLED:       'badge-cancelled',
+    DELIVERED:       'badge-delivered',
+    PROCESSING:      'badge-pending',
+  };
+  feed.innerHTML = orders.map(o => `
+    <div class="recent-order-row" onclick="window.location.href='orders.html'" style="cursor:pointer">
+      <div class="recent-order-info">
+        <div class="recent-order-name">${o.shippingName || '—'}</div>
+        <div class="recent-order-email">${o.shippingEmail || ''}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px">
+        <span class="recent-order-amount">${fmtK(o.totalAmount ?? 0)}</span>
+        <span class="admin-badge ${STATUS_CLASS[o.status] || ''}" style="font-size:10px">
+          ${(o.status || '').replace('_', ' ')}
+        </span>
+      </div>
+      <div class="time-ago">${timeAgo(o.createdAt)}</div>
+    </div>`).join('');
+}
+
+async function refresh() {
+  try {
+    const rt = await adminGetRealtime();
+    lastUpdated = new Date();
+
+    document.getElementById('rt-orders').textContent  = rt.ordersLast1h ?? 0;
+    document.getElementById('rt-revenue').textContent = fmtK(rt.revenueLast1h ?? 0);
+    document.getElementById('rt-time').textContent    = lastUpdated.toLocaleTimeString('en-IN');
+
+    renderFeed(rt.recentOrders ?? []);
+    renderSpark(rt.ordersLast1h ?? 0);
+  } catch (err) {
+    console.warn('Realtime refresh error:', err.message);
+  }
+}
+
+// Update "X seconds ago" display
+function updateAgo() {
+  const el = document.getElementById('rt-ago');
+  if (!lastUpdated || !el) return;
+  const sec = Math.round((Date.now() - lastUpdated.getTime()) / 1000);
+  el.textContent = `${sec}s ago`;
+}
+
+refresh();
+const refreshTimer = setInterval(refresh, 10_000);
+const agoTimer     = setInterval(updateAgo, 1_000);
+window.addEventListener('beforeunload', () => { clearInterval(refreshTimer); clearInterval(agoTimer); });
+</script>
+
+</body>
+</html>

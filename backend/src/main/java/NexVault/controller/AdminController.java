@@ -8,10 +8,7 @@ import NexVault.exception.ResourceNotFoundException;
 import NexVault.model.Category;
 import NexVault.model.Product;
 import NexVault.model.User;
-import NexVault.repository.CategoryRepository;
-import NexVault.repository.ProductRepository;
-import NexVault.repository.PurchaseRepository;
-import NexVault.repository.UserRepository;
+import NexVault.repository.*;
 import NexVault.service.AdminProductService;
 import NexVault.service.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -21,6 +18,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -31,8 +29,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.YearMonth;
 import java.time.Year;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @RestController
@@ -48,6 +45,9 @@ public class AdminController {
     private final PurchaseRepository purchaseRepository;
     private final FileStorageService fileStorageService;
     private final AdminProductService adminProductService;
+    private final OrderRepository orderRepository;
+    private final CouponUsageRepository couponUsageRepository;
+    private final CouponRepository couponRepository;
 
     // ── Dashboard stats ───────────────────────────────────────────────────────
 
@@ -76,6 +76,7 @@ public class AdminController {
         LocalDateTime from = range[0];
         LocalDateTime to   = range[1];
 
+        // Legacy purchase-based stats
         long totalSales    = purchaseRepository.countByCreatedAtBetween(from, to);
         Double rev         = purchaseRepository.sumRevenueByDateRange(from, to);
         double totalRevenue = rev != null ? rev : 0.0;
@@ -99,8 +100,49 @@ public class AdminController {
             return new AnalyticsResponse.DailySalesItem(date, cnt, revenue);
         }).toList();
 
-        return ResponseEntity.ok(ApiResponse.ok(
-                new AnalyticsResponse(totalSales, totalRevenue, topProducts, salesByDate)));
+        // Order-based stats
+        long totalOrders = orderRepository.countByCreatedAtBetween(from, to);
+        long paidOrders  = orderRepository.countConfirmedByDateRange(from, to);
+
+        Double confirmedRev = orderRepository.sumConfirmedRevenueByDateRange(from, to);
+        double orderRevenue = confirmedRev != null ? confirmedRev : 0.0;
+        double avgOrderValue = paidOrders > 0 ? orderRevenue / paidOrders : 0.0;
+
+        List<Object[]> revenueByProviderRaw = orderRepository.findRevenueByProviderInRange(from, to);
+        Map<String, Double> revenueByProvider = new LinkedHashMap<>();
+        for (Object[] row : revenueByProviderRaw) {
+            String provider = row[0] != null ? row[0].toString() : "UNKNOWN";
+            double amount   = row[1] != null ? ((Number) row[1]).doubleValue() : 0.0;
+            revenueByProvider.put(provider, amount);
+        }
+
+        List<Object[]> ordersByStatusRaw = orderRepository.findOrdersByStatusInRange(from, to);
+        Map<String, Long> ordersByStatus = new LinkedHashMap<>();
+        for (Object[] row : ordersByStatusRaw) {
+            String status = row[0] != null ? row[0].toString() : "UNKNOWN";
+            long count    = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+            ordersByStatus.put(status, count);
+        }
+
+        // New users in period
+        long newUsers = userRepository.countByCreatedAtBetween(from, to);
+
+        // Coupon usage stats
+        long couponUsageCount = couponUsageRepository.countByUsedAtBetween(from, to);
+
+        List<Object[]> topCouponsRaw = couponUsageRepository.findTopCouponsByDateRange(
+                from, to, PageRequest.of(0, 5));
+        List<AnalyticsResponse.TopCouponItem> topCoupons = topCouponsRaw.stream().map(row -> {
+            String code        = row[0] != null ? row[0].toString() : "";
+            long usageCount    = row[1] != null ? ((Number) row[1]).longValue() : 0L;
+            double totalDiscount = row[2] != null ? ((Number) row[2]).doubleValue() : 0.0;
+            return new AnalyticsResponse.TopCouponItem(code, usageCount, totalDiscount);
+        }).toList();
+
+        return ResponseEntity.ok(ApiResponse.ok(new AnalyticsResponse(
+                totalSales, totalRevenue, topProducts, salesByDate,
+                totalOrders, paidOrders, revenueByProvider, ordersByStatus, avgOrderValue,
+                newUsers, couponUsageCount, topCoupons)));
     }
 
     private LocalDateTime[] resolvePeriod(String period) {
@@ -266,7 +308,7 @@ public class AdminController {
     @Operation(summary = "Change a user's role (ADMIN)")
     public ResponseEntity<ApiResponse<UserResponse>> updateUserRole(
             @PathVariable UUID id,
-            @RequestBody java.util.Map<String, String> body) {
+            @RequestBody Map<String, String> body) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
         String role = body.get("role");
@@ -282,7 +324,7 @@ public class AdminController {
     @Operation(summary = "Toggle a user's active status (ADMIN)")
     public ResponseEntity<ApiResponse<UserResponse>> toggleUserStatus(
             @PathVariable UUID id,
-            @RequestBody java.util.Map<String, Boolean> body) {
+            @RequestBody Map<String, Boolean> body) {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("User", id));
         Boolean active = body.get("isActive");

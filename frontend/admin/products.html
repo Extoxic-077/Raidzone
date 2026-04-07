@@ -19,35 +19,7 @@
 
 <div class="admin-layout">
 
-  <!-- Sidebar (desktop) -->
-  <aside class="admin-sidebar">
-    <div class="admin-logo">NexVault <span>Admin Panel</span></div>
-    <div class="admin-nav-section">Overview</div>
-    <a href="index.html" class="admin-nav-link">
-      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-      Analytics
-    </a>
-    <div class="admin-nav-section">Catalogue</div>
-    <a href="products.html" class="admin-nav-link active">
-      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
-      Products
-    </a>
-    <a href="categories.html" class="admin-nav-link">
-      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-      Categories
-    </a>
-    <div class="admin-nav-section">Users</div>
-    <a href="users.html" class="admin-nav-link">
-      <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-      Users
-    </a>
-    <div class="admin-nav-back">
-      <a href="../index.html" class="admin-nav-link">
-        <svg class="admin-nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
-        Back to Store
-      </a>
-    </div>
-  </aside>
+  <aside class="admin-sidebar"></aside>
 
   <!-- Main -->
   <main class="admin-main">
@@ -67,12 +39,13 @@
         <table class="admin-table">
           <thead>
             <tr>
+              <th style="width:36px"><input type="checkbox" id="select-all" style="accent-color:var(--violet)"/></th>
               <th>Image</th><th>Name</th><th>Category</th><th>Price</th>
-              <th>Status</th><th>Flash</th><th>Actions</th>
+              <th>Active</th><th>Flash</th><th>Badge</th><th>Actions</th>
             </tr>
           </thead>
           <tbody id="products-tbody">
-            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
+            <tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -164,6 +137,13 @@
   </div>
 </div>
 
+<!-- Bulk action bar -->
+<div class="bulk-action-bar" id="bulk-bar">
+  <span class="bulk-count" id="bulk-count">0 selected</span>
+  <button class="btn-admin-primary" style="font-size:0.8rem;padding:6px 14px" id="bulk-activate">Activate</button>
+  <button class="btn-admin-cancel" style="font-size:0.8rem;padding:6px 14px" id="bulk-deactivate">Deactivate</button>
+</div>
+
 <!-- Mobile bottom nav -->
 <nav class="admin-bottom-nav">
   <a href="index.html" class="admin-bottom-tab">
@@ -189,10 +169,16 @@
 <script type="module">
 import { showToast } from '../js/components/toast.js';
 import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
-import { adminGetProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct, adminUploadImage, getCategories } from '../js/api.js';
+import { initAdminSidebar } from './js/adminSidebar.js';
+import {
+  adminGetProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct,
+  adminUploadImage, getCategories,
+  adminToggleProductActive, adminToggleFlashDeal, adminSetBadge, adminBulkToggleActive
+} from '../js/api.js';
 
 await initAuth();
 if (!isLoggedIn() || !isAdmin()) window.location.href = '../login.html';
+await initAdminSidebar('products');
 
 let currentPage = 0;
 let editingId = null;
@@ -219,7 +205,7 @@ async function loadCategories() {
 }
 
 async function loadProducts(page = 0) {
-  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
   try {
     const result = await adminGetProducts(page, 20);
     const products = result.content || [];
@@ -228,16 +214,15 @@ async function loadProducts(page = 0) {
     renderTable(products);
     renderPagination(result);
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
   }
 }
 
 function renderTable(products) {
   if (!products.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">No products found</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-3)">No products found</td></tr>`;
     return;
   }
-  // Cache products for edit pre-population
   productsCache = {};
   products.forEach(p => { productsCache[p.id] = p; });
 
@@ -245,28 +230,125 @@ function renderTable(products) {
     const imgHtml = p.imageUrl
       ? `<div class="table-thumb"><img src="http://localhost:8080${p.imageUrl}" alt=""/></div>`
       : `<div class="table-thumb">${p.emoji || '🎮'}</div>`;
-    const statusBadge = p.isActive !== false
-      ? `<span class="admin-badge badge-active">Active</span>`
-      : `<span class="admin-badge badge-inactive">Inactive</span>`;
-    const flashBadge  = p.isFlashDeal ? '⚡' : '—';
-    const price = p.price != null ? `₹${Number(p.price).toLocaleString('en-IN')}` : '—';
+    const price   = p.price != null ? `₹${Number(p.price).toLocaleString('en-IN')}` : '—';
+    const active  = p.isActive !== false;
+    const flash   = !!p.isFlashDeal;
+    const badge   = p.badge || '';
+    const safeId  = p.id;
     return `
-      <tr>
+      <tr data-id="${safeId}">
+        <td style="width:36px"><input type="checkbox" class="row-check" data-id="${safeId}" style="accent-color:var(--violet)"/></td>
         <td>${imgHtml}</td>
-        <td><div class="table-product-name">${p.name}</div><div style="font-size:0.75rem;color:var(--text-4)">${p.slug}</div></td>
+        <td>
+          <div class="table-product-name">${p.name}</div>
+          <div style="font-size:0.75rem;color:var(--text-4)">${p.slug}</div>
+        </td>
         <td>${p.categoryName || '—'}</td>
         <td>${price}</td>
-        <td>${statusBadge}</td>
-        <td>${flashBadge}</td>
+        <td>
+          <label class="admin-toggle" title="${active ? 'Active — click to deactivate' : 'Inactive — click to activate'}">
+            <input type="checkbox" ${active ? 'checked' : ''} onchange="toggleActive('${safeId}', this.checked)"/>
+            <span class="admin-toggle-slider"></span>
+          </label>
+        </td>
+        <td>
+          <label class="admin-toggle" title="${flash ? 'Flash Deal' : 'Not a flash deal'}">
+            <input type="checkbox" ${flash ? 'checked' : ''} onchange="toggleFlash('${safeId}', this.checked)"/>
+            <span class="admin-toggle-slider"></span>
+          </label>
+        </td>
+        <td>
+          <select class="badge-select" onchange="setBadge('${safeId}', this.value)">
+            <option value="" ${!badge ? 'selected' : ''}>—</option>
+            <option value="HOT"  ${badge==='HOT'  ? 'selected' : ''}>HOT</option>
+            <option value="NEW"  ${badge==='NEW'  ? 'selected' : ''}>NEW</option>
+            <option value="SALE" ${badge==='SALE' ? 'selected' : ''}>SALE</option>
+          </select>
+        </td>
         <td>
           <div class="admin-actions-cell">
-            <button class="btn-table-action" onclick="openEdit('${p.id}')">Edit</button>
-            <button class="btn-table-action danger" onclick="deleteProduct('${p.id}','${p.name.replace(/'/g,'')}')">Delete</button>
+            <button class="btn-table-action" onclick="openEdit('${safeId}')">Edit</button>
+            <button class="btn-table-action danger" onclick="deleteProduct('${safeId}','${p.name.replace(/'/g,'').replace(/"/g,'')}')">Delete</button>
           </div>
         </td>
       </tr>`;
   }).join('');
+
+  // Bind checkbox for bulk
+  document.querySelectorAll('.row-check').forEach(cb => {
+    cb.addEventListener('change', updateBulkBar);
+  });
 }
+
+// ── Quick toggles ─────────────────────────────────────────────────────────────
+
+window.toggleActive = async function(id, checked) {
+  try {
+    await adminToggleProductActive(id);
+    if (productsCache[id]) productsCache[id].isActive = checked;
+  } catch (err) {
+    showToast(err.message, 'error');
+    loadProducts(currentPage);
+  }
+};
+
+window.toggleFlash = async function(id, checked) {
+  try {
+    await adminToggleFlashDeal(id);
+    if (productsCache[id]) productsCache[id].isFlashDeal = checked;
+  } catch (err) {
+    showToast(err.message, 'error');
+    loadProducts(currentPage);
+  }
+};
+
+window.setBadge = async function(id, badge) {
+  try {
+    await adminSetBadge(id, badge || null);
+    if (productsCache[id]) productsCache[id].badge = badge;
+  } catch (err) {
+    showToast(err.message, 'error');
+    loadProducts(currentPage);
+  }
+};
+
+// ── Bulk bar ──────────────────────────────────────────────────────────────────
+
+function getSelectedIds() {
+  return [...document.querySelectorAll('.row-check:checked')].map(cb => cb.dataset.id);
+}
+
+function updateBulkBar() {
+  const ids = getSelectedIds();
+  const bar = document.getElementById('bulk-bar');
+  document.getElementById('bulk-count').textContent = `${ids.length} selected`;
+  bar.classList.toggle('visible', ids.length > 0);
+}
+
+document.getElementById('select-all').addEventListener('change', e => {
+  document.querySelectorAll('.row-check').forEach(cb => { cb.checked = e.target.checked; });
+  updateBulkBar();
+});
+
+document.getElementById('bulk-activate').addEventListener('click', async () => {
+  const ids = getSelectedIds();
+  if (!ids.length) return;
+  try {
+    await adminBulkToggleActive(ids, true);
+    showToast(`${ids.length} products activated`, 'success');
+    loadProducts(currentPage);
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+document.getElementById('bulk-deactivate').addEventListener('click', async () => {
+  const ids = getSelectedIds();
+  if (!ids.length) return;
+  try {
+    await adminBulkToggleActive(ids, false);
+    showToast(`${ids.length} products deactivated`, 'info');
+    loadProducts(currentPage);
+  } catch (err) { showToast(err.message, 'error'); }
+});
 
 function renderPagination(page) {
   if (!page || page.totalPages <= 1) { pagination.innerHTML = ''; return; }

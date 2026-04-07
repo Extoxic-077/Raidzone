@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Server Health — Admin — NexVault</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/animations.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/pages/admin.css"/>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar"></aside>
+
+  <main class="admin-main">
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Server Health</span></div>
+
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-page-title">Server Health</h1>
+        <p class="admin-page-subtitle">JVM metrics, system resources, and database statistics</p>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px">
+        <span id="refresh-label" style="font-size:0.8rem;color:var(--text-4)">Auto-refresh every 5s</span>
+        <button class="btn-admin-secondary" id="refresh-btn">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+    </div>
+
+    <!-- Tabs -->
+    <div class="monitor-tabs" id="monitor-tabs">
+      <button class="monitor-tab active" data-tab="jvm">JVM &amp; System</button>
+      <button class="monitor-tab" data-tab="db">Database</button>
+      <button class="monitor-tab" data-tab="grafana">Grafana</button>
+    </div>
+
+    <!-- ── JVM Tab ─────────────────────────────────────────────────────────── -->
+    <div id="tab-jvm">
+      <!-- System status banner -->
+      <div class="system-status-banner" id="status-banner">
+        <div class="status-banner-dot" id="status-dot"></div>
+        <span id="status-text">Checking…</span>
+        <span id="status-uptime" style="margin-left:auto;font-size:0.8rem;color:var(--text-4)"></span>
+      </div>
+
+      <!-- Gauges grid -->
+      <div class="monitor-grid" id="monitor-grid">
+        <div class="monitor-card monitor-card--loading">Loading…</div>
+      </div>
+
+      <!-- JVM Details -->
+      <div class="admin-table-card" style="margin-top:20px">
+        <div class="admin-table-header" style="padding:16px 20px">
+          <div class="admin-table-title">JVM Details</div>
+        </div>
+        <div id="jvm-details" style="padding:0 20px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px">
+          <div style="color:var(--text-4);font-size:0.85rem">Loading…</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── DB Tab ─────────────────────────────────────────────────────────── -->
+    <div id="tab-db" style="display:none">
+      <div class="admin-table-card">
+        <div class="admin-table-header" style="padding:16px 20px">
+          <div class="admin-table-title">Database Overview</div>
+        </div>
+        <div id="db-overview" style="padding:0 20px 16px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px">
+          <div style="color:var(--text-4);font-size:0.85rem">Loading…</div>
+        </div>
+      </div>
+      <div class="admin-table-card" style="margin-top:20px">
+        <div class="admin-table-header" style="padding:16px 20px">
+          <div class="admin-table-title">Table Row Counts</div>
+        </div>
+        <div id="db-tables" class="db-tables-grid"></div>
+      </div>
+    </div>
+
+    <!-- ── Grafana Tab ─────────────────────────────────────────────────────── -->
+    <div id="tab-grafana" style="display:none">
+      <div class="grafana-frame-wrap" id="grafana-wrap">
+        <iframe id="grafana-frame" class="grafana-frame"
+          src="http://localhost:3001/d/hashvault/hashvault?orgId=1&refresh=5s&theme=dark&kiosk"
+          allow="fullscreen">
+        </iframe>
+        <div class="grafana-offline" id="grafana-offline" style="display:none">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48" style="opacity:0.4"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+          <div style="margin-top:12px;font-size:1rem;color:var(--text-2)">Grafana is not running</div>
+          <div style="margin-top:4px;font-size:0.85rem;color:var(--text-4)">Start the monitoring stack with:</div>
+          <div class="grafana-offline-cmd">docker compose --profile monitoring up -d</div>
+          <a href="http://localhost:3001" target="_blank" class="btn-admin-primary" style="margin-top:16px;text-decoration:none" rel="noopener">Open Grafana ↗</a>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script type="module">
+import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
+import { initAdminSidebar } from './js/adminSidebar.js';
+import { adminGetSystemHealth, adminGetSystemMetrics, adminGetDbStats } from '../js/api.js';
+
+await initAuth();
+if (!isLoggedIn() || !isAdmin()) { window.location.href = '../login.html'; }
+await initAdminSidebar('monitoring');
+
+// ── Tabs ─────────────────────────────────────────────────────────────────────
+const tabBtns = document.querySelectorAll('.monitor-tab');
+const tabs    = { jvm: 'tab-jvm', db: 'tab-db', grafana: 'tab-grafana' };
+tabBtns.forEach(btn => {
+  btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    Object.values(tabs).forEach(id => document.getElementById(id).style.display = 'none');
+    document.getElementById(tabs[btn.dataset.tab]).style.display = '';
+    if (btn.dataset.tab === 'db') loadDb();
+    if (btn.dataset.tab === 'grafana') checkGrafana();
+  });
+});
+
+// ── Grafana check ─────────────────────────────────────────────────────────────
+function checkGrafana() {
+  const frame   = document.getElementById('grafana-frame');
+  const offline = document.getElementById('grafana-offline');
+  frame.onerror = () => { frame.style.display = 'none'; offline.style.display = 'flex'; };
+  // Try ping via fetch
+  fetch('http://localhost:3001/api/health', { mode: 'no-cors' })
+    .then(() => { frame.style.display = ''; offline.style.display = 'none'; })
+    .catch(() => { frame.style.display = 'none'; offline.style.display = 'flex'; });
+}
+
+// ── Refresh btn ───────────────────────────────────────────────────────────────
+document.getElementById('refresh-btn').addEventListener('click', loadJvm);
+
+// ── JVM ───────────────────────────────────────────────────────────────────────
+function fmtBytes(bytes) {
+  if (bytes == null) return '—';
+  if (bytes >= 1073741824) return (bytes / 1073741824).toFixed(1) + ' GB';
+  if (bytes >= 1048576)    return (bytes / 1048576).toFixed(1) + ' MB';
+  return (bytes / 1024).toFixed(0) + ' KB';
+}
+
+function fmtMs(ms) {
+  if (ms == null) return '—';
+  const s = Math.floor(ms / 1000);
+  const m = Math.floor(s / 60), rem = s % 60;
+  if (m > 60) { const h = Math.floor(m/60); return `${h}h ${m%60}m`; }
+  if (m > 0)  return `${m}m ${rem}s`;
+  return `${s}s`;
+}
+
+function cardColor(pct) {
+  if (pct < 60)  return 'monitor-card--green';
+  if (pct < 80)  return 'monitor-card--yellow';
+  return 'monitor-card--red';
+}
+
+async function loadJvm() {
+  try {
+    const [health, metrics] = await Promise.all([adminGetSystemHealth(), adminGetSystemMetrics()]);
+
+    // Status banner
+    const dot  = document.getElementById('status-dot');
+    const text = document.getElementById('status-text');
+    const upEl = document.getElementById('status-uptime');
+    const ok   = health?.status === 'UP';
+    dot.className  = 'status-banner-dot ' + (ok ? 'dot-green' : 'dot-red');
+    text.textContent = ok ? 'All systems operational' : `Status: ${health?.status || 'DOWN'}`;
+    if (metrics?.uptimeMs != null) upEl.textContent = `Uptime: ${fmtMs(metrics.uptimeMs)}`;
+
+    // Gauges
+    const grid = document.getElementById('monitor-grid');
+    const heapUsed  = metrics?.heapUsed  || 0;
+    const heapMax   = metrics?.heapMax   || 1;
+    const heapPct   = Math.round((heapUsed / heapMax) * 100);
+    const nonHeapUsed = metrics?.nonHeapUsed || 0;
+    const cpuLoad   = metrics?.cpuLoad != null ? Math.round(metrics.cpuLoad * 100) : null;
+    const threadCount = metrics?.threadCount || 0;
+    const gcCount   = metrics?.gcCount || 0;
+    const gcTime    = metrics?.gcTimeMs || 0;
+
+    grid.innerHTML = `
+      <div class="monitor-card ${cardColor(heapPct)}">
+        <div class="monitor-card-label">Heap Memory</div>
+        <div class="monitor-card-value">${fmtBytes(heapUsed)}</div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:${heapPct}%"></div></div>
+        <div class="monitor-card-sub">${heapPct}% of ${fmtBytes(heapMax)}</div>
+      </div>
+      <div class="monitor-card monitor-card--green">
+        <div class="monitor-card-label">Non-Heap (Metaspace)</div>
+        <div class="monitor-card-value">${fmtBytes(nonHeapUsed)}</div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:${Math.min(Math.round((nonHeapUsed/(512*1024*1024))*100),100)}%"></div></div>
+        <div class="monitor-card-sub">of ~512 MB limit</div>
+      </div>
+      ${cpuLoad != null ? `
+      <div class="monitor-card ${cardColor(cpuLoad)}">
+        <div class="monitor-card-label">CPU Load (Process)</div>
+        <div class="monitor-card-value">${cpuLoad}%</div>
+        <div class="gauge-bar"><div class="gauge-fill" style="width:${cpuLoad}%"></div></div>
+        <div class="monitor-card-sub">${metrics?.availableProcessors || '?'} cores available</div>
+      </div>` : ''}
+      <div class="monitor-card monitor-card--green">
+        <div class="monitor-card-label">Threads</div>
+        <div class="monitor-card-value">${threadCount}</div>
+        <div class="monitor-card-sub">Peak: ${metrics?.peakThreadCount || '?'} · Daemon: ${metrics?.daemonThreadCount || '?'}</div>
+      </div>
+      <div class="monitor-card monitor-card--green">
+        <div class="monitor-card-label">GC Collections</div>
+        <div class="monitor-card-value">${gcCount}</div>
+        <div class="monitor-card-sub">Total time: ${gcTime} ms</div>
+      </div>
+      <div class="monitor-card monitor-card--green">
+        <div class="monitor-card-label">DB Pool</div>
+        <div class="monitor-card-value">${metrics?.dbPoolActive ?? '?'} / ${metrics?.dbPoolTotal ?? '?'}</div>
+        <div class="monitor-card-sub">Active / Total connections</div>
+      </div>
+    `;
+
+    // JVM details
+    const details = document.getElementById('jvm-details');
+    const kv = (label, value) => `
+      <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:8px;padding:12px 16px">
+        <div style="font-size:0.72rem;color:var(--text-4);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">${label}</div>
+        <div style="font-size:0.9rem;color:var(--text-1);font-family:'JetBrains Mono',monospace;word-break:break-all">${value || '—'}</div>
+      </div>`;
+    details.innerHTML =
+      kv('JVM Name',    metrics?.vmName) +
+      kv('JVM Version', metrics?.vmVersion) +
+      kv('Java Home',   metrics?.javaHome) +
+      kv('OS',          `${metrics?.osName} ${metrics?.osVersion} (${metrics?.osArch})`) +
+      kv('Total Memory',  fmtBytes(metrics?.totalMemory)) +
+      kv('Free Memory',   fmtBytes(metrics?.freeMemory)) +
+      kv('Start Time',    metrics?.startTime ? new Date(metrics.startTime).toLocaleString('en-IN') : '—') +
+      kv('Class Count',   metrics?.loadedClassCount != null ? `${metrics.loadedClassCount} loaded` : '—');
+
+  } catch (err) {
+    document.getElementById('monitor-grid').innerHTML =
+      `<div class="monitor-card monitor-card--red" style="grid-column:1/-1">${err.message}</div>`;
+  }
+}
+
+// ── DB ─────────────────────────────────────────────────────────────────────────
+async function loadDb() {
+  try {
+    const db = await adminGetDbStats();
+
+    const ov = document.getElementById('db-overview');
+    const kv = (label, value) => `
+      <div style="background:var(--glass-bg);border:1px solid var(--glass-border);border-radius:8px;padding:12px 16px">
+        <div style="font-size:0.72rem;color:var(--text-4);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.06em">${label}</div>
+        <div style="font-size:0.95rem;color:var(--text-1);font-weight:600">${value || '—'}</div>
+      </div>`;
+    ov.innerHTML =
+      kv('Database Size',   db.dbSize) +
+      kv('Active Connections', db.activeConnections ?? '—') +
+      kv('Max Connections', db.maxConnections ?? '—') +
+      kv('Database Name',   db.dbName) +
+      kv('PostgreSQL Version', db.pgVersion);
+
+    const tablesEl = document.getElementById('db-tables');
+    if (db.tables && db.tables.length) {
+      tablesEl.innerHTML = db.tables.map(t => `
+        <div class="db-table-chip">
+          <span class="db-table-name">${t.tableName}</span>
+          <span class="db-table-count">${Number(t.rowCount).toLocaleString('en-IN')}</span>
+        </div>`).join('');
+    } else {
+      tablesEl.innerHTML = '<div style="color:var(--text-4);padding:16px">No table data</div>';
+    }
+  } catch (err) {
+    document.getElementById('db-overview').innerHTML = `<div style="color:var(--danger)">${err.message}</div>`;
+  }
+}
+
+// ── Auto-refresh ───────────────────────────────────────────────────────────────
+loadJvm();
+setInterval(() => {
+  const activeTab = document.querySelector('.monitor-tab.active')?.dataset.tab;
+  if (activeTab === 'jvm')  loadJvm();
+  if (activeTab === 'db')   loadDb();
+}, 5000);
+</script>
+
+</body>
+</html>

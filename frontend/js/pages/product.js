@@ -4,6 +4,7 @@ import { createDetailSkeleton } from '../components/skeleton.js';
 import { showToast } from '../components/toast.js';
 import { getCurrentProductId } from '../router.js';
 import { isLoggedIn, getUser } from '../auth.js';
+import { makeDraggable } from '../utils/dragScroll.js';
 
 function animateCartBadge() {
   const badge = document.getElementById('cart-badge');
@@ -429,6 +430,9 @@ function renderProductUI(product) {
     </div>
   `;
 
+  // Drag-scroll for tabs bar and related scroll
+  makeDraggable(document.querySelector('.tabs-bar'));
+
   // Tab switching — lazy-load reviews on first open
   let reviewsLoaded = false;
   document.querySelectorAll('.tab-btn').forEach(btn => {
@@ -546,6 +550,8 @@ async function loadRelated(categoryId, currentId) {
       const card = createProductCard(p);
       scroll.appendChild(card);
     });
+
+    makeDraggable(scroll);
   } catch (err) {
     console.error('Failed to load related products:', err);
   }

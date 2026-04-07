@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Payments — Admin — NexVault</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/animations.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/pages/admin.css"/>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar"></aside>
+
+  <main class="admin-main">
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Payments</span></div>
+
+    <div class="admin-page-header">
+      <div>
+        <h1 class="admin-page-title">Payments</h1>
+        <p class="admin-page-subtitle">Transaction history across all payment providers</p>
+      </div>
+    </div>
+
+    <!-- Stats bar -->
+    <div class="admin-kpi-grid" id="pay-stats" style="grid-template-columns:repeat(4,1fr);margin-bottom:24px">
+      <div class="admin-kpi-card"><div class="admin-kpi-label">Total Received</div><div class="admin-kpi-value" id="stat-total">—</div></div>
+      <div class="admin-kpi-card"><div class="admin-kpi-label">Stripe</div><div class="admin-kpi-value" id="stat-stripe">—</div></div>
+      <div class="admin-kpi-card"><div class="admin-kpi-label">Razorpay</div><div class="admin-kpi-value" id="stat-razorpay">—</div></div>
+      <div class="admin-kpi-card"><div class="admin-kpi-label">Crypto</div><div class="admin-kpi-value" id="stat-crypto">—</div></div>
+    </div>
+
+    <!-- Filters -->
+    <div class="admin-toolbar">
+      <select class="admin-filter-select" id="filter-provider">
+        <option value="">All Providers</option>
+        <option value="STRIPE">Stripe</option>
+        <option value="RAZORPAY">Razorpay</option>
+        <option value="COINBASE">Crypto</option>
+      </select>
+      <select class="admin-filter-select" id="filter-status">
+        <option value="">All Statuses</option>
+        <option value="COMPLETED">Completed</option>
+        <option value="PENDING">Pending</option>
+        <option value="FAILED">Failed</option>
+        <option value="REFUNDED">Refunded</option>
+      </select>
+    </div>
+
+    <div class="admin-table-card">
+      <div class="admin-table-wrap">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Transaction ID</th>
+              <th>Order</th>
+              <th>Customer</th>
+              <th>Provider</th>
+              <th>Amount</th>
+              <th>Status</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody id="payments-tbody">
+            <tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-pagination" id="pagination"></div>
+    </div>
+  </main>
+</div>
+
+<div id="toast-container"></div>
+
+<script type="module">
+import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
+import { initAdminSidebar } from './js/adminSidebar.js';
+import { adminGetPayments } from '../js/api.js';
+
+await initAuth();
+if (!isLoggedIn() || !isAdmin()) { window.location.href = '../login.html'; }
+await initAdminSidebar('payments');
+
+let currentPage = 0;
+
+const providerFilter = document.getElementById('filter-provider');
+const statusFilter   = document.getElementById('filter-status');
+
+providerFilter.addEventListener('change', () => load(0));
+statusFilter.addEventListener('change',   () => load(0));
+
+async function load(page = 0) {
+  const tbody = document.getElementById('payments-tbody');
+  tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
+  try {
+    const params = { page, size: 25 };
+    if (providerFilter.value) params.provider = providerFilter.value;
+    if (statusFilter.value)   params.status   = statusFilter.value;
+    const result = await adminGetPayments(params);
+    currentPage = result.number ?? page;
+    renderTable(result.content || [], tbody);
+    renderPagination(result);
+    updateStats(result.content || []);
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="7" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
+  }
+}
+
+function updateStats(payments) {
+  if (!payments.length) return;
+  const completed = payments.filter(p => p.status === 'COMPLETED');
+  const total  = completed.reduce((s,p) => s + (p.amount || 0), 0);
+  const stripe = completed.filter(p => p.provider === 'STRIPE').reduce((s,p) => s + (p.amount || 0), 0);
+  const razor  = completed.filter(p => p.provider === 'RAZORPAY').reduce((s,p) => s + (p.amount || 0), 0);
+  const crypto = completed.filter(p => p.provider === 'COINBASE').reduce((s,p) => s + (p.amount || 0), 0);
+  document.getElementById('stat-total').textContent    = `₹${total.toLocaleString('en-IN')}`;
+  document.getElementById('stat-stripe').textContent   = `₹${stripe.toLocaleString('en-IN')}`;
+  document.getElementById('stat-razorpay').textContent = `₹${razor.toLocaleString('en-IN')}`;
+  document.getElementById('stat-crypto').textContent   = `₹${crypto.toLocaleString('en-IN')}`;
+}
+
+function providerLabel(p) {
+  const map = { STRIPE: 'Stripe', RAZORPAY: 'Razorpay', COINBASE: 'Crypto' };
+  return map[p] || p || '—';
+}
+
+function statusBadge(s) {
+  const map = {
+    COMPLETED: 'badge-confirmed',
+    PENDING:   'badge-pending-payment',
+    FAILED:    'badge-cancelled',
+    REFUNDED:  'badge-refunded',
+  };
+  return `<span class="admin-badge ${map[s] || ''}">${s || '—'}</span>`;
+}
+
+function fmtDate(iso) {
+  if (!iso) return '—';
+  try { return new Date(iso).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  catch { return '—'; }
+}
+
+function renderTable(payments, tbody) {
+  if (!payments.length) {
+    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--text-3)">No payments found</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = payments.map(p => `
+    <tr>
+      <td><span class="mono-copy" style="font-size:0.75rem;color:var(--text-4)">${(p.transactionId || '—').slice(0,24)}${p.transactionId?.length > 24 ? '…' : ''}</span></td>
+      <td><span class="mono-copy" style="font-size:0.8rem">#${p.orderId || '—'}</span></td>
+      <td>
+        <div style="font-size:0.85rem;color:var(--text-1)">${p.customerName || '—'}</div>
+        <div style="font-size:0.75rem;color:var(--text-4)">${p.customerEmail || ''}</div>
+      </td>
+      <td>${providerLabel(p.provider)}</td>
+      <td style="font-weight:600;color:var(--text-1)">₹${Number(p.amount || 0).toLocaleString('en-IN')}</td>
+      <td>${statusBadge(p.status)}</td>
+      <td style="font-size:0.8rem;color:var(--text-4);white-space:nowrap">${fmtDate(p.createdAt)}</td>
+    </tr>`).join('');
+}
+
+function renderPagination(page) {
+  const pag = document.getElementById('pagination');
+  if (!page || page.totalPages <= 1) { pag.innerHTML = ''; return; }
+  const prev = `<button class="page-btn" onclick="load(${page.number - 1})" ${page.first ? 'disabled' : ''}>← Prev</button>`;
+  const next = `<button class="page-btn" onclick="load(${page.number + 1})" ${page.last  ? 'disabled' : ''}>Next →</button>`;
+  pag.innerHTML = `${prev}<span class="page-info">Page ${page.number + 1} / ${page.totalPages}</span>${next}`;
+}
+
+window.load = load;
+load(0);
+</script>
+
+</body>
+</html>

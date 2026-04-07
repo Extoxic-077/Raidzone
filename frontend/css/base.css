@@ -19,6 +19,12 @@ html {
 ::-webkit-scrollbar-thumb:hover { background: var(--violet); }
 * { scrollbar-width: thin; scrollbar-color: var(--bg4) transparent; }
 
+/* ─── Drag-scroll states ─────────────────────────────────────────────────── */
+.drag-active           { cursor: grab !important; }
+.drag-active.dragging  { cursor: grabbing !important; }
+/* Prevent text/image selection while dragging */
+.drag-active           { user-select: none; -webkit-user-select: none; }
+
 body {
   background-color: var(--bg0);
   color: var(--text-2);

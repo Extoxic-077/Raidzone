@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Orders — Admin — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/animations.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/pages/admin.css"/>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="admin-sidebar"></aside>
+  <main class="admin-main">
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Orders</span></div>
+    <h1 class="admin-page-title" style="margin-top:28px">Orders</h1>
+    <p class="admin-page-subtitle">Manage customer orders</p>
+
+    <!-- Toolbar -->
+    <div class="admin-toolbar">
+      <input class="admin-search-input" id="search-input" placeholder="Search by customer name or email…" autocomplete="off"/>
+      <select class="admin-filter-select" id="status-filter">
+        <option value="">All Statuses</option>
+        <option value="PENDING_PAYMENT">Pending Payment</option>
+        <option value="CONFIRMED">Confirmed</option>
+        <option value="DELIVERED">Delivered</option>
+        <option value="CANCELLED">Cancelled</option>
+      </select>
+      <button class="btn-export" id="export-csv-btn">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Export CSV
+      </button>
+    </div>
+
+    <!-- Table -->
+    <div class="admin-table-card">
+      <div class="admin-table-wrap">
+        <table class="admin-table" id="orders-table">
+          <thead>
+            <tr>
+              <th><input type="checkbox" id="select-all"/></th>
+              <th>Order ID</th>
+              <th>Customer</th>
+              <th>Items</th>
+              <th>Total</th>
+              <th>Payment</th>
+              <th>Status</th>
+              <th>Date</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="orders-body">
+            <tr><td colspan="9" style="text-align:center;color:var(--text-4);padding:40px">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-table-footer" id="pagination" style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-top:1px solid var(--glass-border);font-size:13px;color:var(--text-3)"></div>
+    </div>
+
+    <!-- Bulk action bar -->
+    <div class="bulk-action-bar" id="bulk-bar">
+      <span class="bulk-count" id="bulk-count">0 selected</span>
+      <span class="bulk-sep"></span>
+      <button class="btn-action-sm" id="bulk-deliver">Mark Delivered</button>
+      <button class="btn-action-sm" id="bulk-cancel" style="color:var(--danger)">Cancel</button>
+    </div>
+  </main>
+</div>
+
+<!-- Order Detail Modal -->
+<div class="admin-modal-overlay" id="order-modal">
+  <div class="admin-modal" style="max-width:900px">
+    <div class="admin-modal-header">
+      <span class="admin-modal-title" id="modal-title">Order Details</span>
+      <button class="admin-modal-close" id="modal-close">×</button>
+    </div>
+    <div id="modal-body"></div>
+    <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;border-top:1px solid var(--glass-border);padding-top:16px">
+      <button class="btn-secondary" id="modal-close2">Close</button>
+      <button class="btn-primary" id="modal-update-status">Update Status</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script type="module">
+import { initAdminSidebar } from './js/adminSidebar.js';
+import { initAuth, isLoggedIn } from '../js/auth.js';
+import { adminGetOrders, adminGetOrder, adminUpdateOrderStatus } from '../js/api.js';
+import { showToast } from '../js/components/toast.js';
+
+await initAuth();
+if (!isLoggedIn()) { window.location.href = '../login.html'; }
+await initAdminSidebar('orders');
+
+const fmt = v => '₹' + Number(v).toLocaleString('en-IN');
+const timeAgo = iso => {
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1) return 'just now'; if (m < 60) return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m/60)}h ago`;
+  return `${Math.floor(m/1440)}d ago`;
+};
+
+const PROVIDER_ICONS = { STRIPE: '💳', RAZORPAY: '🇮🇳', COINBASE: '₿' };
+const STATUS_CLASS = {
+  PENDING_PAYMENT: 'badge-pending-payment',
+  CONFIRMED:       'badge-confirmed',
+  CANCELLED:       'badge-cancelled',
+  DELIVERED:       'badge-delivered',
+};
+
+let currentPage = 0, totalPages = 1, totalElements = 0;
+let selectedIds = new Set();
+let currentOrderId = null;
+
+// ── Load & render orders ──────────────────────────────────────────────────────
+async function loadOrders(page = 0) {
+  const status = document.getElementById('status-filter').value;
+  const search = document.getElementById('search-input').value.trim();
+  document.getElementById('orders-body').innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-4);padding:40px">Loading…</td></tr>';
+
+  try {
+    const data = await adminGetOrders({ page, size: 20, status: status || null, search: search || null });
+    const orders = data.content ?? data;
+    totalPages    = data.totalPages ?? 1;
+    totalElements = data.totalElements ?? orders.length;
+    currentPage   = page;
+    renderTable(orders);
+    renderPagination();
+  } catch (err) {
+    document.getElementById('orders-body').innerHTML = `<tr><td colspan="9" style="text-align:center;color:var(--danger);padding:40px">${err.message}</td></tr>`;
+  }
+}
+
+function renderTable(orders) {
+  if (!orders.length) {
+    document.getElementById('orders-body').innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-4);padding:40px">No orders found</td></tr>';
+    return;
+  }
+  document.getElementById('orders-body').innerHTML = orders.map(o => {
+    const isSelected = selectedIds.has(o.id);
+    const pIcon = PROVIDER_ICONS[o.paymentMethod] || '—';
+    const pLabel = o.paymentMethod ? `${pIcon} ${o.paymentMethod.charAt(0) + o.paymentMethod.slice(1).toLowerCase()}` : '—';
+    const disc = o.discountAmount && Number(o.discountAmount) > 0
+      ? `<div style="font-size:10px;color:#22D3EE">-${fmt(o.discountAmount)}</div>` : '';
+    return `
+      <tr data-id="${o.id}" class="${isSelected ? 'selected-row' : ''}">
+        <td><input type="checkbox" class="row-check" data-id="${o.id}" ${isSelected ? 'checked' : ''}></td>
+        <td>
+          <span class="mono-copy" title="Click to copy" data-copy="${o.id}" onclick="copyToClipboard('${o.id}')">
+            #${o.id.slice(0,8).toUpperCase()}
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </span>
+        </td>
+        <td>
+          <div style="font-size:12px;font-weight:600;color:var(--text-1)">${o.shippingName || '—'}</div>
+          <div style="font-size:11px;color:var(--text-4)">${o.shippingEmail || ''}</div>
+        </td>
+        <td style="font-size:12px;color:var(--text-3)">${o.totalItems ?? 0} item${(o.totalItems ?? 0) !== 1 ? 's' : ''}</td>
+        <td>
+          <div style="font-family:var(--font-mono);font-weight:700;color:var(--text-1)">${fmt(o.totalAmount ?? 0)}</div>
+          ${disc}
+        </td>
+        <td style="font-size:12px">${pLabel}</td>
+        <td><span class="${STATUS_CLASS[o.status] || 'badge-pending'}">${(o.status || '').replace('_',' ')}</span></td>
+        <td><span class="time-ago" title="${o.createdAt}">${timeAgo(o.createdAt)}</span></td>
+        <td>
+          <div class="admin-action-row">
+            <button class="btn-action-sm view-btn" data-id="${o.id}">View</button>
+          </div>
+        </td>
+      </tr>`;
+  }).join('');
+
+  // Attach events
+  document.querySelectorAll('.view-btn').forEach(btn => {
+    btn.addEventListener('click', () => openOrderModal(btn.dataset.id));
+  });
+  document.querySelectorAll('.row-check').forEach(cb => {
+    cb.addEventListener('change', () => toggleSelect(cb.dataset.id, cb.checked));
+  });
+}
+
+function renderPagination() {
+  const el = document.getElementById('pagination');
+  el.innerHTML = `
+    <span>${totalElements} orders total</span>
+    <div style="display:flex;gap:8px;align-items:center">
+      <button class="btn-action-sm" id="prev-btn" ${currentPage === 0 ? 'disabled' : ''}>← Prev</button>
+      <span>Page ${currentPage + 1} of ${totalPages}</span>
+      <button class="btn-action-sm" id="next-btn" ${currentPage >= totalPages - 1 ? 'disabled' : ''}>Next →</button>
+    </div>`;
+  document.getElementById('prev-btn')?.addEventListener('click', () => loadOrders(currentPage - 1));
+  document.getElementById('next-btn')?.addEventListener('click', () => loadOrders(currentPage + 1));
+}
+
+// ── Selection & bulk ──────────────────────────────────────────────────────────
+function toggleSelect(id, checked) {
+  if (checked) selectedIds.add(id); else selectedIds.delete(id);
+  updateBulkBar();
+}
+
+function updateBulkBar() {
+  const bar = document.getElementById('bulk-bar');
+  const count = selectedIds.size;
+  document.getElementById('bulk-count').textContent = `${count} selected`;
+  bar.classList.toggle('visible', count > 0);
+}
+
+document.getElementById('select-all')?.addEventListener('change', e => {
+  document.querySelectorAll('.row-check').forEach(cb => {
+    cb.checked = e.target.checked;
+    toggleSelect(cb.dataset.id, e.target.checked);
+  });
+});
+
+document.getElementById('bulk-deliver')?.addEventListener('click', async () => {
+  if (!selectedIds.size) return;
+  try {
+    await Promise.all([...selectedIds].map(id => adminUpdateOrderStatus(id, 'DELIVERED')));
+    showToast(`${selectedIds.size} orders marked as Delivered`, 'success');
+    selectedIds.clear();
+    updateBulkBar();
+    loadOrders(currentPage);
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+document.getElementById('bulk-cancel')?.addEventListener('click', async () => {
+  if (!selectedIds.size || !confirm(`Cancel ${selectedIds.size} orders?`)) return;
+  try {
+    await Promise.all([...selectedIds].map(id => adminUpdateOrderStatus(id, 'CANCELLED')));
+    showToast(`${selectedIds.size} orders cancelled`, 'info');
+    selectedIds.clear();
+    updateBulkBar();
+    loadOrders(currentPage);
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+// ── Order detail modal ────────────────────────────────────────────────────────
+async function openOrderModal(orderId) {
+  currentOrderId = orderId;
+  const overlay = document.getElementById('order-modal');
+  document.getElementById('modal-body').innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-4)">Loading…</div>';
+  overlay.classList.add('open');
+
+  try {
+    const o = await adminGetOrder(orderId);
+    document.getElementById('modal-title').textContent = `Order #${o.id.slice(0,8).toUpperCase()}`;
+    const itemsHtml = (o.items ?? []).map(item => `
+      <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04)">
+        <span style="font-size:1.2rem">${item.productEmoji || '🎮'}</span>
+        <div style="flex:1">
+          <div style="font-size:13px;font-weight:500;color:var(--text-1)">${item.productName}</div>
+          <div style="font-size:11px;color:var(--text-4)">Qty: ${item.quantity}</div>
+        </div>
+        <div style="font-family:var(--font-mono);font-weight:600;color:var(--violet-light)">${fmt(item.lineTotal)}</div>
+      </div>`).join('');
+
+    const pmnt = o.payment;
+    const paymentHtml = pmnt ? `
+      <div class="admin-chart-card" style="margin-top:0">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-4);margin-bottom:12px">Payment</div>
+        <div style="display:flex;flex-direction:column;gap:6px;font-size:12px">
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text-4)">Provider</span><span style="font-weight:600">${PROVIDER_ICONS[pmnt.provider] || ''} ${pmnt.provider || '—'}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text-4)">Status</span><span class="${STATUS_CLASS[pmnt.status] || 'badge-pending'}" style="font-size:10px">${pmnt.status || '—'}</span></div>
+          <div style="display:flex;justify-content:space-between"><span style="color:var(--text-4)">Amount</span><span style="font-family:var(--font-mono);font-weight:600">${fmt(pmnt.amount ?? 0)}</span></div>
+          ${pmnt.stripePaymentIntentId ? `<div style="display:flex;justify-content:space-between"><span style="color:var(--text-4)">Intent</span><span class="mono-copy" style="font-size:10px">${pmnt.stripePaymentIntentId.slice(0,24)}…</span></div>` : ''}
+          ${pmnt.razorpayOrderId ? `<div style="display:flex;justify-content:space-between"><span style="color:var(--text-4)">Razorpay</span><span class="mono-copy" style="font-size:10px">${pmnt.razorpayOrderId}</span></div>` : ''}
+          ${pmnt.coinbaseChargeCode ? `<div style="display:flex;justify-content:space-between"><span style="color:var(--text-4)">Charge</span><span class="mono-copy" style="font-size:10px">${pmnt.coinbaseChargeCode}</span></div>` : ''}
+        </div>
+      </div>` : '';
+
+    document.getElementById('modal-body').innerHTML = `
+      <div class="admin-modal-2col">
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-4);margin-bottom:12px">Customer</div>
+          <div style="display:flex;flex-direction:column;gap:6px;font-size:13px;margin-bottom:20px">
+            <div><strong style="color:var(--text-1)">${o.shippingName || '—'}</strong></div>
+            <div style="color:var(--text-3)">${o.shippingEmail || '—'}</div>
+            ${o.shippingPhone ? `<div style="color:var(--text-4)">${o.shippingPhone}</div>` : ''}
+            ${o.shippingAddress ? `<div style="color:var(--text-4);font-size:12px">${o.shippingAddress}</div>` : ''}
+          </div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-4);margin-bottom:10px">Status</div>
+          <select class="admin-form-select" id="modal-status-select" style="margin-bottom:16px">
+            <option value="PENDING_PAYMENT" ${o.status==='PENDING_PAYMENT'?'selected':''}>⏳ Pending Payment</option>
+            <option value="CONFIRMED" ${o.status==='CONFIRMED'?'selected':''}>✓ Confirmed</option>
+            <option value="DELIVERED" ${o.status==='DELIVERED'?'selected':''}>📦 Delivered</option>
+            <option value="CANCELLED" ${o.status==='CANCELLED'?'selected':''}>✗ Cancelled</option>
+          </select>
+          ${o.couponCode ? `
+            <div style="background:rgba(34,211,238,0.06);border:1px solid rgba(34,211,238,0.2);border-radius:10px;padding:10px 12px;font-size:12px;display:flex;justify-content:space-between">
+              <span>🏷️ Coupon: <strong style="font-family:var(--font-mono)">${o.couponCode}</strong></span>
+              <span style="color:#22D3EE;font-weight:600">−${fmt(o.discountAmount ?? 0)}</span>
+            </div>` : ''}
+          <div style="margin-top:12px;font-size:11px;color:var(--text-4)">
+            Created: ${new Date(o.createdAt).toLocaleString('en-IN')}<br>
+            ${o.paidAt ? 'Paid: ' + new Date(o.paidAt).toLocaleString('en-IN') : ''}
+          </div>
+        </div>
+        <div>
+          <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-4);margin-bottom:12px">Items (${o.totalItems ?? 0})</div>
+          <div style="margin-bottom:16px">${itemsHtml || '<div style="color:var(--text-4);font-size:12px">No items</div>'}</div>
+          <div style="display:flex;flex-direction:column;gap:4px;font-size:12px;border-top:1px solid var(--glass-border);padding-top:10px">
+            <div style="display:flex;justify-content:space-between"><span style="color:var(--text-4)">Subtotal</span><span>${fmt((Number(o.totalAmount??0) + Number(o.discountAmount??0)))}</span></div>
+            ${o.discountAmount && Number(o.discountAmount) > 0 ? `<div style="display:flex;justify-content:space-between"><span style="color:#22D3EE">Discount</span><span style="color:#22D3EE">−${fmt(o.discountAmount)}</span></div>` : ''}
+            <div style="display:flex;justify-content:space-between;font-weight:700;color:var(--text-1);font-size:14px;border-top:1px solid var(--glass-border);padding-top:6px;margin-top:4px"><span>Total</span><span style="font-family:var(--font-mono)">${fmt(o.totalAmount ?? 0)}</span></div>
+          </div>
+          ${paymentHtml}
+        </div>
+      </div>`;
+  } catch (err) {
+    document.getElementById('modal-body').innerHTML = `<div style="color:var(--danger);padding:24px">${err.message}</div>`;
+  }
+}
+
+document.getElementById('modal-close')?.addEventListener('click',  () => document.getElementById('order-modal').classList.remove('open'));
+document.getElementById('modal-close2')?.addEventListener('click', () => document.getElementById('order-modal').classList.remove('open'));
+document.getElementById('order-modal')?.addEventListener('click',  e => { if (e.target === e.currentTarget) e.currentTarget.classList.remove('open'); });
+
+document.getElementById('modal-update-status')?.addEventListener('click', async () => {
+  const sel = document.getElementById('modal-status-select');
+  if (!sel || !currentOrderId) return;
+  try {
+    await adminUpdateOrderStatus(currentOrderId, sel.value);
+    showToast('Order status updated', 'success');
+    document.getElementById('order-modal').classList.remove('open');
+    loadOrders(currentPage);
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+// ── Export CSV ────────────────────────────────────────────────────────────────
+document.getElementById('export-csv-btn')?.addEventListener('click', async () => {
+  try {
+    const data = await adminGetOrders({ size: 1000 });
+    const orders = data.content ?? data;
+    const csv = ['ID,Customer,Email,Status,Total,Payment,Date',
+      ...orders.map(o => `${o.id},${o.shippingName || ''},${o.shippingEmail || ''},${o.status},${o.totalAmount},${o.paymentMethod || ''},${o.createdAt}`)
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `orders-${new Date().toISOString().split('T')[0]}.csv`;
+    a.click();
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+window.copyToClipboard = id => {
+  navigator.clipboard.writeText(id).then(() => showToast('Copied!', 'success'));
+};
+
+// ── Search & filter with debounce ─────────────────────────────────────────────
+let searchTimer;
+document.getElementById('search-input')?.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  searchTimer = setTimeout(() => loadOrders(0), 400);
+});
+document.getElementById('status-filter')?.addEventListener('change', () => loadOrders(0));
+
+loadOrders(0);
+</script>
+</body>
+</html>

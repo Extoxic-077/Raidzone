@@ -2,6 +2,7 @@ import { getFeaturedProducts, getFlashDeals, getCategories } from '../api.js';
 import { createProductCard } from '../components/productCard.js';
 import { createProductSkeleton } from '../components/skeleton.js';
 import { showToast } from '../components/toast.js';
+import { makeDraggable } from '../utils/dragScroll.js';
 
 // ─── PROMO SLIDER ────────────────────────────────────────────────────────────
 
@@ -350,6 +351,13 @@ export async function renderHome() {
   renderCategoryChips();
   renderNews();
   renderBrands();
+
+  // Enable drag-scroll on all horizontal scroll strips
+  makeDraggable(document.querySelector('.trust-bar-inner'));
+  makeDraggable(document.getElementById('categories-row'));
+  makeDraggable(document.getElementById('deals-scroll'));
+  makeDraggable(document.getElementById('news-scroll'));
+  makeDraggable(document.getElementById('brands-row'));
 
   // Parallel fetches
   await Promise.all([

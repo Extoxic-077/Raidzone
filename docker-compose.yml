@@ -14,7 +14,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U hashvault -d hashvault"]
+      test: ["CMD-SHELL", "pg_isready -U nexvault -d nexvault"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -30,5 +30,64 @@ services:
       --maxmemory 256mb
       --maxmemory-policy allkeys-lru
 
+  # ── Monitoring stack (start with: docker-compose --profile monitoring up -d) ──
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: hashvault-prometheus
+    profiles: [monitoring]
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --web.enable-lifecycle
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: hashvault-grafana
+    profiles: [monitoring]
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: hashvault
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+    restart: unless-stopped
+
+  redis-exporter:
+    image: oliver006/redis_exporter:latest
+    container_name: hashvault-redis-exporter
+    profiles: [monitoring]
+    environment:
+      REDIS_ADDR: redis://redis:6379
+    ports:
+      - "9121:9121"
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  postgres-exporter:
+    image: prometheuscommunity/postgres-exporter:latest
+    container_name: hashvault-postgres-exporter
+    profiles: [monitoring]
+    environment:
+      DATA_SOURCE_NAME: postgresql://nexvault:nexvault@postgres:5432/nexvault?sslmode=disable
+    ports:
+      - "9187:9187"
+    depends_on:
+      - postgres
+    restart: unless-stopped
+
 volumes:
   postgres_data:
+  grafana_data:
