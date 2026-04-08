@@ -37,3 +37,9 @@ run_commands.md
 backend/.env
 .env
 *.env
+
+### Uploads ###
+uploads/
+
+### Build artifacts ###
+*.jar
