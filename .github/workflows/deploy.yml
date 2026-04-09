@@ -1,0 +1,51 @@
+name: Deploy to Google Cloud
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -H ${{ secrets.SSH_HOST }} >> ~/.ssh/known_hosts
+
+      - name: Deploy to server
+        run: |
+          ssh ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+            set -e
+            
+            echo "=== Pulling latest code ==="
+            cd ~/nexvault
+            git pull origin main
+            
+            echo "=== Building backend ==="
+            cd ~/nexvault/backend
+            ./mvnw clean package -DskipTests
+            
+            echo "=== Restarting backend ==="
+            pkill -f "backend-0.0.1-SNAPSHOT.jar" || true
+            sleep 3
+            cd ~/nexvault
+            nohup java -jar backend/target/backend-0.0.1-SNAPSHOT.jar \
+              --spring.datasource.url=jdbc:postgresql://localhost:5432/nexvault \
+              --spring.datasource.username=nexvault \
+              --spring.datasource.password=nexvault \
+              > ~/app.log 2>&1 &
+            
+            echo "=== Waiting for backend to start ==="
+            sleep 30
+            curl -f http://localhost:8080/actuator/health || exit 1
+            
+            echo "=== Deploy successful! ==="
+          ENDSSH
