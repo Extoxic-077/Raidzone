@@ -27,7 +27,7 @@ jobs:
             
             echo "=== Pulling latest code ==="
             cd ~/nexvault
-            git pull origin main
+            git pull origin master
             
             echo "=== Building backend ==="
             cd ~/nexvault/backend
