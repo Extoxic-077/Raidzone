@@ -1,6 +1,6 @@
 import { authFetch } from './auth.js';
 
-const BASE_URL = (window.__APP_CONFIG__?.API_URL || 'http://localhost:8080') + '/api/v1';
+const BASE_URL = (window.__APP_CONFIG__?.API_URL || '') + '/api/v1';
 
 // ─── Public fetch (no auth) ───────────────────────────────────────────────────
 

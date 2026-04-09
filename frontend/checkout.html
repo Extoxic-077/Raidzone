@@ -129,7 +129,7 @@ function grandTotal() {
 
 function cartItemRow(item) {
   const thumb = item.imageUrl
-    ? `<img src="http://localhost:8080${item.imageUrl}" alt="${item.name}" class="co-thumb-img"/>`
+    ? `<img src="${item.imageUrl}" alt="${item.name}" class="co-thumb-img"/>`
     : `<div class="co-thumb-emoji">${item.imageEmoji || '🎮'}</div>`;
   const hasDiscount = item.originalPrice && Number(item.originalPrice) > Number(item.price);
   const discPct     = hasDiscount ? Math.round((1 - item.price / item.originalPrice) * 100) : 0;

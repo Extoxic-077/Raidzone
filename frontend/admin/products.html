@@ -229,7 +229,7 @@ function renderTable(products) {
 
   tbody.innerHTML = products.map(p => {
     const imgHtml = p.imageUrl
-      ? `<div class="table-thumb"><img src="http://localhost:8080${p.imageUrl}" alt=""/></div>`
+      ? `<div class="table-thumb"><img src="${p.imageUrl}" alt=""/></div>`
       : `<div class="table-thumb">${p.emoji || '🎮'}</div>`;
     const price   = p.price != null ? `₹${Number(p.price).toLocaleString('en-IN')}` : '—';
     const active  = p.isActive !== false;
@@ -396,7 +396,7 @@ window.openEdit = function(id) {
     // Show current image in preview
     if (p.imageUrl) {
       document.getElementById('image-preview').innerHTML =
-        `<img src="http://localhost:8080${p.imageUrl}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--glass-border);"/>
+        `<img src="${p.imageUrl}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--glass-border);"/>
          <span style="font-size:0.8rem;color:var(--text-3);align-self:center">Current image</span>`;
     }
   }
@@ -464,7 +464,7 @@ document.getElementById('upload-image-btn')?.addEventListener('click', async () 
   if (!editingId) { showToast('Save the product first, then upload image', 'info'); return; }
   try {
     const updated = await adminUploadImage(editingId, file);
-    imagePreview.innerHTML = `<img src="http://localhost:8080${updated.imageUrl}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--glass-border);"/>`;
+    imagePreview.innerHTML = `<img src="${updated.imageUrl}" style="width:72px;height:72px;object-fit:cover;border-radius:8px;border:1px solid var(--glass-border);"/>`;
     showToast('Image uploaded', 'success');
     resetUploadZone();
   } catch (err) { showToast(err.message, 'error'); }
@@ -510,7 +510,7 @@ form.addEventListener('submit', async e => {
       if (imageFile) {
         const updated = await adminUploadImage(editingId, imageFile);
         const prev = document.getElementById('image-preview');
-        prev.innerHTML = `<img src="http://localhost:8080${updated.imageUrl}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;margin-top:4px;"/>`;
+        prev.innerHTML = `<img src="${updated.imageUrl}" style="width:80px;height:80px;object-fit:cover;border-radius:8px;margin-top:4px;"/>`;
       }
       showToast('Product updated', 'success');
     } else {

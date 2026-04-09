@@ -118,7 +118,7 @@ function renderOrders(orders) {
 
     const itemsHtml = order.items.map(item => {
       const thumb = item.imageUrl
-        ? `<img src="http://localhost:8080${item.imageUrl}" alt="${item.productName}" class="oi-img"/>`
+        ? `<img src="${item.imageUrl}" alt="${item.productName}" class="oi-img"/>`
         : `<div class="oi-emoji">${item.productEmoji || '🎮'}</div>`;
       return `
         <div class="order-item">

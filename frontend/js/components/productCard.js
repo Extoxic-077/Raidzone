@@ -80,7 +80,7 @@ export function createProductCard(product) {
   // Image or emoji fallback
   if (product.imageUrl) {
     const img = document.createElement('img');
-    img.src = 'http://localhost:8080' + product.imageUrl;
+    img.src = '' + product.imageUrl;
     img.alt = product.name;
     img.loading = 'lazy';
     img.style.cssText = 'width:100%;height:100%;object-fit:cover;position:absolute;inset:0;border-radius:inherit;';

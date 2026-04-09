@@ -139,7 +139,7 @@ function render(cart) {
     const pct = item.originalPrice && item.price
       ? Math.round((1 - item.price / item.originalPrice) * 100) : null;
     const imgHtml = item.imageUrl
-      ? `<img src="http://localhost:8080${item.imageUrl}" alt="${item.name}" class="cart-item-img"/>`
+      ? `<img src="${item.imageUrl}" alt="${item.name}" class="cart-item-img"/>`
       : `<div class="cart-item-emoji">${item.imageEmoji || '🎮'}</div>`;
     return `
       <div class="cart-item" data-id="${item.productId}">

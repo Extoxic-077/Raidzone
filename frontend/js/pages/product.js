@@ -323,7 +323,7 @@ function renderProductUI(product) {
   // Image block — uses cover img if available, falls back to emoji
   const imageBlock = product.imageUrl
     ? `<img
-        src="http://localhost:8080${product.imageUrl}"
+        src="${product.imageUrl}"
         alt="${product.name}"
         class="product-detail-img"
         loading="eager"

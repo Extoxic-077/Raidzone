@@ -27,6 +27,7 @@ jobs:
             
             echo "=== Pulling latest code ==="
             cd ~/nexvault
+            git reset --hard HEAD
             git pull origin master
             
             echo "=== Building backend ==="

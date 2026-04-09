@@ -123,7 +123,7 @@ export async function initAdminSidebar(activePage = 'dashboard') {
           <span class="admin-nav-icon-wrap">${icons.grafana}</span>
           <span class="admin-nav-text">Grafana <span style="font-size:9px;opacity:0.6">↗</span></span>
         </a>
-        <a href="http://localhost:8080/swagger-ui.html" target="_blank" class="admin-nav-link" rel="noopener">
+        <a href="/swagger-ui.html" target="_blank" class="admin-nav-link" rel="noopener">
           <span class="admin-nav-icon-wrap">${icons.api}</span>
           <span class="admin-nav-text">API Docs <span style="font-size:9px;opacity:0.6">↗</span></span>
         </a>
