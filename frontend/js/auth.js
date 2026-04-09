@@ -7,7 +7,7 @@
  * Refresh tokens live in an HttpOnly cookie managed by the backend.
  */
 
-const BASE_URL = (window.__APP_CONFIG__?.API_URL || '') + '/api/v1';
+const BASE_URL = '/api/v1';
 
 // In-memory access token — cleared on page refresh
 let _accessToken = null;
