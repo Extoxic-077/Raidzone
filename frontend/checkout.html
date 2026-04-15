@@ -108,6 +108,32 @@ function setStep(n) {
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function fmt(v) { return '₹' + Number(v).toLocaleString('en-IN'); }
 
+function humanizeError(msg) {
+  if (!msg) return 'An unexpected error occurred. Please try again.';
+  const m = msg.toLowerCase();
+  if (m.includes('card was declined') || m.includes('card_declined'))
+    return 'Your card was declined. Please try a different card or contact your bank.';
+  if (m.includes('insufficient_funds') || m.includes('insufficient funds'))
+    return 'Insufficient funds. Please check your balance or use a different card.';
+  if (m.includes('incorrect_cvc') || m.includes('security code') || m.includes('cvc'))
+    return 'The security code (CVV/CVC) you entered is incorrect.';
+  if (m.includes('expired_card') || m.includes('expir'))
+    return 'Your card has expired. Please use a different card.';
+  if (m.includes('incorrect_number') || m.includes('invalid card number') || m.includes('card number'))
+    return 'The card number you entered is invalid.';
+  if (m.includes('processing_error') || m.includes('processing error'))
+    return 'A processing error occurred. Please wait a moment and try again.';
+  if (m.includes('authentication') || m.includes('3d secure') || m.includes('requires_action'))
+    return 'Additional authentication required. Please complete the verification step.';
+  if (m.includes('network') || m.includes('connection') || m.includes('timeout') || m.includes('failed to fetch'))
+    return 'Network error — please check your connection and try again.';
+  if (m.includes('signature') || m.includes('verification failed'))
+    return 'Payment verification failed. Please contact support if the issue persists.';
+  if (m.includes('razorpay') || m.includes('not configured'))
+    return 'This payment method is temporarily unavailable. Please use a different method.';
+  return msg;
+}
+
 function computeTotals(c) {
   let originalTotal = 0;
   c.items.forEach(item => {
@@ -465,7 +491,7 @@ async function handleStripePay() {
     });
 
     if (result.error) {
-      errEl.textContent = result.error.message;
+      errEl.textContent = humanizeError(result.error.message);
       errEl.hidden = false;
       btn.disabled = false;
       btn.textContent = `Pay ${fmt(grandTotal())} →`;
@@ -479,11 +505,11 @@ async function handleStripePay() {
     }, 1000);
 
   } catch (err) {
-    errEl.textContent = err.message;
+    errEl.textContent = humanizeError(err.message);
     errEl.hidden  = false;
     btn.disabled  = false;
     btn.textContent = `Pay ${fmt(grandTotal())} →`;
-    showToast(err.message, 'error');
+    showToast(humanizeError(err.message), 'error');
   }
 }
 
@@ -525,7 +551,7 @@ async function handleRazorpayPay() {
           );
           window.location.href = `orders.html?success=true&orderId=${order.id}`;
         } catch (verifyErr) {
-          showToast('Signature verification failed: ' + verifyErr.message, 'error');
+          showToast(humanizeError(verifyErr.message), 'error');
           btn.disabled = false;
           btn.textContent = `Pay ${fmt(grandTotal())} with Razorpay →`;
         }
@@ -543,11 +569,11 @@ async function handleRazorpayPay() {
     rzp.open();
 
   } catch (err) {
-    errEl.textContent = err.message;
+    errEl.textContent = humanizeError(err.message);
     errEl.hidden  = false;
     btn.disabled  = false;
     btn.textContent = `Pay ${fmt(grandTotal())} with Razorpay →`;
-    showToast(err.message, 'error');
+    showToast(humanizeError(err.message), 'error');
   }
 }
 
@@ -600,11 +626,11 @@ async function handleCoinbasePay() {
     }, 8000);
 
   } catch (err) {
-    errEl.textContent = err.message;
+    errEl.textContent = humanizeError(err.message);
     errEl.hidden  = false;
     btn.disabled  = false;
     btn.textContent = `Pay ${fmt(grandTotal())} with Crypto →`;
-    showToast(err.message, 'error');
+    showToast(humanizeError(err.message), 'error');
   }
 }
 

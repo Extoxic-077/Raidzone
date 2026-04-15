@@ -21,6 +21,11 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByEmailAndIsActiveTrue(String email);
 
     /**
+     * Finds a user by email regardless of active status (for OAuth linking).
+     */
+    Optional<User> findByEmail(String email);
+
+    /**
      * Checks whether any user (active or inactive) holds the given email.
      */
     boolean existsByEmail(String email);

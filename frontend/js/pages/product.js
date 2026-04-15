@@ -6,6 +6,56 @@ import { getCurrentProductId } from '../router.js';
 import { isLoggedIn, getUser } from '../auth.js';
 import { makeDraggable } from '../utils/dragScroll.js';
 
+// ── Sign-in prompt modal ──────────────────────────────────────────────────────
+
+function showSignInPrompt(action = 'continue') {
+  document.getElementById('signin-prompt-modal')?.remove();
+
+  const modal = document.createElement('div');
+  modal.id = 'signin-prompt-modal';
+  Object.assign(modal.style, {
+    position: 'fixed', inset: '0', zIndex: '9999',
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    background: 'rgba(7,7,15,0.85)', backdropFilter: 'blur(8px)',
+  });
+
+  modal.innerHTML = `
+    <div style="
+      background:#0F0F1A;border:1px solid #2D2D44;border-radius:20px;
+      padding:44px 36px;max-width:360px;width:90%;text-align:center;
+      box-shadow:0 24px 64px rgba(0,0,0,0.6);
+      animation:slideUp 0.22s ease;
+    ">
+      <div style="font-size:48px;margin-bottom:16px">🔐</div>
+      <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#F1F0F7;margin:0 0 10px">
+        Sign in required
+      </h2>
+      <p style="color:#9CA3AF;font-size:14px;line-height:1.6;margin:0 0 28px">
+        Please sign in to ${action}.
+      </p>
+      <div style="display:flex;gap:12px;justify-content:center">
+        <button id="signin-prompt-cancel" style="
+          padding:10px 24px;border:1px solid #2D2D44;border-radius:10px;
+          background:transparent;color:#9CA3AF;font-family:'DM Sans',sans-serif;
+          font-size:14px;font-weight:500;cursor:pointer;transition:border-color 0.15s;
+        ">Cancel</button>
+        <a href="login.html" style="
+          padding:10px 28px;background:linear-gradient(135deg,#7C3AED,#22D3EE);
+          border-radius:10px;color:#fff;font-family:'DM Sans',sans-serif;
+          font-size:14px;font-weight:600;text-decoration:none;
+          display:inline-flex;align-items:center;gap:6px;
+        ">Sign In →</a>
+      </div>
+    </div>`;
+
+  document.body.appendChild(modal);
+  modal.addEventListener('click', e => { if (e.target === modal) modal.remove(); });
+  document.getElementById('signin-prompt-cancel').addEventListener('click', () => modal.remove());
+
+  // Save redirect so login sends them back here
+  sessionStorage.setItem('redirectAfterLogin', window.location.href.replace(window.location.origin + '/', ''));
+}
+
 function animateCartBadge() {
   const badge = document.getElementById('cart-badge');
   if (!badge) return;
@@ -453,8 +503,7 @@ function renderProductUI(product) {
   // Add to cart
   document.getElementById('add-to-cart-btn')?.addEventListener('click', async () => {
     if (!isLoggedIn()) {
-      showToast('Please sign in first', 'info');
-      setTimeout(() => { window.location.href = 'login.html'; }, 800);
+      showSignInPrompt('add items to your cart');
       return;
     }
     try {
@@ -469,8 +518,7 @@ function renderProductUI(product) {
   // Buy now — record purchase, set pending review flag, redirect to cart
   document.getElementById('buy-now-btn')?.addEventListener('click', async () => {
     if (!isLoggedIn()) {
-      showToast('Please sign in first', 'info');
-      setTimeout(() => { window.location.href = 'login.html'; }, 800);
+      showSignInPrompt('buy this product');
       return;
     }
     try {
@@ -510,8 +558,7 @@ function renderProductUI(product) {
 
   wishBtn?.addEventListener('click', async () => {
     if (!isLoggedIn()) {
-      showToast('Please sign in first', 'info');
-      setTimeout(() => { window.location.href = 'login.html'; }, 800);
+      showSignInPrompt('save items to your wishlist');
       return;
     }
     try {

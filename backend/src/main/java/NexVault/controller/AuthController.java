@@ -1,13 +1,12 @@
 package NexVault.controller;
 
-import NexVault.dto.request.LoginRequest;
-import NexVault.dto.request.RegisterRequest;
-import NexVault.dto.request.UpdateProfileRequest;
-import NexVault.dto.response.ApiResponse;
-import NexVault.dto.response.AuthResponse;
-import NexVault.dto.response.UserResponse;
+import NexVault.dto.request.*;
+import NexVault.dto.response.*;
+import NexVault.exception.DuplicateResourceException;
 import NexVault.exception.UnauthorizedException;
+import NexVault.model.User;
 import NexVault.service.AuthService;
+import NexVault.service.OtpService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -23,69 +22,132 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 /**
- * REST controller exposing authentication endpoints for HashVault.
+ * Authentication controller with OTP-based two-step login.
  *
- * <p>Refresh tokens are delivered and read via an HttpOnly, SameSite=Lax cookie
- * so they are never accessible to JavaScript.  Access tokens are returned in the
- * JSON response body and stored in memory on the frontend.</p>
+ * <p>Login flow:
+ * <ol>
+ *   <li>POST /auth/login — validate credentials, send OTP email, return masked email</li>
+ *   <li>POST /auth/verify-otp — verify OTP, issue JWT access token + refresh cookie</li>
+ * </ol>
+ *
+ * <p>Register flow:
+ * <ol>
+ *   <li>POST /auth/register — create account, send verification OTP</li>
+ *   <li>POST /auth/verify-email — verify OTP, mark email as verified, issue JWT</li>
+ * </ol>
  */
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
-@Tag(name = "Auth", description = "Registration, login, token refresh and logout")
+@Tag(name = "Auth", description = "Registration, OTP login, token refresh and logout")
 public class AuthController {
 
     private static final String REFRESH_COOKIE = "refresh_token";
-    private static final long REFRESH_MAX_AGE = 7 * 24 * 60 * 60L; // 7 days in seconds
+    private static final long   REFRESH_MAX_AGE = 7 * 24 * 60 * 60L;
 
     private final AuthService authService;
+    private final OtpService  otpService;
 
-    /**
-     * Registers a new user account and returns an access token.
-     *
-     * @param request the registration payload (email, name, password, etc.)
-     * @return 201 Created with access token and user profile; refresh token in cookie
-     */
+    // ── Register ──────────────────────────────────────────────────────────────
+
     @PostMapping("/register")
-    @Operation(summary = "Register a new user account")
-    public ResponseEntity<ApiResponse<AuthResponse>> register(
+    @Operation(summary = "Register a new user account — sends email OTP for verification")
+    public ResponseEntity<ApiResponse<LoginStep1Response>> register(
             @Valid @RequestBody RegisterRequest request) {
 
-        AuthResponse authResponse = authService.register(request);
-        String refreshToken = authService.generateRefreshToken(authResponse.user().id());
+        User user;
+        try {
+            authService.register(request);
+            user = authService.findActiveUserByEmail(request.email());
+        } catch (DuplicateResourceException e) {
+            // If email exists but not yet verified, resend OTP instead of rejecting
+            user = authService.findByEmail(request.email())
+                    .filter(u -> !Boolean.TRUE.equals(u.getIsEmailVerified()))
+                    .orElseThrow(() -> e);
+        }
+
+        otpService.generateAndSend(user, "REGISTER");
 
         return ResponseEntity
                 .status(HttpStatus.CREATED)
-                .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
-                .body(ApiResponse.ok(authResponse, "Account created successfully"));
+                .body(ApiResponse.ok(LoginStep1Response.of(request.email()),
+                        "Account created! Check your email for a verification code."));
     }
 
-    /**
-     * Authenticates with email and password, returning an access token.
-     *
-     * @param request login credentials
-     * @return 200 OK with access token; refresh token in cookie
-     */
+    @PostMapping("/verify-email")
+    @Operation(summary = "Verify email OTP after registration — issues JWT on success")
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyEmail(
+            @Valid @RequestBody VerifyOtpRequest request) {
+
+        User user = authService.findActiveUserByEmail(request.email());
+        otpService.verify(user, request.otpCode(), "REGISTER");
+        authService.markEmailVerified(user);
+
+        AuthResponse authResponse = authService.buildAuthResponsePublic(user);
+        String refreshToken = authService.generateRefreshToken(user.getId());
+
+        log.info("Email verified and user logged in: {}", user.getEmail());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
+                .body(ApiResponse.ok(authResponse, "Email verified! Welcome to NexVault."));
+    }
+
+    // ── Login — Step 1 (credentials) ─────────────────────────────────────────
+
     @PostMapping("/login")
-    @Operation(summary = "Login with email and password")
-    public ResponseEntity<ApiResponse<AuthResponse>> login(
-            @Valid @RequestBody LoginRequest request) {
+    @Operation(summary = "Step 1: Validate credentials, send OTP to email")
+    public ResponseEntity<ApiResponse<LoginStep1Response>> login(
+            @Valid @RequestBody LoginStep1Request request) {
 
-        AuthResponse authResponse = authService.login(request);
-        String refreshToken = authService.generateRefreshToken(authResponse.user().id());
+        User user = authService.validateCredentials(request.email(), request.password());
+        otpService.generateAndSend(user, "LOGIN");
 
+        return ResponseEntity.ok(ApiResponse.ok(
+                LoginStep1Response.of(request.email()),
+                "Verification code sent to your email"));
+    }
+
+    // ── Login — Step 2 (OTP verify) ───────────────────────────────────────────
+
+    @PostMapping("/verify-otp")
+    @Operation(summary = "Step 2: Verify OTP and receive access token")
+    public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(
+            @Valid @RequestBody VerifyOtpRequest request) {
+
+        User user = authService.findActiveUserByEmail(request.email());
+        otpService.verify(user, request.otpCode(), "LOGIN");
+
+        AuthResponse authResponse = authService.buildAuthResponsePublic(user);
+        String refreshToken = authService.generateRefreshToken(user.getId());
+
+        log.info("User completed OTP login: {}", user.getEmail());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
                 .body(ApiResponse.ok(authResponse, "Login successful"));
     }
 
-    /**
-     * Issues a new access token using the HttpOnly refresh token cookie.
-     *
-     * @param refreshToken the refresh JWT read from the {@code refresh_token} cookie
-     * @return 200 OK with a new access token; rotated refresh token in cookie
-     */
+    // ── Resend OTP ────────────────────────────────────────────────────────────
+
+    @PostMapping("/resend-otp")
+    @Operation(summary = "Resend OTP (rate limited to once per 60 seconds)")
+    public ResponseEntity<ApiResponse<LoginStep1Response>> resendOtp(
+            @Valid @RequestBody ResendOtpRequest request) {
+
+        User user = authService.findActiveUserByEmail(request.email());
+
+        if (!otpService.canResend(user, "LOGIN")) {
+            throw new UnauthorizedException("Please wait before requesting a new code");
+        }
+
+        otpService.generateAndSend(user, "LOGIN");
+        return ResponseEntity.ok(ApiResponse.ok(
+                LoginStep1Response.of(request.email()),
+                "New verification code sent"));
+    }
+
+    // ── Token refresh ─────────────────────────────────────────────────────────
+
     @PostMapping("/refresh")
     @Operation(summary = "Refresh the access token using the refresh cookie")
     public ResponseEntity<ApiResponse<AuthResponse>> refresh(
@@ -103,11 +165,8 @@ public class AuthController {
                 .body(ApiResponse.ok(authResponse, "Token refreshed"));
     }
 
-    /**
-     * Clears the refresh token cookie, effectively logging the user out.
-     *
-     * @return 200 OK with a "Logged out" message
-     */
+    // ── Logout ────────────────────────────────────────────────────────────────
+
     @PostMapping("/logout")
     @Operation(summary = "Logout and clear the refresh token cookie")
     public ResponseEntity<ApiResponse<Void>> logout() {
@@ -123,12 +182,8 @@ public class AuthController {
                 .body(ApiResponse.ok(null, "Logged out successfully"));
     }
 
-    /**
-     * Returns the profile of the currently authenticated user.
-     *
-     * @param authentication the Spring Security authentication object
-     * @return 200 OK with the user's {@link UserResponse}
-     */
+    // ── Profile ───────────────────────────────────────────────────────────────
+
     @GetMapping("/me")
     @Operation(summary = "Get the current authenticated user's profile")
     public ResponseEntity<ApiResponse<UserResponse>> me(Authentication authentication) {
@@ -137,13 +192,6 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(user));
     }
 
-    /**
-     * Updates the authenticated user's profile (name, phone, nickname).
-     *
-     * @param request        the fields to update
-     * @param authentication the current user's security context
-     * @return 200 OK with the updated {@link UserResponse}
-     */
     @PutMapping("/me")
     @Operation(summary = "Update the current user's profile")
     public ResponseEntity<ApiResponse<UserResponse>> updateMe(
@@ -156,12 +204,6 @@ public class AuthController {
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
-    /**
-     * Builds a secure, HttpOnly refresh token cookie.
-     *
-     * @param token the refresh JWT value
-     * @return a configured {@link ResponseCookie}
-     */
     private ResponseCookie buildRefreshCookie(String token) {
         return ResponseCookie.from(REFRESH_COOKIE, token)
                 .httpOnly(true)

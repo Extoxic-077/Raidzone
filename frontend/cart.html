@@ -128,9 +128,10 @@ function render(cart) {
   if (!cart.items || cart.items.length === 0) {
     root.innerHTML = `
       <div class="cart-empty">
-        <div class="cart-empty-icon">🛒</div>
-        <p>Your cart is empty</p>
-        <a href="catalog.html" class="btn-cart-shop">Browse Products</a>
+        <span class="cart-empty-icon">🛒</span>
+        <h3>Your cart is empty</h3>
+        <p>Add some items and they'll appear here.</p>
+        <a href="catalog.html" class="btn-cart-shop">Browse Products →</a>
       </div>`;
     return;
   }

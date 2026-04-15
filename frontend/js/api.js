@@ -29,6 +29,26 @@ async function authApiFetch(path, options = {}) {
   return json.data;
 }
 
+// ─── OAuth2 ──────────────────────────────────────────────────────────────────
+
+export async function getGoogleAuthUrl() {
+  const res  = await fetch(`${BASE_URL}/auth/oauth/google`, { credentials: 'include' });
+  const json = await res.json();
+  if (!res.ok || json.success === false) {
+    throw new Error(json.message || 'Google OAuth not configured');
+  }
+  return json.data;
+}
+
+export async function getDiscordAuthUrl() {
+  const res  = await fetch(`${BASE_URL}/auth/oauth/discord`, { credentials: 'include' });
+  const json = await res.json();
+  if (!res.ok || json.success === false) {
+    throw new Error(json.message || 'Discord OAuth not configured');
+  }
+  return json.data;
+}
+
 // ─── Catalogue (public) ───────────────────────────────────────────────────────
 
 export async function getCategories() {
@@ -86,10 +106,10 @@ export async function register(data) {
 }
 
 /**
- * Login with email and password.
- * @param {{ email, password }} data
+ * Step 1: validate credentials, trigger OTP send.
+ * Returns { message, maskedEmail }
  */
-export async function login(data) {
+export async function loginStep1(data) {
   const res = await fetch(`${BASE_URL}/auth/login`, {
     method: 'POST',
     credentials: 'include',
@@ -99,6 +119,57 @@ export async function login(data) {
   const json = await res.json();
   if (!res.ok || json.success === false) {
     throw new Error(json.message || `Login failed: ${res.status}`);
+  }
+  return json.data;
+}
+
+/**
+ * Step 2: verify OTP code, receive access token.
+ */
+export async function verifyOtp(data) {
+  const res = await fetch(`${BASE_URL}/auth/verify-otp`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok || json.success === false) {
+    throw new Error(json.message || `OTP verification failed: ${res.status}`);
+  }
+  return json.data;
+}
+
+/**
+ * Resend OTP (rate limited to 60s).
+ */
+export async function resendOtp(email) {
+  const res = await fetch(`${BASE_URL}/auth/resend-otp`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email }),
+  });
+  const json = await res.json();
+  if (!res.ok || json.success === false) {
+    throw new Error(json.message || 'Resend failed');
+  }
+  return json.data;
+}
+
+/**
+ * Verify email after registration.
+ */
+export async function verifyEmail(data) {
+  const res = await fetch(`${BASE_URL}/auth/verify-email`, {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data),
+  });
+  const json = await res.json();
+  if (!res.ok || json.success === false) {
+    throw new Error(json.message || 'Email verification failed');
   }
   return json.data;
 }

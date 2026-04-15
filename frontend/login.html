@@ -5,17 +5,113 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Sign In — NexVault</title>
 
-  <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 
-  <!-- CSS -->
   <link rel="stylesheet" href="css/variables.css"/>
   <link rel="stylesheet" href="css/animations.css"/>
   <link rel="stylesheet" href="css/base.css"/>
   <link rel="stylesheet" href="css/components.css"/>
   <link rel="stylesheet" href="css/pages/auth.css"/>
+
+  <style>
+    /* ── OTP input grid ──────────────────────────────────────────────── */
+    .otp-grid {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin: 24px 0;
+    }
+    .otp-cell {
+      width: 52px;
+      height: 60px;
+      border: 2px solid var(--glass-border);
+      border-radius: var(--r-md);
+      background: var(--bg2);
+      color: var(--text-1);
+      font-size: 24px;
+      font-weight: 700;
+      font-family: var(--font-mono);
+      text-align: center;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+      caret-color: transparent;
+    }
+    .otp-cell:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(124,58,237,0.25);
+    }
+    .otp-cell.filled {
+      border-color: var(--primary);
+      background: rgba(124,58,237,0.08);
+    }
+    .otp-cell.shake {
+      animation: shake 0.4s ease;
+    }
+    @keyframes shake {
+      0%,100% { transform: translateX(0); }
+      20%      { transform: translateX(-6px); }
+      40%      { transform: translateX(6px); }
+      60%      { transform: translateX(-4px); }
+      80%      { transform: translateX(4px); }
+    }
+
+    .otp-masked-email {
+      text-align: center;
+      color: var(--text-3);
+      font-size: 14px;
+      margin-bottom: 4px;
+    }
+    .otp-masked-email strong {
+      color: var(--text-1);
+    }
+
+    .otp-resend-row {
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-4);
+      margin-top: 4px;
+    }
+    .otp-resend-btn {
+      background: none;
+      border: none;
+      color: var(--primary-light);
+      font-size: 13px;
+      cursor: pointer;
+      font-family: var(--font-body);
+      padding: 0;
+      text-decoration: underline;
+    }
+    .otp-resend-btn:disabled {
+      color: var(--text-4);
+      cursor: not-allowed;
+      text-decoration: none;
+    }
+    .otp-timer {
+      color: var(--text-4);
+      font-variant-numeric: tabular-nums;
+    }
+
+    .otp-back-link {
+      display: block;
+      text-align: center;
+      font-size: 13px;
+      color: var(--text-4);
+      margin-top: 16px;
+      cursor: pointer;
+      background: none;
+      border: none;
+      font-family: var(--font-body);
+      text-decoration: underline;
+    }
+    .otp-back-link:hover { color: var(--text-2); }
+
+    /* ── OAuth buttons ───────────────────────────────────────────────── */
+    .social-btn { cursor: pointer; }
+    .social-btn:not([disabled]) { opacity: 1; }
+    .social-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
+  </style>
 </head>
 <body>
 
@@ -37,117 +133,158 @@
       <span class="auth-logo-text">NexVault</span>
     </a>
 
-    <h1 class="auth-title">Welcome back</h1>
-    <p class="auth-subtitle">Sign in to your NexVault account</p>
+    <!-- ── STEP 1: credentials ──────────────────────────────────────── -->
+    <div id="step-credentials">
+      <h1 class="auth-title">Welcome back</h1>
+      <p class="auth-subtitle">Sign in to your NexVault account</p>
 
-    <!-- Social auth (Coming soon) -->
-    <div class="social-btns">
-      <button class="social-btn" disabled title="Coming soon — Phase 7">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
-        Continue with Google
-      </button>
-      <button class="social-btn" disabled title="Coming soon — Phase 7">
-        <svg viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
-        Continue with Discord
-      </button>
+      <!-- OAuth buttons -->
+      <div class="social-btns">
+        <button class="social-btn" id="google-btn">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          Continue with Google
+        </button>
+        <button class="social-btn" id="discord-btn">
+          <svg viewBox="0 0 24 24" fill="#5865F2"><path d="M20.317 4.37a19.791 19.791 0 00-4.885-1.515.074.074 0 00-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 00-5.487 0 12.64 12.64 0 00-.617-1.25.077.077 0 00-.079-.037A19.736 19.736 0 003.677 4.37a.07.07 0 00-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 00.031.057 19.9 19.9 0 005.993 3.03.078.078 0 00.084-.028c.462-.63.874-1.295 1.226-1.994a.076.076 0 00-.041-.106 13.107 13.107 0 01-1.872-.892.077.077 0 01-.008-.128 10.2 10.2 0 00.372-.292.074.074 0 01.077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 01.078.01c.12.098.246.198.373.292a.077.077 0 01-.006.127 12.299 12.299 0 01-1.873.892.077.077 0 00-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 00.084.028 19.839 19.839 0 006.002-3.03.077.077 0 00.032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 00-.031-.03z"/></svg>
+          Continue with Discord
+        </button>
+      </div>
+
+      <div class="auth-divider"><span>or sign in with email</span></div>
+
+      <form class="auth-form" id="login-form" novalidate>
+        <div class="form-group">
+          <label class="form-label" for="email">Email</label>
+          <div class="input-wrap">
+            <input type="email" id="email" name="email" class="form-input"
+                   placeholder="you@example.com" autocomplete="email" required/>
+          </div>
+          <span class="field-error" id="email-error"></span>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="password"
+                 style="display:flex;align-items:center;justify-content:space-between">
+            Password
+            <button type="button" class="auth-link"
+                    style="font-size:12px;color:var(--text-4);cursor:not-allowed"
+                    title="Coming soon">Forgot password?</button>
+          </label>
+          <div class="input-wrap password-wrap">
+            <input type="password" id="password" name="password" class="form-input"
+                   placeholder="Your password" autocomplete="current-password" required/>
+            <button type="button" class="eye-toggle" id="pw-toggle" aria-label="Show password">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+            </button>
+          </div>
+          <span class="field-error" id="password-error"></span>
+        </div>
+
+        <div class="form-error-box" id="form-error"></div>
+
+        <button type="submit" class="btn-auth-submit" id="submit-btn">
+          <div class="btn-spinner"></div>
+          <span class="btn-text">Continue</span>
+        </button>
+      </form>
+
+      <div class="auth-footer">
+        <div class="auth-footer-row">
+          Don't have an account? <a href="register.html">Create one</a>
+        </div>
+      </div>
     </div>
 
-    <div class="auth-divider"><span>or sign in with email</span></div>
+    <!-- ── STEP 2: OTP verification ─────────────────────────────────── -->
+    <div id="step-otp" style="display:none">
+      <h1 class="auth-title">Check your email</h1>
+      <p class="otp-masked-email">
+        We sent a 6-digit code to <strong id="otp-email-display"></strong>
+      </p>
 
-    <!-- Login form -->
-    <form class="auth-form" id="login-form" novalidate>
-
-      <div class="form-group">
-        <label class="form-label" for="email">Email</label>
-        <div class="input-wrap">
-          <input type="email" id="email" name="email" class="form-input" placeholder="you@example.com" autocomplete="email" required/>
+      <form id="otp-form" novalidate>
+        <div class="otp-grid" id="otp-grid">
+          <input class="otp-cell" maxlength="1" inputmode="numeric" pattern="[0-9]" autocomplete="one-time-code"/>
+          <input class="otp-cell" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+          <input class="otp-cell" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+          <input class="otp-cell" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+          <input class="otp-cell" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
+          <input class="otp-cell" maxlength="1" inputmode="numeric" pattern="[0-9]"/>
         </div>
-        <span class="field-error" id="email-error"></span>
+
+        <div class="form-error-box" id="otp-error"></div>
+
+        <button type="submit" class="btn-auth-submit" id="otp-submit-btn">
+          <div class="btn-spinner"></div>
+          <span class="btn-text">Verify Code</span>
+        </button>
+      </form>
+
+      <div class="otp-resend-row" style="margin-top:16px">
+        Didn't receive it?
+        <button class="otp-resend-btn" id="resend-btn" disabled>
+          Resend <span class="otp-timer" id="otp-timer">(60s)</span>
+        </button>
       </div>
 
-      <div class="form-group">
-        <label class="form-label" for="password" style="display:flex;align-items:center;justify-content:space-between">
-          Password
-          <button type="button" class="auth-link" style="font-size:12px;color:var(--text-4);cursor:not-allowed" title="Coming soon">
-            Forgot password?
-          </button>
-        </label>
-        <div class="input-wrap password-wrap">
-          <input type="password" id="password" name="password" class="form-input" placeholder="Your password" autocomplete="current-password" required/>
-          <button type="button" class="eye-toggle" id="pw-toggle" aria-label="Show password">
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-          </button>
-        </div>
-        <span class="field-error" id="password-error"></span>
-      </div>
-
-      <div class="form-error-box" id="form-error"></div>
-
-      <button type="submit" class="btn-auth-submit" id="submit-btn">
-        <div class="btn-spinner"></div>
-        <span class="btn-text">Sign In</span>
-      </button>
-    </form>
-
-    <div class="auth-footer">
-      <div class="auth-footer-row">
-        Don't have an account?
-        <a href="register.html">Create one</a>
-      </div>
+      <button class="otp-back-link" id="back-to-login">← Use a different account</button>
     </div>
 
   </div>
 </div>
 
-<!-- Toast container -->
 <div id="toast-container"></div>
 
 <script src="/js/config.js"></script>
 <script type="module">
-import { login } from './js/api.js';
+import { loginStep1, verifyOtp, resendOtp, getGoogleAuthUrl, getDiscordAuthUrl } from './js/api.js';
 import { initAuth, setAuth, isLoggedIn } from './js/auth.js';
 import { showToast } from './js/components/toast.js';
 
-// Redirect if already logged in
 await initAuth();
-if (isLoggedIn()) {
-  window.location.href = 'index.html';
-}
+if (isLoggedIn()) { window.location.href = 'index.html'; }
 
-// ── Password show/hide ──────────────────────────────────────────────────────
-
-const pwInput  = document.getElementById('password');
-const pwToggle = document.getElementById('pw-toggle');
-pwToggle.addEventListener('click', () => {
-  const show = pwInput.type === 'password';
-  pwInput.type = show ? 'text' : 'password';
-  pwToggle.setAttribute('aria-label', show ? 'Hide password' : 'Show password');
-  pwToggle.innerHTML = show
-    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
-    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
-});
+// ── State ───────────────────────────────────────────────────────────────────
+let pendingEmail = '';
+let resendTimer  = null;
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
-
 function showFieldError(id, msg) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = msg;
   el.style.display = 'block';
 }
-
 function clearFieldError(id) {
   const el = document.getElementById(id);
   if (!el) return;
   el.textContent = '';
   el.style.display = 'none';
 }
+function validateEmail(e) { return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e); }
 
-function validateEmail(email) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+// ── Password show/hide ───────────────────────────────────────────────────────
+const pwInput  = document.getElementById('password');
+const pwToggle = document.getElementById('pw-toggle');
+pwToggle.addEventListener('click', () => {
+  const show = pwInput.type === 'password';
+  pwInput.type = show ? 'text' : 'password';
+  pwToggle.innerHTML = show
+    ? `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>`
+    : `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>`;
+});
+
+// ── Step 1: credentials form ─────────────────────────────────────────────────
+const loginForm  = document.getElementById('login-form');
+const submitBtn  = document.getElementById('submit-btn');
+const formError  = document.getElementById('form-error');
+
+function setLoading(btn, loading) {
+  btn.disabled = loading;
+  btn.classList.toggle('loading', loading);
 }
 
 document.getElementById('email').addEventListener('blur', function() {
@@ -160,29 +297,9 @@ document.getElementById('email').addEventListener('blur', function() {
   }
 });
 
-// ── Form submission ─────────────────────────────────────────────────────────
-
-const form      = document.getElementById('login-form');
-const submitBtn = document.getElementById('submit-btn');
-const formError = document.getElementById('form-error');
-
-function setLoading(loading) {
-  submitBtn.disabled = loading;
-  submitBtn.classList.toggle('loading', loading);
-}
-
-function showFormError(msg) {
-  formError.textContent = msg;
-  formError.classList.add('visible');
-}
-
-function hideFormError() {
-  formError.classList.remove('visible');
-}
-
-form.addEventListener('submit', async (e) => {
+loginForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  hideFormError();
+  formError.classList.remove('visible');
 
   const email    = document.getElementById('email').value.trim();
   const password = document.getElementById('password').value;
@@ -192,24 +309,177 @@ form.addEventListener('submit', async (e) => {
   if (!password)             { showFieldError('password-error', 'Password is required'); hasError = true; }
   if (hasError) return;
 
-  setLoading(true);
+  setLoading(submitBtn, true);
   try {
-    const authData = await login({ email, password });
+    await loginStep1({ email, password });
+    pendingEmail = email;
+    switchToOtp(email);
+  } catch (err) {
+    formError.textContent = err.message || 'Login failed. Please try again.';
+    formError.classList.add('visible');
+  } finally {
+    setLoading(submitBtn, false);
+  }
+});
+
+// ── Switch to OTP step ───────────────────────────────────────────────────────
+function switchToOtp(email) {
+  document.getElementById('step-credentials').style.display = 'none';
+  document.getElementById('step-otp').style.display = '';
+  document.getElementById('otp-email-display').textContent = email;
+  startResendTimer();
+  // Focus first OTP cell
+  setTimeout(() => document.querySelector('.otp-cell')?.focus(), 100);
+}
+
+// ── OTP grid keyboard handling ───────────────────────────────────────────────
+const otpCells = Array.from(document.querySelectorAll('.otp-cell'));
+
+otpCells.forEach((cell, idx) => {
+  cell.addEventListener('keydown', (e) => {
+    if (e.key === 'Backspace') {
+      e.preventDefault();
+      if (cell.value) {
+        cell.value = '';
+        cell.classList.remove('filled');
+      } else if (idx > 0) {
+        otpCells[idx - 1].focus();
+        otpCells[idx - 1].value = '';
+        otpCells[idx - 1].classList.remove('filled');
+      }
+    } else if (e.key === 'ArrowLeft' && idx > 0) {
+      otpCells[idx - 1].focus();
+    } else if (e.key === 'ArrowRight' && idx < otpCells.length - 1) {
+      otpCells[idx + 1].focus();
+    }
+  });
+
+  cell.addEventListener('input', (e) => {
+    const val = e.target.value.replace(/\D/g, '').slice(-1);
+    cell.value = val;
+    cell.classList.toggle('filled', !!val);
+    if (val && idx < otpCells.length - 1) {
+      otpCells[idx + 1].focus();
+    }
+    // Auto-submit when all 6 digits filled
+    if (otpCells.every(c => c.value)) {
+      submitOtp();
+    }
+  });
+
+  // Handle paste on first cell
+  cell.addEventListener('paste', (e) => {
+    e.preventDefault();
+    const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+    pasted.split('').slice(0, 6).forEach((ch, i) => {
+      if (otpCells[i]) {
+        otpCells[i].value = ch;
+        otpCells[i].classList.add('filled');
+      }
+    });
+    const nextEmpty = otpCells.find(c => !c.value);
+    (nextEmpty || otpCells[5]).focus();
+    if (otpCells.every(c => c.value)) submitOtp();
+  });
+});
+
+// ── OTP form submit ──────────────────────────────────────────────────────────
+const otpForm     = document.getElementById('otp-form');
+const otpSubmitBtn = document.getElementById('otp-submit-btn');
+const otpError    = document.getElementById('otp-error');
+
+otpForm.addEventListener('submit', (e) => { e.preventDefault(); submitOtp(); });
+
+async function submitOtp() {
+  const code = otpCells.map(c => c.value).join('');
+  if (code.length < 6) {
+    otpError.textContent = 'Please enter all 6 digits';
+    otpError.classList.add('visible');
+    return;
+  }
+
+  otpError.classList.remove('visible');
+  setLoading(otpSubmitBtn, true);
+
+  try {
+    const authData = await verifyOtp({ email: pendingEmail, otpCode: code });
     setAuth(authData);
 
     const name = authData.user?.name || 'there';
     showToast(`Welcome back, ${name.split(' ')[0]}!`, 'success');
 
-    // Redirect to previous page or home
     const redirect = sessionStorage.getItem('redirectAfterLogin');
     sessionStorage.removeItem('redirectAfterLogin');
-    setTimeout(() => {
-      window.location.href = redirect || 'index.html';
-    }, 800);
+    setTimeout(() => { window.location.href = redirect || 'index.html'; }, 800);
   } catch (err) {
-    showFormError(err.message || 'Login failed. Please try again.');
+    otpError.textContent = err.message || 'Invalid code. Please try again.';
+    otpError.classList.add('visible');
+    // Shake animation
+    otpCells.forEach(c => { c.classList.add('shake'); c.value = ''; c.classList.remove('filled'); });
+    setTimeout(() => otpCells.forEach(c => c.classList.remove('shake')), 500);
+    otpCells[0].focus();
   } finally {
-    setLoading(false);
+    setLoading(otpSubmitBtn, false);
+  }
+}
+
+// ── Resend timer ─────────────────────────────────────────────────────────────
+function startResendTimer() {
+  const btn   = document.getElementById('resend-btn');
+  const timer = document.getElementById('otp-timer');
+  btn.disabled = true;
+  let secs = 60;
+  timer.textContent = `(${secs}s)`;
+  clearInterval(resendTimer);
+  resendTimer = setInterval(() => {
+    secs--;
+    if (secs <= 0) {
+      clearInterval(resendTimer);
+      btn.disabled = false;
+      timer.textContent = '';
+    } else {
+      timer.textContent = `(${secs}s)`;
+    }
+  }, 1000);
+}
+
+document.getElementById('resend-btn').addEventListener('click', async () => {
+  try {
+    await resendOtp(pendingEmail);
+    showToast('New code sent!', 'success');
+    startResendTimer();
+    otpCells.forEach(c => { c.value = ''; c.classList.remove('filled'); });
+    otpCells[0].focus();
+  } catch (err) {
+    showToast(err.message || 'Could not resend code', 'error');
+  }
+});
+
+// ── Back button ──────────────────────────────────────────────────────────────
+document.getElementById('back-to-login').addEventListener('click', () => {
+  clearInterval(resendTimer);
+  document.getElementById('step-otp').style.display = 'none';
+  document.getElementById('step-credentials').style.display = '';
+  otpCells.forEach(c => { c.value = ''; c.classList.remove('filled'); });
+  otpError.classList.remove('visible');
+});
+
+// ── OAuth buttons ─────────────────────────────────────────────────────────────
+document.getElementById('google-btn').addEventListener('click', async () => {
+  try {
+    const data = await getGoogleAuthUrl();
+    window.location.href = data.authUrl;
+  } catch (err) {
+    showToast(err.message || 'Google login not configured', 'error');
+  }
+});
+
+document.getElementById('discord-btn').addEventListener('click', async () => {
+  try {
+    const data = await getDiscordAuthUrl();
+    window.location.href = data.authUrl;
+  } catch (err) {
+    showToast(err.message || 'Discord login not configured', 'error');
   }
 });
 </script>

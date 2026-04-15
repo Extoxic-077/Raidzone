@@ -43,3 +43,7 @@ uploads/
 
 ### Build artifacts ###
 *.jar
+
+### Project Memory ###
+MEMORY.md
+LOCAL_DEV.md

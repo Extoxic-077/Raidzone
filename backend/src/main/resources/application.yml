@@ -45,15 +45,30 @@ spring:
       max-file-size: 5MB
       max-request-size: 10MB
 
-  # ── Disable unused auto-configurations to keep Phase 1 lean ─────────────────
+  # ── Mail (Gmail SMTP) ────────────────────────────────────────────────────────
+  mail:
+    host: ${MAIL_HOST:smtp.gmail.com}
+    port: ${MAIL_PORT:587}
+    username: ${MAIL_USERNAME:placeholder@gmail.com}
+    password: ${MAIL_PASSWORD:placeholder}
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
+
+  # ── Disable unused auto-configurations ───────────────────────────────────────
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.amqp.RabbitAutoConfiguration
       - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchDataAutoConfiguration
       - org.springframework.boot.autoconfigure.data.elasticsearch.ElasticsearchRepositoriesAutoConfiguration
       - org.springframework.boot.autoconfigure.elasticsearch.ElasticsearchClientAutoConfiguration
-      - org.springframework.boot.autoconfigure.mail.MailSenderAutoConfiguration
-      - org.springframework.boot.autoconfigure.mail.MailSenderValidatorAutoConfiguration
 
 # ── Server ────────────────────────────────────────────────────────────────────
 server:
@@ -101,6 +116,17 @@ app:
   coinbase:
     api-key: ${COINBASE_API_KEY:placeholder}
     webhook-secret: ${COINBASE_WEBHOOK_SECRET:placeholder}
+  oauth:
+    google:
+      client-id: ${GOOGLE_CLIENT_ID:placeholder}
+      client-secret: ${GOOGLE_CLIENT_SECRET:placeholder}
+    discord:
+      client-id: ${DISCORD_CLIENT_ID:placeholder}
+      client-secret: ${DISCORD_CLIENT_SECRET:placeholder}
+    redirect-base-url: ${OAUTH_REDIRECT_BASE_URL:http://localhost:8080}
+  otp:
+    expiry-minutes: 10
+    resend-cooldown-seconds: 60
 
 # ── SpringDoc / Swagger UI ────────────────────────────────────────────────────
 springdoc:

@@ -17,6 +17,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -73,22 +74,61 @@ public class AuthService {
     }
 
     /**
-     * Authenticates a user with email and password.
-     *
-     * @param request the login credentials
-     * @return {@link AuthResponse} containing the access token and user profile
-     * @throws UnauthorizedException if the credentials are invalid or the account is inactive
+     * Step 1 of OTP login: validates credentials, returns the user if valid.
+     * Does NOT issue a JWT — caller should send OTP after this.
+     */
+    @Transactional(readOnly = true)
+    public User validateCredentials(String email, String password) {
+        User user = userRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
+
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
+            throw new UnauthorizedException("Invalid email or password");
+        }
+        return user;
+    }
+
+    /**
+     * Finds an active user by email. Used by OTP verify and resend flows.
+     */
+    @Transactional(readOnly = true)
+    public User findActiveUserByEmail(String email) {
+        return userRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() -> new UnauthorizedException("No active account found for this email"));
+    }
+
+    /**
+     * Marks a user's email as verified.
+     */
+    @Transactional
+    public void markEmailVerified(User user) {
+        user.setIsEmailVerified(true);
+        userRepository.save(user);
+    }
+
+    /**
+     * Finds a user by email regardless of active status (for OAuth linking).
+     */
+    @Transactional(readOnly = true)
+    public Optional<User> findByEmail(String email) {
+        return userRepository.findByEmail(email);
+    }
+
+    /**
+     * Saves a user entity (used by OAuth service to create/update users).
+     */
+    @Transactional
+    public User save(User user) {
+        return userRepository.save(user);
+    }
+
+    /**
+     * @deprecated Use OTP-based login flow. Kept for internal use only.
      */
     @Transactional(readOnly = true)
     public AuthResponse login(LoginRequest request) {
-        User user = userRepository.findByEmailAndIsActiveTrue(request.email())
-                .orElseThrow(() -> new UnauthorizedException("Invalid email or password"));
-
-        if (!passwordEncoder.matches(request.password(), user.getPasswordHash())) {
-            throw new UnauthorizedException("Invalid email or password");
-        }
-
-        log.info("User logged in: {} ({})", user.getEmail(), user.getId());
+        User user = validateCredentials(request.email(), request.password());
+        log.info("User logged in (legacy): {} ({})", user.getEmail(), user.getId());
         return buildAuthResponse(user);
     }
 
@@ -127,6 +167,15 @@ public class AuthService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User", userId));
         return UserResponse.from(user);
+    }
+
+    // ── Public helpers (used by OAuth + OTP controllers) ─────────────────────
+
+    /**
+     * Public wrapper around {@link #buildAuthResponse} for use by external controllers.
+     */
+    public AuthResponse buildAuthResponsePublic(User user) {
+        return buildAuthResponse(user);
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────
