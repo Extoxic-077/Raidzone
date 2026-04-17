@@ -11,6 +11,8 @@ import NexVault.model.User;
 import NexVault.repository.*;
 import NexVault.service.AdminProductService;
 import NexVault.service.FileStorageService;
+import NexVault.service.StripeService;
+import NexVault.service.RazorpayService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -48,6 +50,8 @@ public class AdminController {
     private final OrderRepository orderRepository;
     private final CouponUsageRepository couponUsageRepository;
     private final CouponRepository couponRepository;
+    private final StripeService stripeService;
+    private final RazorpayService razorpayService;
 
     // ── Dashboard stats ───────────────────────────────────────────────────────
 
@@ -344,5 +348,46 @@ public class AdminController {
         }
         userRepository.deleteById(id);
         return ResponseEntity.ok(ApiResponse.ok(null, "User deleted"));
+    }
+
+    // ── Payment config diagnostic ─────────────────────────────────────────────
+
+    @GetMapping("/system/payment-config")
+    @Operation(summary = "Show payment provider key prefixes for diagnostics (ADMIN)")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> getPaymentConfig() {
+        String spk = stripeService.getPublishableKey();
+        String ssk = getFieldValue(stripeService, "secretKey");
+        String rid = getFieldValue(razorpayService, "keyId");
+        String rks = getFieldValue(razorpayService, "keySecret");
+
+        boolean stripeOk  = spk != null && !spk.equals("pk_test_placeholder") && !spk.equals("placeholder");
+        boolean razorOk   = rid != null && !rid.equals("rzp_test_placeholder") && !rid.equals("placeholder");
+
+        Map<String, Object> stripe = new LinkedHashMap<>();
+        stripe.put("publishableKeyPrefix", spk  != null && spk.length()  > 12 ? spk.substring(0, 12)  : spk);
+        stripe.put("secretKeyPrefix",      ssk  != null && ssk.length()  >  8 ? ssk.substring(0, 8)   : ssk);
+        stripe.put("configured",           stripeOk);
+
+        Map<String, Object> razorpay = new LinkedHashMap<>();
+        razorpay.put("keyIdPrefix",    rid != null && rid.length() > 15 ? rid.substring(0, 15) : rid);
+        razorpay.put("keySecretLength", rks != null ? rks.length() : 0);
+        razorpay.put("configured",     razorOk);
+
+        Map<String, Object> result = new LinkedHashMap<>();
+        result.put("stripe",   stripe);
+        result.put("razorpay", razorpay);
+        result.put("coinbase", Map.of("configured", false, "note", "Coinbase Commerce API shut down"));
+
+        return ResponseEntity.ok(ApiResponse.ok(result));
+    }
+
+    private String getFieldValue(Object service, String fieldName) {
+        try {
+            java.lang.reflect.Field f = service.getClass().getDeclaredField(fieldName);
+            f.setAccessible(true);
+            return (String) f.get(service);
+        } catch (Exception e) {
+            return null;
+        }
     }
 }

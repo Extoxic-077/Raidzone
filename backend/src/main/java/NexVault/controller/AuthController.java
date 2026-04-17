@@ -4,6 +4,7 @@ import NexVault.dto.request.*;
 import NexVault.dto.response.*;
 import NexVault.exception.DuplicateResourceException;
 import NexVault.exception.UnauthorizedException;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import NexVault.model.User;
 import NexVault.service.AuthService;
 import NexVault.service.OtpService;
@@ -200,6 +201,69 @@ public class AuthController {
         UUID userId = (UUID) authentication.getPrincipal();
         UserResponse user = authService.updateProfile(userId, request);
         return ResponseEntity.ok(ApiResponse.ok(user, "Profile updated"));
+    }
+
+    // ── Email change ──────────────────────────────────────────────────────────
+
+    @PostMapping("/request-email-change")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Step 1 of email change: send OTP to the new email address")
+    public ResponseEntity<ApiResponse<LoginStep1Response>> requestEmailChange(
+            @Valid @RequestBody ChangeEmailRequest request,
+            Authentication authentication) {
+
+        UUID userId = (UUID) authentication.getPrincipal();
+        User user = authService.prepareEmailChange(userId, request.newEmail());
+        otpService.generateAndSendTo(user, request.newEmail(), "EMAIL_CHANGE");
+
+        return ResponseEntity.ok(ApiResponse.ok(
+                LoginStep1Response.of(request.newEmail()),
+                "Verification code sent to your new email address"));
+    }
+
+    @PostMapping("/verify-email-change")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Step 2 of email change: verify OTP and apply new email")
+    public ResponseEntity<ApiResponse<UserResponse>> verifyEmailChange(
+            @Valid @RequestBody VerifyEmailChangeRequest request,
+            Authentication authentication) {
+
+        UUID userId = (UUID) authentication.getPrincipal();
+        User user = authService.findUserById(userId);
+        otpService.verify(user, request.otpCode(), "EMAIL_CHANGE");
+        UserResponse updated = authService.verifyEmailChange(userId, request.newEmail());
+        return ResponseEntity.ok(ApiResponse.ok(updated, "Email updated successfully"));
+    }
+
+    // ── Password change ───────────────────────────────────────────────────────
+
+    @PostMapping("/request-password-change")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Step 1 of password change: send OTP to current email")
+    public ResponseEntity<ApiResponse<LoginStep1Response>> requestPasswordChange(
+            Authentication authentication) {
+
+        UUID userId = (UUID) authentication.getPrincipal();
+        User user = authService.findUserById(userId);
+        otpService.generateAndSend(user, "PASSWORD_CHANGE");
+
+        return ResponseEntity.ok(ApiResponse.ok(
+                LoginStep1Response.of(user.getEmail()),
+                "Verification code sent to your email"));
+    }
+
+    @PostMapping("/verify-password-change")
+    @SecurityRequirement(name = "bearerAuth")
+    @Operation(summary = "Step 2 of password change: verify OTP and apply new password")
+    public ResponseEntity<ApiResponse<Void>> verifyPasswordChange(
+            @Valid @RequestBody ChangePasswordRequest request,
+            Authentication authentication) {
+
+        UUID userId = (UUID) authentication.getPrincipal();
+        User user = authService.findUserById(userId);
+        otpService.verify(user, request.otpCode(), "PASSWORD_CHANGE");
+        authService.changePassword(userId, request.newPassword());
+        return ResponseEntity.ok(ApiResponse.ok(null, "Password changed successfully"));
     }
 
     // ── Private helpers ───────────────────────────────────────────────────────

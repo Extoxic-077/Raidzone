@@ -67,7 +67,6 @@ import {
   applyCoupon,
   createStripeIntent,
   createRazorpayOrder, verifyRazorpayPayment,
-  createCoinbaseCharge, pollOrderStatus,
 } from './js/api.js';
 
 await initAuth();
@@ -89,7 +88,6 @@ let couponData   = null;   // CouponApplyResponse | null
 let activeTab    = 'stripe';
 let stripeInst   = null;   // Stripe instance
 let cardElement  = null;   // Stripe card element
-let pollTimer    = null;   // Coinbase polling interval
 
 const body = document.getElementById('checkout-body');
 
@@ -323,23 +321,23 @@ function razorpayTabHTML() {
 function coinbaseTabHTML() {
   return `
     <div class="pay-panel hidden" id="panel-coinbase">
-      <div class="pay-section-label">Accepted Cryptocurrencies</div>
-      <div class="crypto-coins-row">
-        <div class="crypto-coin">₿<br/><span>Bitcoin</span><small>BTC</small></div>
-        <div class="crypto-coin">Ξ<br/><span>Ethereum</span><small>ETH</small></div>
-        <div class="crypto-coin">₮<br/><span>Tether</span><small>USDT</small></div>
+      <div style="text-align:center;padding:40px 20px;">
+        <div style="font-size:48px;margin-bottom:16px;filter:grayscale(1);opacity:0.5">₿</div>
+        <div style="font-size:16px;font-weight:600;color:var(--text-2);margin-bottom:8px">
+          Crypto payments temporarily unavailable
+        </div>
+        <p style="color:var(--text-4);font-size:13px;line-height:1.6;max-width:320px;margin:0 auto 24px">
+          Coinbase Commerce has shut down. We're working on a crypto payment alternative.
+        </p>
+        <div style="display:inline-flex;align-items:center;gap:8px;padding:10px 20px;
+          background:var(--bg3);border:1px solid var(--glass-border);border-radius:var(--r-md);
+          color:var(--text-4);font-size:13px;">
+          🔧 Coming Soon
+        </div>
       </div>
-      <p class="crypto-note">Pay with any major cryptocurrency. Rate locked for 60 minutes.</p>
-
-      <div class="coinbase-waiting" id="coinbase-waiting" hidden>
-        <div class="coinbase-waiting-title">₿ Coinbase checkout opened in a new tab</div>
-        <div class="charge-code-row">Charge code: <span class="charge-code-val" id="charge-code-val"></span></div>
-        <div class="charge-expires">Expires: <span id="charge-expires-val"></span></div>
-        <div class="poll-status" id="poll-status">⏳ Waiting for payment confirmation…</div>
-      </div>
-
       <div class="pay-error" id="cb-error" hidden></div>
-      <button class="btn-pay-tab btn-pay-coinbase" id="coinbase-pay-btn">Pay ${fmt(grandTotal())} with Crypto →</button>
+      <button class="btn-pay-tab btn-pay-coinbase" id="coinbase-pay-btn" disabled
+        style="opacity:0.4;cursor:not-allowed">Coming Soon</button>
     </div>`;
 }
 
@@ -411,17 +409,28 @@ async function renderPayment() {
     await handleRazorpayPay();
   });
 
-  // ── Coinbase pay ──────────────────────────────────────────────────────────
-  document.getElementById('coinbase-pay-btn').addEventListener('click', async () => {
-    await handleCoinbasePay();
-  });
 }
+// handleCoinbasePay removed — Coinbase Commerce API shut down
 
 // ── Stripe card element ───────────────────────────────────────────────────────
-function mountStripeElement() {
+async function mountStripeElement() {
   if (!window.Stripe) return;
+  if (cardElement) return; // already mounted
+
   try {
-    const publishableKey = 'pk_test_placeholder'; // overwritten after intent is created
+    // Fetch the real publishable key from the backend (no auth required)
+    const res  = await fetch('/api/v1/payments/stripe/config');
+    const json = await res.json();
+    const publishableKey = json?.data?.publishableKey;
+
+    if (!publishableKey || publishableKey.includes('placeholder')) {
+      console.warn('Stripe not configured — card element hidden');
+      const wrap = document.getElementById('stripe-card-element');
+      if (wrap) wrap.closest('.stripe-mount-wrap').innerHTML =
+        '<p style="color:var(--text-4);font-size:13px;padding:12px 0">Card payment is temporarily unavailable. Please use UPI/Razorpay.</p>';
+      return;
+    }
+
     stripeInst  = Stripe(publishableKey);
     const elements = stripeInst.elements();
     cardElement = elements.create('card', {
@@ -465,27 +474,17 @@ async function handleStripePay() {
   errEl.hidden  = true;
 
   try {
+    if (!stripeInst || !cardElement) {
+      throw new Error('Card element not ready. Please refresh and try again.');
+    }
+
     // 1. Create order
     const order = await createOrderFromCart();
 
-    // 2. Create Stripe intent
+    // 2. Create Stripe intent — clientSecret only; publishableKey already loaded at mount
     const intent = await createStripeIntent(order.id);
 
-    // 3. Re-initialise Stripe with real publishable key
-    stripeInst = Stripe(intent.publishableKey);
-    const elements = stripeInst.elements();
-    const freshCard = elements.create('card', {
-      style: {
-        base: { color:'#F1F0F7', fontFamily:'"DM Sans",sans-serif', fontSize:'14px', '::placeholder':{color:'#6B7280'}, iconColor:'#7C3AED' },
-        invalid: { color:'#EC4899' },
-      },
-    });
-    const mount = document.getElementById('stripe-card-element');
-    if (cardElement) cardElement.unmount();
-    cardElement = freshCard;
-    if (mount) cardElement.mount(mount);
-
-    // 4. Confirm payment
+    // 3. Confirm payment using the already-mounted card element (preserves user's card data)
     const result = await stripeInst.confirmCardPayment(intent.clientSecret, {
       payment_method: { card: cardElement },
     });
@@ -577,62 +576,6 @@ async function handleRazorpayPay() {
   }
 }
 
-// ── Coinbase payment flow ─────────────────────────────────────────────────────
-async function handleCoinbasePay() {
-  const btn     = document.getElementById('coinbase-pay-btn');
-  const errEl   = document.getElementById('cb-error');
-  const waiting = document.getElementById('coinbase-waiting');
-
-  btn.disabled = true;
-  btn.innerHTML = '<span class="pay-spinner"></span> Creating charge…';
-  errEl.hidden  = true;
-
-  try {
-    const order  = await createOrderFromCart();
-    const charge = await createCoinbaseCharge(order.id);
-
-    window.open(charge.hostedUrl, '_blank');
-
-    btn.style.display = 'none';
-    waiting.hidden = false;
-    document.getElementById('charge-code-val').textContent = charge.chargeCode;
-    document.getElementById('charge-expires-val').textContent = charge.expiresAt
-      ? new Date(charge.expiresAt).toLocaleString('en-IN') : '60 minutes';
-
-    // Start polling every 8 s, give up after 15 min (112 polls)
-    let polls = 0;
-    const MAX_POLLS = 112;
-
-    pollTimer = setInterval(async () => {
-      polls++;
-      if (polls > MAX_POLLS) {
-        clearInterval(pollTimer);
-        document.getElementById('poll-status').innerHTML =
-          '⏰ Session expired. <a href="orders.html">Check your orders</a> or try again.';
-        return;
-      }
-      try {
-        const status = await pollOrderStatus(order.id);
-        console.log(`[Coinbase poll ${polls}] status:`, status.status);
-        if (status.status === 'CONFIRMED') {
-          clearInterval(pollTimer);
-          document.getElementById('poll-status').textContent = '✅ Payment confirmed!';
-          document.getElementById('poll-status').style.color = '#22D3EE';
-          setTimeout(() => {
-            window.location.href = `orders.html?success=true&orderId=${order.id}`;
-          }, 2000);
-        }
-      } catch { /* ignore poll errors */ }
-    }, 8000);
-
-  } catch (err) {
-    errEl.textContent = humanizeError(err.message);
-    errEl.hidden  = false;
-    btn.disabled  = false;
-    btn.textContent = `Pay ${fmt(grandTotal())} with Crypto →`;
-    showToast(humanizeError(err.message), 'error');
-  }
-}
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
 setStep(1);

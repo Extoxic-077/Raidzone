@@ -11,6 +11,7 @@ import NexVault.repository.OrderRepository;
 import NexVault.repository.PaymentRepository;
 import com.razorpay.RazorpayClient;
 import com.razorpay.RazorpayException;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.json.JSONObject;
@@ -41,6 +42,14 @@ public class RazorpayService {
 
     @Value("${app.razorpay.key-secret:placeholder}")
     private String keySecret;
+
+    @PostConstruct
+    public void init() {
+        boolean configured = keyId != null && !keyId.equals("rzp_test_placeholder")
+                && !keyId.equals("placeholder");
+        log.info("RazorpayService initialized. KeyId: {} KeySecret length: {} Configured: {}",
+                keyId, keySecret != null ? keySecret.length() : 0, configured);
+    }
 
     @Transactional
     public RazorpayOrderResponse createOrder(UUID orderId, BigDecimal amountINR, UUID userId) {

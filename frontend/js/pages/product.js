@@ -58,13 +58,19 @@ function showSignInPrompt(action = 'continue') {
 
 function animateCartBadge() {
   const badge = document.getElementById('cart-badge');
-  if (!badge) return;
-  const current = parseInt(badge.textContent || '0', 10);
-  badge.textContent = current + 1;
-  badge.classList.remove('pop');
-  void badge.offsetWidth;
-  badge.classList.add('pop');
-  badge.addEventListener('animationend', () => badge.classList.remove('pop'), { once: true });
+  if (badge) {
+    const current = parseInt(badge.textContent || '0', 10);
+    badge.textContent = current + 1;
+    badge.classList.remove('pop');
+    void badge.offsetWidth;
+    badge.classList.add('pop');
+    badge.addEventListener('animationend', () => badge.classList.remove('pop'), { once: true });
+  }
+  const mobileBadge = document.getElementById('cart-badge-mobile');
+  if (mobileBadge) {
+    const current = parseInt(mobileBadge.textContent || '0', 10);
+    mobileBadge.textContent = current + 1;
+  }
 }
 
 function burstParticles(btn) {
@@ -244,16 +250,25 @@ function renderWriteReviewSection(existingReview, openByDefault) {
   `;
 }
 
+function memberSinceText(iso) {
+  if (!iso) return '';
+  try {
+    return 'Member since ' + new Date(iso).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+  } catch { return ''; }
+}
+
 function renderReviewCard(review, currentUser) {
   const isOwn = currentUser && review.userId === currentUser.id;
-  const initials = (review.userName || 'U').slice(0, 2).toUpperCase();
+  const displayName = review.userNickname || review.userName || 'Anonymous';
+  const initials = displayName.slice(0, 2).toUpperCase();
+  const since = memberSinceText(review.userMemberSince);
   return `
     <div class="review-card${isOwn ? ' review-card-own' : ''}">
       <div class="review-card-header">
         <div class="review-avatar">${initials}</div>
         <div class="review-meta">
-          <div class="review-author">${review.userName || 'Anonymous'}${isOwn ? ' <span class="review-you-badge">You</span>' : ''}</div>
-          <div class="review-date">${timeAgo(review.createdAt)}</div>
+          <div class="review-author">${displayName}${isOwn ? ' <span class="review-you-badge">You</span>' : ''}</div>
+          <div class="review-date">${timeAgo(review.createdAt)}${since ? ' · ' + since : ''}</div>
         </div>
         <div class="review-stars-display">${renderReviewStars(review.rating)}</div>
       </div>

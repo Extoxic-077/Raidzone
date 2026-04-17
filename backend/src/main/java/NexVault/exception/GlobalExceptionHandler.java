@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.stream.Collectors;
@@ -159,6 +160,40 @@ public class GlobalExceptionHandler {
 
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    /**
+     * Handles {@link ResponseStatusException}: preserves the HTTP status and reason phrase.
+     * Covers OAuth "not configured" errors (503) and other controller-thrown HTTP errors.
+     */
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<ApiResponse<Void>> handleResponseStatus(
+            ResponseStatusException ex,
+            HttpServletRequest request) {
+
+        String message = ex.getReason() != null ? ex.getReason() : ex.getMessage();
+        log.warn("HTTP {} [{} {}]: {}", ex.getStatusCode().value(),
+                request.getMethod(), request.getRequestURI(), message);
+
+        return ResponseEntity
+                .status(ex.getStatusCode())
+                .body(ApiResponse.error(message));
+    }
+
+    /**
+     * Handles {@link RuntimeException}: returns 500 with the actual message.
+     * Covers Razorpay errors and other runtime failures so callers see a useful message.
+     */
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<ApiResponse<Void>> handleRuntime(
+            RuntimeException ex,
+            HttpServletRequest request) {
+
+        log.error("Runtime error [{} {}]: {}", request.getMethod(), request.getRequestURI(), ex.getMessage());
+
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(ApiResponse.error(ex.getMessage()));
     }
 

@@ -203,14 +203,7 @@ function renderBottomNav() {
         <line x1="3" y1="6" x2="21" y2="6"/>
         <path d="M16 10a4 4 0 0 1-8 0"/>
       </svg>
-      <span>Cart <span id="cart-badge-mobile" style="display:none"></span></span>
-    </button>
-    <button class="bottom-nav-item ${page === 'profile' ? 'active' : ''}" id="bottom-nav-profile">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
-        <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
-        <circle cx="12" cy="7" r="4"/>
-      </svg>
-      <span>Profile</span>
+      <span>Cart <span class="mobile-cart-badge" id="cart-badge-mobile"></span></span>
     </button>
   `;
 
@@ -225,15 +218,6 @@ function renderBottomNav() {
       return;
     }
     window.location.href = 'cart.html';
-  });
-
-  document.getElementById('bottom-nav-profile')?.addEventListener('click', () => {
-    if (!isLoggedIn()) {
-      showToast('Please sign in first', 'info');
-      setTimeout(() => { window.location.href = 'login.html'; }, 600);
-      return;
-    }
-    window.location.href = 'profile.html';
   });
 }
 
@@ -294,6 +278,15 @@ function injectDropdownStyles() {
     .bottom-nav-item.active { color: var(--primary); }
     .bottom-nav-item:hover  { color: var(--text-2); }
     .bottom-nav-item.active svg { stroke: var(--primary); }
+
+    .mobile-cart-badge {
+      display: inline-block; min-width: 16px; height: 16px;
+      background: var(--primary); color: #fff; border-radius: 8px;
+      font-size: 10px; font-weight: 700; line-height: 16px;
+      padding: 0 4px; text-align: center; vertical-align: middle;
+      margin-left: 2px;
+    }
+    .mobile-cart-badge:empty { display: none; }
 
     @media (min-width: 768px) {
       #bottom-nav { display: none; }

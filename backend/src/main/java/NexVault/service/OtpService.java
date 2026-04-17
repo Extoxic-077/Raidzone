@@ -51,6 +51,27 @@ public class OtpService {
     }
 
     /**
+     * Like {@link #generateAndSend} but delivers the OTP to a different email address.
+     * Useful for email-change flows where the code must be sent to the NEW email.
+     */
+    @Transactional
+    public void generateAndSendTo(User user, String targetEmail, String purpose) {
+        otpRepository.deleteByUserAndPurpose(user, purpose);
+
+        String code = String.format("%06d", RandomGenerator.getDefault().nextInt(100000, 1000000));
+
+        OtpCode otp = new OtpCode();
+        otp.setUser(user);
+        otp.setCode(code);
+        otp.setPurpose(purpose);
+        otp.setExpiresAt(LocalDateTime.now().plusMinutes(expiryMinutes));
+        otpRepository.save(otp);
+
+        emailService.sendOtpEmail(targetEmail, user.getName(), code, purpose);
+        log.info("OTP generated for user {} purpose={} sent to {}", user.getEmail(), purpose, targetEmail);
+    }
+
+    /**
      * Verifies the OTP. Marks it as used on success.
      * Throws UnauthorizedException if invalid or expired.
      */

@@ -41,6 +41,14 @@ public class PaymentController {
 
     // ── Stripe ────────────────────────────────────────────────────────────────
 
+    @GetMapping("/stripe/config")
+    @Operation(summary = "Get Stripe publishable key (public — no auth required)")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getStripeConfig() {
+        Map<String, String> config = new LinkedHashMap<>();
+        config.put("publishableKey", stripeService.getPublishableKey());
+        return ResponseEntity.ok(ApiResponse.ok(config));
+    }
+
     @PostMapping("/stripe/intent")
     @SecurityRequirement(name = "bearerAuth")
     @Operation(summary = "Create a Stripe PaymentIntent for an order")

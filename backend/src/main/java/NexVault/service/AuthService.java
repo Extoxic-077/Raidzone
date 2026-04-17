@@ -240,4 +240,69 @@ public class AuthService {
     public String generateRefreshToken(UUID userId) {
         return jwtUtil.generateRefreshToken(userId);
     }
+
+    /**
+     * Finds an active user by ID (used by OTP-based change flows).
+     */
+    @Transactional(readOnly = true)
+    public User findUserById(UUID userId) {
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+    }
+
+    /**
+     * Validates that the new email is not taken before the email-change OTP is sent.
+     * Returns the user entity so the controller can pass it to OtpService.
+     *
+     * @throws DuplicateResourceException if the new email is already registered to a different account
+     */
+    @Transactional(readOnly = true)
+    public User prepareEmailChange(UUID userId, String newEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+        if (userRepository.existsByEmail(newEmail) && !newEmail.equalsIgnoreCase(user.getEmail())) {
+            throw new DuplicateResourceException("User", "email", newEmail);
+        }
+        return user;
+    }
+
+    /**
+     * Applies an email change after OTP verification (called by controller after
+     * {@link OtpService#verify} succeeds for purpose "EMAIL_CHANGE").
+     *
+     * @param userId   the authenticated user
+     * @param newEmail the new email address (already OTP-verified)
+     * @return updated {@link UserResponse}
+     */
+    @Transactional
+    public UserResponse verifyEmailChange(UUID userId, String newEmail) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        if (userRepository.existsByEmail(newEmail) && !newEmail.equalsIgnoreCase(user.getEmail())) {
+            throw new DuplicateResourceException("User", "email", newEmail);
+        }
+
+        user.setEmail(newEmail);
+        user = userRepository.save(user);
+        log.info("User {} changed email to {}", userId, newEmail);
+        return UserResponse.from(user);
+    }
+
+    /**
+     * Applies a password change after OTP verification (called by controller after
+     * {@link OtpService#verify} succeeds for purpose "PASSWORD_CHANGE").
+     *
+     * @param userId      the authenticated user
+     * @param newPassword the new plain-text password (will be hashed)
+     */
+    @Transactional
+    public void changePassword(UUID userId, String newPassword) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("User {} changed password", userId);
+    }
 }

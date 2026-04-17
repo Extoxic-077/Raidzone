@@ -213,6 +213,34 @@ export async function updateMe(data) {
   });
 }
 
+export async function requestEmailChange(newEmail) {
+  return authApiFetch('/auth/request-email-change', {
+    method: 'POST',
+    body: JSON.stringify({ newEmail }),
+  });
+}
+
+export async function verifyEmailChange(newEmail, otpCode) {
+  return authApiFetch('/auth/verify-email-change', {
+    method: 'POST',
+    body: JSON.stringify({ newEmail, otpCode }),
+  });
+}
+
+export async function requestPasswordChange() {
+  return authApiFetch('/auth/request-password-change', {
+    method: 'POST',
+    body: JSON.stringify({}),
+  });
+}
+
+export async function verifyPasswordChange(newPassword, otpCode) {
+  return authApiFetch('/auth/verify-password-change', {
+    method: 'POST',
+    body: JSON.stringify({ newPassword, otpCode }),
+  });
+}
+
 // ─── Cart ─────────────────────────────────────────────────────────────────────
 
 export async function getCart() {

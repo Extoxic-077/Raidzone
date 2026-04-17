@@ -15,6 +15,7 @@ import com.stripe.model.Event;
 import com.stripe.model.PaymentIntent;
 import com.stripe.net.Webhook;
 import com.stripe.param.PaymentIntentCreateParams;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +43,20 @@ public class StripeService {
 
     @Value("${app.stripe.webhook-secret:whsec_placeholder}")
     private String webhookSecret;
+
+    @PostConstruct
+    public void init() {
+        boolean configured = secretKey != null && !secretKey.startsWith("sk_test_placeholder")
+                && !secretKey.equals("placeholder");
+        log.info("StripeService initialized. SecretKey prefix: {}... PublishableKey prefix: {}... Configured: {}",
+                secretKey  != null && secretKey.length()      > 8  ? secretKey.substring(0, 8)       : "???",
+                publishableKey != null && publishableKey.length() > 12 ? publishableKey.substring(0, 12) : "???",
+                configured);
+    }
+
+    public String getPublishableKey() {
+        return publishableKey;
+    }
 
     @Transactional
     public StripeIntentResponse createPaymentIntent(UUID orderId, BigDecimal amountINR, UUID userId) {

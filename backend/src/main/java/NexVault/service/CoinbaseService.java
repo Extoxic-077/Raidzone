@@ -49,66 +49,10 @@ public class CoinbaseService {
 
     private static final String COINBASE_API = "https://api.commerce.coinbase.com/charges";
 
-    @Transactional
     public CoinbaseChargeResponse createCharge(UUID orderId, BigDecimal amountINR, UUID userId) {
-        Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
-
-        if (!order.getUser().getId().equals(userId)) {
-            throw new IllegalArgumentException("Order does not belong to this user");
-        }
-        if (!"PENDING_PAYMENT".equals(order.getStatus())) {
-            throw new IllegalStateException("Order is not awaiting payment (status: " + order.getStatus() + ")");
-        }
-
-        Map<String, Object> localPrice = new LinkedHashMap<>();
-        localPrice.put("amount",   amountINR.toPlainString());
-        localPrice.put("currency", "INR");
-
-        Map<String, Object> metadata = new LinkedHashMap<>();
-        metadata.put("orderId", orderId.toString());
-        metadata.put("userId",  userId.toString());
-
-        Map<String, Object> body = new LinkedHashMap<>();
-        body.put("name",         "HashVault Digital Goods");
-        body.put("description",  "Order " + orderId);
-        body.put("pricing_type", "fixed_price");
-        body.put("local_price",  localPrice);
-        body.put("metadata",     metadata);
-        body.put("redirect_url", "http://localhost:3000/orders.html");
-        body.put("cancel_url",   "http://localhost:3000/cart.html");
-
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("X-CC-Api-Key", apiKey);
-        headers.set("X-CC-Version", "2018-03-22");
-        headers.setContentType(MediaType.APPLICATION_JSON);
-
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
-                COINBASE_API,
-                HttpMethod.POST,
-                new HttpEntity<>(body, headers),
-                new ParameterizedTypeReference<>() {}
-        );
-
-        @SuppressWarnings("unchecked")
-        Map<String, Object> data = (Map<String, Object>) response.getBody().get("data");
-
-        String chargeId   = (String) data.get("id");
-        String chargeCode = (String) data.get("code");
-        String hostedUrl  = (String) data.get("hosted_url");
-        String expiresAt  = (String) data.get("expires_at");
-
-        Payment payment = new Payment();
-        payment.setOrder(order);
-        payment.setProvider(PaymentProvider.COINBASE);
-        payment.setStatus(PaymentStatus.PENDING);
-        payment.setCoinbaseChargeId(chargeId);
-        payment.setCoinbaseChargeCode(chargeCode);
-        payment.setCoinbaseHostedUrl(hostedUrl);
-        payment.setAmount(amountINR);
-        paymentRepository.save(payment);
-
-        return new CoinbaseChargeResponse(chargeId, chargeCode, hostedUrl, expiresAt, orderId);
+        throw new IllegalStateException(
+                "Crypto payments are temporarily unavailable. Coinbase Commerce has shut down. " +
+                "Please use Card or UPI payment instead.");
     }
 
     @Transactional
