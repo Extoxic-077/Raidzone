@@ -85,6 +85,8 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/v1/payments/stripe/config").permitAll()
                     .requestMatchers("/api/v1/payments/stripe/webhook").permitAll()
                     .requestMatchers("/api/v1/payments/coinbase/webhook").permitAll()
+                    // ── Notifications (requires authentication) ──────────────────
+                    .requestMatchers("/api/v1/notifications/**").authenticated()
                     // ── Admin (requires ADMIN role) ──────────────────────────────
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                     // ── Everything else requires authentication ──────────────────

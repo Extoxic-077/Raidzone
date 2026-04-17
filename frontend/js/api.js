@@ -568,3 +568,21 @@ export async function adminGetDbStats() {
 export async function adminGetRealtime() {
   return authApiFetch('/admin/analytics/realtime', { method: 'GET' });
 }
+
+// ─── Notifications ────────────────────────────────────────────────────────────
+
+export async function getNotifications() {
+  return authApiFetch('/notifications', { method: 'GET' });
+}
+
+export async function getNotificationCount() {
+  return authApiFetch('/notifications/count', { method: 'GET' });
+}
+
+export async function markAllNotificationsRead() {
+  return authApiFetch('/notifications/read-all', { method: 'PUT' });
+}
+
+export async function markNotificationRead(id) {
+  return authApiFetch(`/notifications/${id}/read`, { method: 'PUT' });
+}

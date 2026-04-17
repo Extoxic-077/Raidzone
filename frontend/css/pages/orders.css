@@ -363,3 +363,47 @@
 }
 
 .order-success-close:hover { color: var(--text-1); }
+
+
+/* ─── Pending payment banner ─────────────────────────────────────────────── */
+
+.orders-pending-banner {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: linear-gradient(135deg, rgba(234,179,8,0.12), rgba(249,115,22,0.12));
+  border: 1px solid rgba(234,179,8,0.3);
+  border-radius: var(--r-lg);
+  padding: 16px 20px;
+  margin-bottom: 24px;
+}
+.orders-pending-icon { font-size: 1.5rem; flex-shrink: 0; }
+.orders-pending-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  font-size: 13px;
+}
+.orders-pending-text strong { color: var(--text-1); font-size: 14px; }
+.orders-pending-text span   { color: var(--text-3); }
+
+/* ─── Cancelled orders toggle ────────────────────────────────────────────── */
+
+.orders-cancelled-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  color: var(--text-3);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 6px 0;
+  font-family: var(--font-body);
+  transition: color var(--ease-fast);
+}
+.orders-cancelled-toggle:hover { color: var(--text-2); }
+
+.order-card-cancelled { opacity: 0.65; }

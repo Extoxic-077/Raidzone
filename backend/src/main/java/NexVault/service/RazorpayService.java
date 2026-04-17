@@ -33,9 +33,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class RazorpayService {
 
-    private final OrderRepository   orderRepository;
-    private final PaymentRepository paymentRepository;
-    private final CartService       cartService;
+    private final OrderRepository     orderRepository;
+    private final PaymentRepository   paymentRepository;
+    private final CartService         cartService;
+    private final NotificationService notificationService;
 
     @Value("${app.razorpay.key-id:rzp_test_placeholder}")
     private String keyId;
@@ -134,6 +135,13 @@ public class RazorpayService {
         order.setPaymentMethod("RAZORPAY");
         orderRepository.save(order);
         cartService.clearCart(userId);
+
+        try {
+            notificationService.notifyOrderConfirmed(order.getUser(), order);
+            notificationService.notifyPaymentSuccess(order.getUser(), payment);
+        } catch (Exception e) {
+            log.warn("Could not send payment notifications: {}", e.getMessage());
+        }
 
         log.info("Razorpay payment confirmed for order {}", order.getId());
         return true;

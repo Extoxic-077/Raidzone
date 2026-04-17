@@ -144,7 +144,7 @@ public class AdminController {
         }).toList();
 
         return ResponseEntity.ok(ApiResponse.ok(new AnalyticsResponse(
-                totalSales, totalRevenue, topProducts, salesByDate,
+                paidOrders, orderRevenue, topProducts, salesByDate,
                 totalOrders, paidOrders, revenueByProvider, ordersByStatus, avgOrderValue,
                 newUsers, couponUsageCount, topCoupons)));
     }

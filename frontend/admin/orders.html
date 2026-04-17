@@ -328,11 +328,22 @@ document.getElementById('order-modal')?.addEventListener('click',  e => { if (e.
 document.getElementById('modal-update-status')?.addEventListener('click', async () => {
   const sel = document.getElementById('modal-status-select');
   if (!sel || !currentOrderId) return;
+  const newStatus = sel.value;
+  if (newStatus === 'CANCELLED' && !confirm('Are you sure you want to cancel this order? This cannot be undone.')) return;
   try {
-    await adminUpdateOrderStatus(currentOrderId, sel.value);
+    await adminUpdateOrderStatus(currentOrderId, newStatus);
     showToast('Order status updated', 'success');
     document.getElementById('order-modal').classList.remove('open');
-    loadOrders(currentPage);
+    // Update the specific row in-place without full reload
+    const row = document.querySelector(`tr[data-id="${currentOrderId}"]`);
+    if (row) {
+      const badgeCell = row.querySelector('td:nth-child(7)');
+      if (badgeCell) {
+        badgeCell.innerHTML = `<span class="${STATUS_CLASS[newStatus] || 'badge-pending'}">${newStatus.replace('_', ' ')}</span>`;
+      }
+    } else {
+      loadOrders(currentPage);
+    }
   } catch (err) { showToast(err.message, 'error'); }
 });
 

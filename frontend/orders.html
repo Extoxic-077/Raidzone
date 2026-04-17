@@ -102,85 +102,116 @@ function statusBadge(status) {
   return `<span class="order-status-badge ${map[status] || 'badge-confirmed'}">${label}</span>`;
 }
 
+function orderCardHTML(order) {
+  const isPending   = order.status === 'PENDING_PAYMENT';
+  const isCancelled = order.status === 'CANCELLED';
+
+  const itemsHtml = order.items.map(item => {
+    const thumb = item.imageUrl
+      ? `<img src="${item.imageUrl}" alt="${item.productName}" class="oi-img"/>`
+      : `<div class="oi-emoji">${item.productEmoji || '🎮'}</div>`;
+    return `
+      <div class="order-item">
+        <div class="oi-thumb">${thumb}</div>
+        <div class="oi-info">
+          <div class="oi-name">${item.productName}</div>
+          <div class="oi-qty">Qty: ${item.quantity} · ${fmtPrice(item.lineTotal)}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  const couponRow = (order.discountAmount && Number(order.discountAmount) > 0)
+    ? `<div class="order-coupon-row">
+         <span class="order-coupon-label">🏷️ Promo <span class="order-coupon-code">${order.couponCode || ''}</span></span>
+         <span class="order-coupon-saving">−${fmtPrice(order.discountAmount)}</span>
+       </div>`
+    : '';
+
+  const paymentRow = (!isPending && order.paymentMethod)
+    ? `<div class="order-payment-row">
+         <span class="order-payment-method">${PROVIDER_LABEL[order.paymentMethod] || order.paymentMethod}</span>
+         ${order.paidAt ? `<span class="order-paid-at">${fmtDate(order.paidAt)}</span>` : ''}
+       </div>`
+    : '';
+
+  return `
+    <div class="order-card ${isPending ? 'order-card-pending' : ''} ${isCancelled ? 'order-card-cancelled' : ''}">
+      <div class="order-card-header">
+        <div class="order-id-wrap">
+          <span class="order-id-label">Order</span>
+          <span class="order-id">#${order.id.slice(0,8).toUpperCase()}</span>
+        </div>
+        <div class="order-meta">
+          ${statusBadge(order.status)}
+          <span class="order-date">${fmtDate(order.createdAt)}</span>
+        </div>
+      </div>
+      <div class="order-items">${itemsHtml}</div>
+      ${couponRow}
+      ${paymentRow}
+      <div class="order-card-footer">
+        <div class="order-shipping">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          ${order.shippingName} &nbsp;·&nbsp; ${order.shippingEmail}
+        </div>
+        <div class="order-footer-right">
+          <div class="order-total">${fmtPrice(order.totalAmount)}</div>
+        </div>
+      </div>
+    </div>`;
+}
+
 function renderOrders(orders) {
-  if (!orders.length) {
-    root.innerHTML = `
+  const pending   = orders.filter(o => o.status === 'PENDING_PAYMENT');
+  const cancelled = orders.filter(o => o.status === 'CANCELLED');
+  const active    = orders.filter(o => o.status !== 'PENDING_PAYMENT' && o.status !== 'CANCELLED');
+
+  let html = '';
+
+  // Pending payment banner
+  if (pending.length > 0) {
+    html += `
+      <div class="orders-pending-banner">
+        <div class="orders-pending-icon">⏳</div>
+        <div class="orders-pending-text">
+          <strong>You have ${pending.length} unpaid order${pending.length > 1 ? 's' : ''}</strong>
+          <span>Complete payment to confirm your purchase</span>
+        </div>
+        <a href="checkout.html" class="btn-complete-payment">Complete Payment →</a>
+      </div>`;
+  }
+
+  // Main confirmed/delivered orders
+  if (active.length > 0) {
+    html += active.map(orderCardHTML).join('');
+  } else if (!pending.length) {
+    html += `
       <div class="orders-empty">
         <div class="orders-empty-icon">📦</div>
         <h3>No orders yet</h3>
         <p>Once you make a purchase, your orders will appear here.</p>
         <a href="catalog.html" class="btn-orders-shop">Start Shopping →</a>
       </div>`;
-    return;
   }
 
-  root.innerHTML = orders.map(order => {
-    const isPending = order.status === 'PENDING_PAYMENT';
-
-    const itemsHtml = order.items.map(item => {
-      const thumb = item.imageUrl
-        ? `<img src="${item.imageUrl}" alt="${item.productName}" class="oi-img"/>`
-        : `<div class="oi-emoji">${item.productEmoji || '🎮'}</div>`;
-      return `
-        <div class="order-item">
-          <div class="oi-thumb">${thumb}</div>
-          <div class="oi-info">
-            <div class="oi-name">${item.productName}</div>
-            <div class="oi-qty">Qty: ${item.quantity} · ${fmtPrice(item.lineTotal)}</div>
-          </div>
-        </div>`;
-    }).join('');
-
-    // Coupon savings row
-    const couponRow = (order.discountAmount && Number(order.discountAmount) > 0)
-      ? `<div class="order-coupon-row">
-           <span class="order-coupon-label">
-             🏷️ Promo <span class="order-coupon-code">${order.couponCode || ''}</span>
-           </span>
-           <span class="order-coupon-saving">−${fmtPrice(order.discountAmount)}</span>
-         </div>`
-      : '';
-
-    // Payment info row (only for paid orders)
-    const paymentRow = (!isPending && order.paymentMethod)
-      ? `<div class="order-payment-row">
-           <span class="order-payment-method">${PROVIDER_LABEL[order.paymentMethod] || order.paymentMethod}</span>
-           ${order.paidAt ? `<span class="order-paid-at">${fmtDate(order.paidAt)}</span>` : ''}
-         </div>`
-      : '';
-
-    // Complete payment CTA for pending orders
-    const pendingCta = isPending
-      ? `<a href="checkout.html" class="btn-complete-payment">Complete Payment →</a>`
-      : '';
-
-    return `
-      <div class="order-card ${isPending ? 'order-card-pending' : ''}">
-        <div class="order-card-header">
-          <div class="order-id-wrap">
-            <span class="order-id-label">Order</span>
-            <span class="order-id">#${order.id.slice(0,8).toUpperCase()}</span>
-          </div>
-          <div class="order-meta">
-            ${statusBadge(order.status)}
-            <span class="order-date">${fmtDate(order.createdAt)}</span>
-          </div>
-        </div>
-        <div class="order-items">${itemsHtml}</div>
-        ${couponRow}
-        ${paymentRow}
-        <div class="order-card-footer">
-          <div class="order-shipping">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-            ${order.shippingName} &nbsp;·&nbsp; ${order.shippingEmail}
-          </div>
-          <div class="order-footer-right">
-            ${pendingCta}
-            <div class="order-total">${fmtPrice(order.totalAmount)}</div>
-          </div>
+  // Cancelled orders — collapsible section
+  if (cancelled.length > 0) {
+    html += `
+      <div class="orders-cancelled-section" style="margin-top:32px">
+        <button class="orders-cancelled-toggle" id="cancelled-toggle" onclick="
+          const body = document.getElementById('cancelled-body');
+          const btn = document.getElementById('cancelled-toggle');
+          const open = body.style.display !== 'none';
+          body.style.display = open ? 'none' : 'block';
+          btn.textContent = open ? '▶ Cancelled Orders (${cancelled.length})' : '▼ Cancelled Orders (${cancelled.length})';
+        ">▶ Cancelled Orders (${cancelled.length})</button>
+        <div id="cancelled-body" style="display:none;margin-top:12px">
+          ${cancelled.map(orderCardHTML).join('')}
         </div>
       </div>`;
-  }).join('');
+  }
+
+  root.innerHTML = html;
 }
 
 try {

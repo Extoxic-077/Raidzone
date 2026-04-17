@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Notifications — NexVault</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/animations.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+
+  <style>
+    .notif-page { max-width: 720px; margin: 0 auto; padding: 32px 20px 80px; }
+    .notif-page-header {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 24px; flex-wrap: wrap; gap: 12px;
+    }
+    .notif-page-title { font-family: var(--font-heading); font-size: 2rem; font-weight: 800; color: var(--text-1); }
+    .notif-mark-all-btn {
+      padding: 8px 18px; border-radius: var(--r-full);
+      background: var(--glass); border: 1px solid var(--glass-border);
+      color: var(--violet-light); font-size: 13px; font-weight: 600;
+      cursor: pointer; font-family: var(--font-body); transition: background var(--ease-fast);
+    }
+    .notif-mark-all-btn:hover { background: rgba(124,58,237,0.15); }
+
+    .notif-filters {
+      display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 20px;
+    }
+    .notif-filter-btn {
+      padding: 6px 16px; border-radius: var(--r-full);
+      background: var(--glass); border: 1px solid var(--glass-border);
+      color: var(--text-3); font-size: 12px; font-weight: 600;
+      cursor: pointer; font-family: var(--font-body); transition: all var(--ease-fast);
+    }
+    .notif-filter-btn.active,
+    .notif-filter-btn:hover {
+      background: rgba(124,58,237,0.2); border-color: var(--primary); color: var(--text-1);
+    }
+
+    .notif-card {
+      display: flex; gap: 14px; align-items: flex-start;
+      background: var(--glass-bg); border: 1px solid var(--glass-border);
+      border-radius: var(--r-lg); padding: 16px; margin-bottom: 10px;
+      transition: background var(--ease-fast);
+      cursor: default;
+    }
+    .notif-card--unread {
+      border-left: 3px solid var(--primary);
+      background: rgba(124,58,237,0.06);
+    }
+    .notif-card:hover { background: var(--glass); }
+
+    .notif-card-icon {
+      width: 42px; height: 42px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem; flex-shrink: 0;
+    }
+    .notif-icon-LOGIN_NEW_DEVICE { background: rgba(239,68,68,0.15); }
+    .notif-icon-ORDER_CONFIRMED  { background: rgba(34,197,94,0.15); }
+    .notif-icon-ORDER_DELIVERED  { background: rgba(99,102,241,0.15); }
+    .notif-icon-PAYMENT_SUCCESS  { background: rgba(124,58,237,0.15); }
+    .notif-icon-PAYMENT_FAILED   { background: rgba(239,68,68,0.15); }
+    .notif-icon-WELCOME          { background: rgba(34,211,238,0.15); }
+
+    .notif-card-body { flex: 1; min-width: 0; }
+    .notif-card-title {
+      font-weight: 700; font-size: 14px; color: var(--text-1); margin-bottom: 4px;
+    }
+    .notif-card-msg { font-size: 13px; color: var(--text-3); line-height: 1.5; }
+    .notif-card-time { font-size: 11px; color: var(--text-4); margin-top: 6px; }
+
+    .notif-card-dismiss {
+      background: none; border: none; color: var(--text-4); font-size: 1.1rem;
+      cursor: pointer; padding: 0 4px; line-height: 1; transition: color var(--ease-fast);
+    }
+    .notif-card-dismiss:hover { color: var(--text-2); }
+
+    .notif-empty-state {
+      text-align: center; padding: 60px 20px;
+      color: var(--text-4); font-size: 14px;
+    }
+    .notif-empty-state .notif-empty-icon { font-size: 3rem; margin-bottom: 12px; }
+    .notif-empty-state h3 { font-size: 1.1rem; color: var(--text-2); margin-bottom: 6px; }
+  </style>
+</head>
+<body>
+
+<div id="navbar"></div>
+
+<div class="notif-page">
+  <div class="notif-page-header">
+    <h1 class="notif-page-title">Notifications</h1>
+    <button class="notif-mark-all-btn" id="mark-all-btn">Mark all as read</button>
+  </div>
+
+  <div class="notif-filters" id="notif-filters">
+    <button class="notif-filter-btn active" data-filter="all">All</button>
+    <button class="notif-filter-btn" data-filter="unread">Unread</button>
+    <button class="notif-filter-btn" data-filter="LOGIN_NEW_DEVICE">Login</button>
+    <button class="notif-filter-btn" data-filter="ORDER_CONFIRMED,ORDER_DELIVERED">Orders</button>
+    <button class="notif-filter-btn" data-filter="PAYMENT_SUCCESS,PAYMENT_FAILED">Payments</button>
+  </div>
+
+  <div id="notif-list">
+    <div class="notif-empty-state"><div class="notif-empty-icon">🔔</div><h3>Loading…</h3></div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initAuth, isLoggedIn } from './js/auth.js';
+import { getNotifications, markAllNotificationsRead, markNotificationRead } from './js/api.js';
+import { showToast } from './js/components/toast.js';
+
+await initAuth();
+if (!isLoggedIn()) {
+  sessionStorage.setItem('redirectAfterLogin', 'notifications.html');
+  window.location.href = 'login.html';
+}
+await initNavbar();
+
+const NOTIF_ICONS = {
+  LOGIN_NEW_DEVICE: '🔐',
+  ORDER_CONFIRMED:  '✅',
+  ORDER_DELIVERED:  '📦',
+  PAYMENT_SUCCESS:  '💳',
+  PAYMENT_FAILED:   '❌',
+  WELCOME:          '🎉',
+};
+
+const ORDER_TYPES    = new Set(['ORDER_CONFIRMED', 'ORDER_DELIVERED']);
+const PAYMENT_TYPES  = new Set(['PAYMENT_SUCCESS', 'PAYMENT_FAILED']);
+const LOGIN_TYPES    = new Set(['LOGIN_NEW_DEVICE']);
+
+function fmtDate(iso) {
+  if (!iso) return '';
+  return new Date(iso).toLocaleDateString('en-IN', {
+    day: 'numeric', month: 'short', year: 'numeric',
+    hour: '2-digit', minute: '2-digit',
+  });
+}
+
+let allNotifications = [];
+let activeFilter = 'all';
+
+function applyFilter(notifications, filter) {
+  if (filter === 'all')    return notifications;
+  if (filter === 'unread') return notifications.filter(n => !n.isRead);
+  const types = filter.split(',');
+  return notifications.filter(n => types.includes(n.type));
+}
+
+function renderList() {
+  const list     = document.getElementById('notif-list');
+  const filtered = applyFilter(allNotifications, activeFilter);
+
+  if (!filtered.length) {
+    list.innerHTML = `
+      <div class="notif-empty-state">
+        <div class="notif-empty-icon">🔔</div>
+        <h3>No notifications here</h3>
+        <p>${activeFilter === 'unread' ? 'All caught up!' : 'Nothing to show for this filter.'}</p>
+      </div>`;
+    return;
+  }
+
+  list.innerHTML = filtered.map(n => `
+    <div class="notif-card ${n.isRead ? '' : 'notif-card--unread'}" id="notif-${n.id}"
+         data-type="${n.type}">
+      <div class="notif-card-icon notif-icon-${n.type}">${NOTIF_ICONS[n.type] || '🔔'}</div>
+      <div class="notif-card-body">
+        <div class="notif-card-title">${n.title}</div>
+        <div class="notif-card-msg">${n.message}</div>
+        <div class="notif-card-time">${fmtDate(n.createdAt)}</div>
+      </div>
+      ${!n.isRead ? `<button class="notif-card-dismiss" data-id="${n.id}" title="Mark as read">×</button>` : ''}
+    </div>`).join('');
+
+  // Dismiss buttons
+  list.querySelectorAll('.notif-card-dismiss').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      const id = btn.dataset.id;
+      try {
+        await markNotificationRead(id);
+        const idx = allNotifications.findIndex(n => n.id === id);
+        if (idx !== -1) allNotifications[idx] = { ...allNotifications[idx], isRead: true };
+        renderList();
+      } catch (err) { showToast(err.message, 'error'); }
+    });
+  });
+
+  // Click ORDER → orders.html, PAYMENT → orders.html
+  list.querySelectorAll('.notif-card').forEach(card => {
+    const type = card.dataset.type;
+    if (ORDER_TYPES.has(type) || PAYMENT_TYPES.has(type)) {
+      card.style.cursor = 'pointer';
+      card.addEventListener('click', () => { window.location.href = 'orders.html'; });
+    }
+  });
+}
+
+// ── Filters ───────────────────────────────────────────────────────────────────
+document.getElementById('notif-filters').addEventListener('click', e => {
+  const btn = e.target.closest('.notif-filter-btn');
+  if (!btn) return;
+  document.querySelectorAll('.notif-filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  activeFilter = btn.dataset.filter;
+  renderList();
+});
+
+// ── Mark all as read ──────────────────────────────────────────────────────────
+document.getElementById('mark-all-btn').addEventListener('click', async () => {
+  try {
+    await markAllNotificationsRead();
+    allNotifications = allNotifications.map(n => ({ ...n, isRead: true }));
+    renderList();
+    showToast('All notifications marked as read', 'success');
+  } catch (err) { showToast(err.message, 'error'); }
+});
+
+// ── Load ──────────────────────────────────────────────────────────────────────
+try {
+  allNotifications = await getNotifications();
+  renderList();
+} catch (err) {
+  document.getElementById('notif-list').innerHTML =
+    `<div class="notif-empty-state"><div class="notif-empty-icon">⚠️</div><h3>${err.message}</h3></div>`;
+}
+</script>
+
+</body>
+</html>

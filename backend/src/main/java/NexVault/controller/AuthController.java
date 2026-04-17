@@ -7,9 +7,11 @@ import NexVault.exception.UnauthorizedException;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import NexVault.model.User;
 import NexVault.service.AuthService;
+import NexVault.service.NotificationService;
 import NexVault.service.OtpService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -47,8 +49,9 @@ public class AuthController {
     private static final String REFRESH_COOKIE = "refresh_token";
     private static final long   REFRESH_MAX_AGE = 7 * 24 * 60 * 60L;
 
-    private final AuthService authService;
-    private final OtpService  otpService;
+    private final AuthService         authService;
+    private final OtpService          otpService;
+    private final NotificationService notificationService;
 
     // ── Register ──────────────────────────────────────────────────────────────
 
@@ -88,6 +91,10 @@ public class AuthController {
         AuthResponse authResponse = authService.buildAuthResponsePublic(user);
         String refreshToken = authService.generateRefreshToken(user.getId());
 
+        try { notificationService.notifyWelcome(user); } catch (Exception e) {
+            log.warn("Could not send welcome notification: {}", e.getMessage());
+        }
+
         log.info("Email verified and user logged in: {}", user.getEmail());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, buildRefreshCookie(refreshToken).toString())
@@ -114,13 +121,22 @@ public class AuthController {
     @PostMapping("/verify-otp")
     @Operation(summary = "Step 2: Verify OTP and receive access token")
     public ResponseEntity<ApiResponse<AuthResponse>> verifyOtp(
-            @Valid @RequestBody VerifyOtpRequest request) {
+            @Valid @RequestBody VerifyOtpRequest request,
+            HttpServletRequest httpRequest) {
 
         User user = authService.findActiveUserByEmail(request.email());
         otpService.verify(user, request.otpCode(), "LOGIN");
 
         AuthResponse authResponse = authService.buildAuthResponsePublic(user);
         String refreshToken = authService.generateRefreshToken(user.getId());
+
+        try {
+            String ip = httpRequest.getRemoteAddr();
+            String ua = httpRequest.getHeader("User-Agent");
+            notificationService.notifyLoginNewDevice(user, ip, ua);
+        } catch (Exception e) {
+            log.warn("Could not send login notification: {}", e.getMessage());
+        }
 
         log.info("User completed OTP login: {}", user.getEmail());
         return ResponseEntity.ok()

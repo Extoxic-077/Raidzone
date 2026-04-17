@@ -34,6 +34,7 @@ public class StripeService {
     private final OrderRepository   orderRepository;
     private final PaymentRepository paymentRepository;
     private final CartService       cartService;
+    private final NotificationService notificationService;
 
     @Value("${app.stripe.secret-key:sk_test_placeholder}")
     private String secretKey;
@@ -74,12 +75,27 @@ public class StripeService {
 
         try {
             Stripe.apiKey = secretKey;
+
+            String shipName  = order.getShippingName() != null ? order.getShippingName() : "Customer";
+            String shipLine1 = order.getShippingAddress() != null ? order.getShippingAddress() : "India";
+
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
                     .setAmount(amountInPaise)
                     .setCurrency("inr")
                     .putMetadata("orderId", orderId.toString())
                     .putMetadata("userId", userId.toString())
-                    .setDescription("HashVault Order " + orderId)
+                    .setDescription("NexVault Order " + orderId)
+                    .setReceiptEmail(order.getShippingEmail())
+                    .setShipping(PaymentIntentCreateParams.Shipping.builder()
+                            .setName(shipName)
+                            .setAddress(PaymentIntentCreateParams.Shipping.Address.builder()
+                                    .setCountry("IN")
+                                    .setLine1(shipLine1)
+                                    .setPostalCode("000000")
+                                    .build())
+                            .build())
+                    .setStatementDescriptorSuffix("NexVault")
+                    .setCaptureMethod(PaymentIntentCreateParams.CaptureMethod.AUTOMATIC)
                     .build();
 
             PaymentIntent intent = PaymentIntent.create(params);
@@ -127,6 +143,12 @@ public class StripeService {
                 order.setPaymentMethod("STRIPE");
                 orderRepository.save(order);
                 cartService.clearCart(order.getUser().getId());
+                try {
+                    notificationService.notifyOrderConfirmed(order.getUser(), order);
+                    notificationService.notifyPaymentSuccess(order.getUser(), payment);
+                } catch (Exception e) {
+                    log.warn("Could not send payment notifications: {}", e.getMessage());
+                }
                 log.info("Stripe payment confirmed for order {}", order.getId());
             }, () -> log.warn("Stripe webhook: payment not found for intent {}", intentId));
 

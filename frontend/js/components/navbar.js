@@ -1,6 +1,6 @@
 import { showToast } from './toast.js';
 import { initAuth, isLoggedIn, getUser, isAdmin, clearAuth } from '../auth.js';
-import { logout, getCartCount, getCategories } from '../api.js';
+import { logout, getCartCount, getCategories, getNotificationCount, getNotifications, markAllNotificationsRead, markNotificationRead } from '../api.js';
 
 function hexagonSVG() {
   return `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -102,12 +102,24 @@ function renderDesktopNavbar(el, categories, activeCatId) {
       <div class="navbar-spacer"></div>
 
       <div class="navbar-actions">
-        <button class="icon-btn" id="notif-btn" aria-label="Notifications">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
-          </svg>
-          <span class="icon-badge">3</span>
-        </button>
+        <div class="notif-wrap" style="position:relative">
+          <button class="icon-btn" id="notif-btn" aria-label="Notifications">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+            <span class="icon-badge notif-badge" id="notif-badge" style="display:none">0</span>
+          </button>
+          <div class="notif-dropdown" id="notif-dropdown" role="menu" aria-hidden="true" style="display:none">
+            <div class="notif-dropdown-header">
+              <span class="notif-dropdown-title">Notifications</span>
+              <button class="notif-mark-all" id="notif-mark-all">Mark all as read</button>
+            </div>
+            <div class="notif-dropdown-list" id="notif-dropdown-list">
+              <div class="notif-empty">Loading…</div>
+            </div>
+            <a href="notifications.html" class="notif-view-all">View all notifications →</a>
+          </div>
+        </div>
 
         <button class="icon-btn" id="wishlist-btn" aria-label="Wishlist">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -292,6 +304,47 @@ function injectDropdownStyles() {
       #bottom-nav { display: none; }
       body { padding-bottom: 0 !important; }
     }
+
+    /* Notification dropdown */
+    .notif-wrap { position: relative; }
+    .notif-dropdown {
+      position: absolute; top: calc(100% + 10px); right: -60px;
+      width: 360px; background: var(--bg2); border: 1px solid var(--glass-border);
+      border-radius: var(--r-lg); z-index: 200; box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+      overflow: hidden;
+    }
+    .notif-dropdown-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 16px 10px; border-bottom: 1px solid var(--glass-border);
+    }
+    .notif-dropdown-title { font-weight: 700; font-size: 14px; color: var(--text-1); }
+    .notif-mark-all {
+      font-size: 11px; color: var(--violet-light); background: none; border: none;
+      cursor: pointer; font-family: var(--font-body); padding: 0;
+    }
+    .notif-mark-all:hover { text-decoration: underline; }
+    .notif-dropdown-list { max-height: 320px; overflow-y: auto; }
+    .notif-item {
+      display: flex; gap: 10px; padding: 10px 16px; cursor: pointer;
+      transition: background var(--ease-fast); border-bottom: 1px solid rgba(255,255,255,0.03);
+    }
+    .notif-item:hover { background: var(--glass); }
+    .notif-item--unread {
+      background: rgba(124,58,237,0.06);
+      border-left: 3px solid var(--primary);
+    }
+    .notif-item--unread:hover { background: rgba(124,58,237,0.1); }
+    .notif-icon { font-size: 1.2rem; flex-shrink: 0; padding-top: 2px; }
+    .notif-content { flex: 1; min-width: 0; }
+    .notif-title { font-size: 12px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
+    .notif-msg   { font-size: 11px; color: var(--text-3); line-height: 1.4; white-space: normal; }
+    .notif-time  { font-size: 10px; color: var(--text-4); margin-top: 3px; }
+    .notif-empty { padding: 24px 16px; text-align: center; font-size: 12px; color: var(--text-4); }
+    .notif-view-all {
+      display: block; text-align: center; padding: 10px; font-size: 12px;
+      color: var(--violet-light); text-decoration: none; border-top: 1px solid var(--glass-border);
+    }
+    .notif-view-all:hover { background: var(--glass); }
   `;
   document.head.appendChild(style);
 }
@@ -310,9 +363,7 @@ function bindDesktopEvents(el) {
     });
   });
 
-  document.getElementById('notif-btn')?.addEventListener('click', () => {
-    showToast('No new notifications', 'info');
-  });
+  bindNotifDropdown();
 
   document.getElementById('wishlist-btn')?.addEventListener('click', () => {
     if (!isLoggedIn()) {
@@ -378,6 +429,118 @@ function bindDropdown(btnId, dropdownId, logoutId) {
   });
 }
 
+// ── Notification helpers ──────────────────────────────────────────────────────
+
+const NOTIF_ICONS = {
+  LOGIN_NEW_DEVICE: '🔐',
+  ORDER_CONFIRMED:  '✅',
+  ORDER_DELIVERED:  '📦',
+  PAYMENT_SUCCESS:  '💳',
+  PAYMENT_FAILED:   '❌',
+  WELCOME:          '🎉',
+};
+
+function timeAgoNotif(iso) {
+  if (!iso) return '';
+  const diff = Date.now() - new Date(iso).getTime();
+  const m = Math.floor(diff / 60000);
+  if (m < 1)    return 'Just now';
+  if (m < 60)   return `${m}m ago`;
+  if (m < 1440) return `${Math.floor(m / 60)}h ago`;
+  return `${Math.floor(m / 1440)}d ago`;
+}
+
+function renderNotifList(notifications) {
+  const el = document.getElementById('notif-dropdown-list');
+  if (!el) return;
+  if (!notifications.length) {
+    el.innerHTML = '<div class="notif-empty">No notifications yet</div>';
+    return;
+  }
+  el.innerHTML = notifications.slice(0, 5).map(n => `
+    <div class="notif-item ${n.isRead ? '' : 'notif-item--unread'}" data-id="${n.id}"
+         onclick="window.__notifMarkRead && window.__notifMarkRead('${n.id}', this)">
+      <span class="notif-icon">${NOTIF_ICONS[n.type] || '🔔'}</span>
+      <div class="notif-content">
+        <div class="notif-title">${n.title}</div>
+        <div class="notif-msg">${n.message}</div>
+        <div class="notif-time">${timeAgoNotif(n.createdAt)}</div>
+      </div>
+    </div>`).join('');
+}
+
+function updateNotifBadge(count) {
+  const badge = document.getElementById('notif-badge');
+  if (!badge) return;
+  if (count > 0) {
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.style.display = '';
+  } else {
+    badge.style.display = 'none';
+  }
+}
+
+function bindNotifDropdown() {
+  if (!isLoggedIn()) return;
+  const btn      = document.getElementById('notif-btn');
+  const dropdown = document.getElementById('notif-dropdown');
+  if (!btn || !dropdown) return;
+
+  let open = false;
+  let notifications = [];
+
+  async function loadAndShow() {
+    dropdown.style.display = '';
+    dropdown.setAttribute('aria-hidden', 'false');
+    open = true;
+    try {
+      notifications = await getNotifications();
+      renderNotifList(notifications);
+    } catch { /* silent */ }
+  }
+
+  function close() {
+    dropdown.style.display = 'none';
+    dropdown.setAttribute('aria-hidden', 'true');
+    open = false;
+  }
+
+  btn.addEventListener('click', e => {
+    e.stopPropagation();
+    open ? close() : loadAndShow();
+  });
+
+  document.addEventListener('click', () => { if (open) close(); });
+  dropdown.addEventListener('click', e => e.stopPropagation());
+
+  document.getElementById('notif-mark-all')?.addEventListener('click', async () => {
+    try {
+      await markAllNotificationsRead();
+      updateNotifBadge(0);
+      notifications = notifications.map(n => ({ ...n, isRead: true }));
+      renderNotifList(notifications);
+    } catch { /* silent */ }
+  });
+
+  window.__notifMarkRead = async (id, el) => {
+    try {
+      await markNotificationRead(id);
+      el.classList.remove('notif-item--unread');
+      notifications = notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
+      const unread = notifications.filter(n => !n.isRead).length;
+      updateNotifBadge(unread);
+    } catch { /* silent */ }
+  };
+}
+
+async function loadNotifCount() {
+  if (!isLoggedIn()) return;
+  try {
+    const data = await getNotificationCount();
+    updateNotifBadge(data?.count ?? 0);
+  } catch { /* silent */ }
+}
+
 // ── Load cart count ───────────────────────────────────────────────────────────
 
 function loadCartCount() {
@@ -419,6 +582,8 @@ export async function initNavbar() {
   }
 
   loadCartCount();
+  loadNotifCount();
+  setInterval(loadNotifCount, 60000);
 
   // Re-render on resize crossing the 768px breakpoint
   let wasMobile = isMobile;
