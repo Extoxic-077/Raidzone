@@ -52,4 +52,7 @@ public class OrderItem {
 
     @Column(name = "line_total", nullable = false, precision = 12, scale = 2)
     private BigDecimal lineTotal;
+
+    @Column(name = "digital_key_id")
+    private UUID digitalKeyId;
 }

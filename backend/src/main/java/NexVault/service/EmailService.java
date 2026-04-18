@@ -47,6 +47,114 @@ public class EmailService {
         }
     }
 
+    public void sendOrderReceiptEmail(String toEmail, String customerName, String orderId,
+                                       String itemsHtml, String total, String paymentMethod) {
+        if (fromAddress.contains("placeholder")) {
+            log.warn("Mail not configured — receipt for order {} not sent", orderId);
+            return;
+        }
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message, true, "UTF-8");
+            helper.setFrom(fromAddress, "NexVault");
+            helper.setTo(toEmail);
+            helper.setSubject("Your NexVault receipt — Order #" + orderId);
+            helper.setText(buildReceiptHtml(customerName, orderId, itemsHtml, total, paymentMethod), true);
+            mailSender.send(message);
+            log.info("Receipt email sent to {} for order {}", toEmail, orderId);
+        } catch (Exception e) {
+            log.error("Failed to send receipt email for order {}: {}", orderId, e.getMessage());
+        }
+    }
+
+    private String buildReceiptHtml(String name, String orderId, String itemsHtml,
+                                    String total, String paymentMethod) {
+        return """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="UTF-8"/>
+              <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+              <title>NexVault Receipt</title>
+            </head>
+            <body style="margin:0;padding:0;background:#07070F;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#07070F;min-height:100vh;">
+                <tr>
+                  <td align="center" style="padding:40px 20px;">
+                    <table width="560" cellpadding="0" cellspacing="0"
+                           style="background:#0F0F1A;border-radius:16px;border:1px solid #1E1E2E;overflow:hidden;">
+
+                      <!-- Header -->
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#7C3AED,#22D3EE);padding:28px 32px;">
+                          <div style="font-size:24px;font-weight:800;color:#fff;float:left;">&#9670; NexVault</div>
+                          <div style="float:right;font-size:13px;color:rgba(255,255,255,.8);padding-top:6px;">Order Receipt</div>
+                          <div style="clear:both"></div>
+                        </td>
+                      </tr>
+
+                      <!-- Greeting -->
+                      <tr>
+                        <td style="padding:28px 32px 0;">
+                          <p style="margin:0 0 6px;font-size:20px;font-weight:700;color:#F1F0F7;">
+                            Thank you, %s!
+                          </p>
+                          <p style="margin:0;font-size:13px;color:#9CA3AF;">
+                            Your payment is confirmed. Here is your receipt.
+                          </p>
+                        </td>
+                      </tr>
+
+                      <!-- Order ID -->
+                      <tr>
+                        <td style="padding:16px 32px;">
+                          <div style="background:#07070F;border-radius:8px;padding:12px 16px;display:flex;justify-content:space-between;">
+                            <span style="font-size:12px;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;">Order ID</span>
+                            <span style="font-family:'Courier New',monospace;font-size:13px;color:#C084FC;">#%s</span>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Items -->
+                      <tr>
+                        <td style="padding:0 32px;">
+                          <div style="font-size:12px;font-weight:700;color:#6B7280;text-transform:uppercase;letter-spacing:.06em;margin-bottom:8px;">Items</div>
+                          <table width="100%%" cellpadding="8" cellspacing="0"
+                                 style="border-collapse:collapse;font-size:14px;">
+                            %s
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- Total -->
+                      <tr>
+                        <td style="padding:16px 32px 8px;">
+                          <div style="border-top:1px solid #1E1E2E;padding-top:14px;display:flex;justify-content:space-between;align-items:center;">
+                            <span style="font-size:14px;color:#9CA3AF;">Total charged via %s</span>
+                            <span style="font-size:22px;font-weight:800;color:#C084FC;">%s</span>
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Footer -->
+                      <tr>
+                        <td style="padding:20px 32px 32px;border-top:1px solid #1E1E2E;margin-top:12px;">
+                          <p style="margin:0;font-size:12px;color:#4B5563;text-align:center;line-height:1.6;">
+                            Questions? Contact us at support@nexvault.in<br/>
+                            &copy; 2025 NexVault. All rights reserved.
+                          </p>
+                        </td>
+                      </tr>
+
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+            """.formatted(name, orderId, itemsHtml, paymentMethod, total);
+    }
+
     private String buildSubject(String purpose, String otpCode) {
         if ("REGISTER".equals(purpose)) {
             return "NexVault — Verify your email: " + otpCode;

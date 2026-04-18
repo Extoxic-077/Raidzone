@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Partnerships — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 760px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-hero { text-align: center; margin-bottom: 56px; }
+    .static-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--violet-light); margin-bottom: 12px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; margin-bottom: 16px; }
+    .static-lead { font-size: 16px; color: var(--text-3); line-height: 1.7; }
+    .static-section { margin-bottom: 48px; }
+    .static-section h2 { font-family: var(--font-heading); font-size: 1.3rem; font-weight: 700; margin-bottom: 14px; }
+    .static-section p { font-size: 15px; color: var(--text-2); line-height: 1.8; margin-bottom: 14px; }
+    .partner-types { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 16px; margin: 24px 0; }
+    .partner-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); padding: 22px; }
+    .partner-icon { font-size: 28px; margin-bottom: 10px; }
+    .partner-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+    .partner-desc { font-size: 13px; color: var(--text-3); line-height: 1.6; }
+    .form-box { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); padding: 28px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+    .field input, .field select, .field textarea { width: 100%; box-sizing: border-box; padding: 11px 14px; background: var(--bg2); border: 1px solid var(--glass-border); border-radius: var(--r-md); color: var(--text-1); font-size: 14px; font-family: var(--font-body); outline: none; }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--primary); }
+    .field textarea { min-height: 100px; resize: vertical; }
+    .btn-submit { width: 100%; padding: 12px; background: var(--gradient); border: none; border-radius: var(--r-full); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity .15s; }
+    .btn-submit:hover { opacity: .85; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <div class="static-hero">
+    <div class="static-eyebrow">Partnerships</div>
+    <h1 class="static-title">Grow with NexVault</h1>
+    <p class="static-lead">Whether you're a game publisher, a content creator, or a B2B buyer — we'd love to work together.</p>
+  </div>
+
+  <div class="static-section">
+    <h2>Partnership Types</h2>
+    <div class="partner-types">
+      <div class="partner-card"><div class="partner-icon">🎮</div><div class="partner-title">Game Publishers</div><div class="partner-desc">List your game keys directly on NexVault. Reach 50K+ Indian gamers with zero upfront cost.</div></div>
+      <div class="partner-card"><div class="partner-icon">📺</div><div class="partner-title">Content Creators</div><div class="partner-desc">Affiliate commissions, sponsored giveaways, and custom discount codes for your audience.</div></div>
+      <div class="partner-card"><div class="partner-icon">🏢</div><div class="partner-title">Corporate Buyers</div><div class="partner-desc">Bulk purchase rates, invoice billing, and a dedicated account manager for your team.</div></div>
+      <div class="partner-card"><div class="partner-icon">🛒</div><div class="partner-title">Resellers</div><div class="partner-desc">Wholesale access to our digital key inventory with white-label options available.</div></div>
+    </div>
+  </div>
+
+  <div class="static-section">
+    <h2>Get in Touch</h2>
+    <div class="form-box">
+      <div class="field"><label>Company / Creator Name</label><input id="p-name" type="text" placeholder="Your company or channel name"/></div>
+      <div class="field"><label>Business Email</label><input id="p-email" type="email" placeholder="you@company.com"/></div>
+      <div class="field"><label>Partnership Type</label>
+        <select id="p-type">
+          <option value="">Select type</option>
+          <option>Game Publisher</option>
+          <option>Content Creator / Affiliate</option>
+          <option>Corporate Buyer</option>
+          <option>Reseller</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="field"><label>Tell us about yourself</label><textarea id="p-msg" placeholder="Brief description of your business, audience size, or use case…"></textarea></div>
+      <button class="btn-submit" id="p-submit">Submit Enquiry</button>
+    </div>
+  </div>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+import { showToast } from './js/components/toast.js';
+await initNavbar();
+initFooter();
+
+document.getElementById('p-submit').addEventListener('click', () => {
+  const name = document.getElementById('p-name').value.trim();
+  const email = document.getElementById('p-email').value.trim();
+  const type = document.getElementById('p-type').value;
+  if (!name || !email || !type) { showToast('Please fill all required fields', 'error'); return; }
+  showToast('Enquiry sent! We\'ll be in touch within 2 business days.', 'success');
+  document.getElementById('p-name').value = '';
+  document.getElementById('p-email').value = '';
+  document.getElementById('p-type').value = '';
+  document.getElementById('p-msg').value = '';
+});
+</script>
+</body>
+</html>

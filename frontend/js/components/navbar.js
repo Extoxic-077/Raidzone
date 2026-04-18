@@ -55,6 +55,10 @@ function userButtonHTML() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           My Orders
         </a>
+        <a href="my-keys.html" class="dropdown-item" role="menuitem">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          My Keys
+        </a>
         <a href="wishlist.html" class="dropdown-item" role="menuitem">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           My Wishlist
@@ -169,7 +173,8 @@ function renderMobileNavbar(el) {
                 <div class="dropdown-email">${user?.email || ''}</div>
               </div>
               <div class="dropdown-divider"></div>
-              <a href="orders.html"  class="dropdown-item">My Orders</a>
+              <a href="orders.html"   class="dropdown-item">My Orders</a>
+              <a href="my-keys.html" class="dropdown-item">My Keys</a>
               <a href="profile.html" class="dropdown-item">Profile</a>
               <a href="wishlist.html" class="dropdown-item">Wishlist</a>
               ${isAdmin() ? `<a href="admin/index.html" class="dropdown-item dropdown-item-admin">Admin Panel</a>` : ''}
@@ -205,7 +210,8 @@ function renderBottomNav() {
     </a>
     <a href="catalog.html" class="bottom-nav-item ${page === 'catalog'  ? 'active' : ''}">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
-        <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+        <rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/>
       </svg>
       <span>Catalog</span>
     </a>
@@ -219,8 +225,7 @@ function renderBottomNav() {
     </button>
   `;
 
-  // Add body bottom padding so content isn't hidden behind bottom nav
-  document.body.style.paddingBottom = '64px';
+  document.body.style.paddingBottom = '80px';
   document.body.appendChild(nav);
 
   document.getElementById('bottom-nav-cart')?.addEventListener('click', () => {

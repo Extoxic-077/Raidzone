@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Help Center — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 800px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-hero { text-align: center; margin-bottom: 48px; }
+    .static-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--violet-light); margin-bottom: 12px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; margin-bottom: 16px; }
+    .static-lead { font-size: 16px; color: var(--text-3); line-height: 1.7; }
+    .faq-section { margin-bottom: 40px; }
+    .faq-section-title { font-family: var(--font-heading); font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--glass-border); }
+    .faq-item { border: 1px solid var(--glass-border); border-radius: var(--r-md); margin-bottom: 8px; overflow: hidden; }
+    .faq-q { display: flex; justify-content: space-between; align-items: center; padding: 14px 18px; cursor: pointer; font-weight: 600; font-size: 14px; background: var(--glass); user-select: none; }
+    .faq-q .arrow { font-size: 12px; transition: transform .2s; flex-shrink: 0; }
+    .faq-item.open .faq-q .arrow { transform: rotate(180deg); }
+    .faq-a { display: none; padding: 14px 18px; font-size: 14px; color: var(--text-2); line-height: 1.7; background: var(--bg1); }
+    .faq-item.open .faq-a { display: block; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <div class="static-hero">
+    <div class="static-eyebrow">Help Center</div>
+    <h1 class="static-title">How can we help?</h1>
+    <p class="static-lead">Find answers to common questions about orders, payments, and digital keys.</p>
+  </div>
+
+  <div class="faq-section">
+    <div class="faq-section-title">Orders & Delivery</div>
+    <div class="faq-item"><div class="faq-q">How quickly do I receive my digital key? <span class="arrow">▾</span></div><div class="faq-a">Your key is delivered instantly after payment confirmation — usually within seconds. Check your "My Keys" page or your email inbox.</div></div>
+    <div class="faq-item"><div class="faq-q">Where do I find my purchased keys? <span class="arrow">▾</span></div><div class="faq-a">Go to Account → My Keys. All purchased digital codes are listed there with copy buttons for easy redemption.</div></div>
+    <div class="faq-item"><div class="faq-q">Can I cancel an order? <span class="arrow">▾</span></div><div class="faq-a">Digital goods orders cannot be cancelled once the key has been revealed. If you haven't received a key, contact support immediately.</div></div>
+  </div>
+
+  <div class="faq-section">
+    <div class="faq-section-title">Payments</div>
+    <div class="faq-item"><div class="faq-q">What payment methods do you accept? <span class="arrow">▾</span></div><div class="faq-a">We accept UPI, all major credit/debit cards, net banking via Razorpay, and international cards via Stripe. All payments are in INR.</div></div>
+    <div class="faq-item"><div class="faq-q">My payment failed but money was deducted. What do I do? <span class="arrow">▾</span></div><div class="faq-a">This typically resolves within 3–5 business days as a bank refund. If it hasn't resolved, email support@nexvault.in with your transaction reference.</div></div>
+    <div class="faq-item"><div class="faq-q">Is my payment information stored? <span class="arrow">▾</span></div><div class="faq-a">No. We never store card numbers or CVV. All payment processing is handled by Razorpay and Stripe — both PCI-DSS compliant.</div></div>
+  </div>
+
+  <div class="faq-section">
+    <div class="faq-section-title">Keys & Redemption</div>
+    <div class="faq-item"><div class="faq-q">My key doesn't work. What should I do? <span class="arrow">▾</span></div><div class="faq-a">First verify the key is entered without spaces. Check region compatibility (some keys are India-only). If the key is invalid, contact support within 24 hours with proof.</div></div>
+    <div class="faq-item"><div class="faq-q">How do I redeem a Steam key? <span class="arrow">▾</span></div><div class="faq-a">Open Steam → Games → Activate a Product on Steam → enter your key. It takes under a minute and the game appears in your library immediately.</div></div>
+    <div class="faq-item"><div class="faq-q">The key was already used. What happens? <span class="arrow">▾</span></div><div class="faq-a">This should never happen — all keys go through a validity check before listing. Contact support immediately and we'll replace it or issue a full refund.</div></div>
+  </div>
+
+  <div class="faq-section">
+    <div class="faq-section-title">Account</div>
+    <div class="faq-item"><div class="faq-q">I forgot my password. How do I reset it? <span class="arrow">▾</span></div><div class="faq-a">Click "Forgot password?" on the login page, enter your email, and we'll send a 6-digit reset code.</div></div>
+    <div class="faq-item"><div class="faq-q">Can I change my email address? <span class="arrow">▾</span></div><div class="faq-a">Yes. Go to Profile → Change Email. You'll need to verify the new address with an OTP code sent to it.</div></div>
+  </div>
+
+  <p style="text-align:center;font-size:14px;color:var(--text-3);margin-top:48px">
+    Still need help? <a href="contact.html" style="color:var(--violet-light)">Contact our support team →</a>
+  </p>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+await initNavbar();
+initFooter();
+
+document.querySelectorAll('.faq-q').forEach(q => {
+  q.addEventListener('click', () => q.parentElement.classList.toggle('open'));
+});
+</script>
+</body>
+</html>

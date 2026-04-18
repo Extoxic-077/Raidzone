@@ -7,6 +7,7 @@ import NexVault.model.Payment;
 import NexVault.model.User;
 import NexVault.model.UserSession;
 import NexVault.repository.NotificationRepository;
+import NexVault.repository.UserRepository;
 import NexVault.repository.UserSessionRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,12 +26,12 @@ public class NotificationService {
 
     private final NotificationRepository notificationRepository;
     private final UserSessionRepository  userSessionRepository;
+    private final UserRepository         userRepository;
 
     @Transactional
     public Notification createNotification(UUID userId, String type, String title,
                                            String message, String metadataJson) {
-        User userRef = new User();
-        userRef.setId(userId);
+        User userRef = userRepository.getReferenceById(userId);
 
         Notification n = new Notification();
         n.setUser(userRef);

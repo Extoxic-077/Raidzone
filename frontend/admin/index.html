@@ -133,21 +133,32 @@ let analyticsData = null;
 
 // ── Load stats (KPI cards) ────────────────────────────────────────────────────
 async function loadStats() {
-  const [stats, analytics] = await Promise.all([
+  const [stats, analytics, prevAnalytics] = await Promise.all([
     adminGetStats(),
     adminGetAnalytics('THIS_MONTH'),
+    adminGetAnalytics('PREV_MONTH'),
   ]);
   analyticsData = analytics;
 
-  document.getElementById('kpi-revenue').textContent = fmtK(analytics.totalRevenue ?? 0);
-  document.getElementById('kpi-orders').textContent  = analytics.totalOrders ?? 0;
-  document.getElementById('kpi-users').textContent   = stats.totalUsers;
+  document.getElementById('kpi-revenue').textContent  = fmtK(analytics.totalRevenue ?? 0);
+  document.getElementById('kpi-orders').textContent   = analytics.totalOrders ?? 0;
+  document.getElementById('kpi-users').textContent    = stats.totalUsers;
   document.getElementById('kpi-products').textContent = stats.activeProducts;
 
-  const pending = (analytics.ordersByStatus?.['PENDING_PAYMENT'] ?? 0);
+  // Revenue change vs previous month
+  const prevRev  = prevAnalytics.totalRevenue ?? 0;
+  const thisRev  = analytics.totalRevenue ?? 0;
+  const revChange = prevRev > 0 ? Math.round((thisRev - prevRev) / prevRev * 100) : null;
+  const revChangeEl = document.getElementById('kpi-rev-change');
+  if (revChangeEl && revChange !== null) {
+    revChangeEl.textContent = (revChange >= 0 ? '▲ ' : '▼ ') + Math.abs(revChange) + '%';
+    revChangeEl.style.color = revChange >= 0 ? '#22c55e' : '#ef4444';
+  }
+
+  const pending   = analytics.ordersByStatus?.['PENDING_PAYMENT'] ?? 0;
   const confirmed = analytics.paidOrders ?? 0;
-  document.getElementById('kpi-orders-sub').textContent = `${confirmed} confirmed · ${pending} pending`;
-  document.getElementById('kpi-users-sub').textContent  = `+${analytics.newUsers ?? 0} new this month`;
+  document.getElementById('kpi-orders-sub').textContent   = `${confirmed} confirmed · ${pending} pending`;
+  document.getElementById('kpi-users-sub').textContent    = `+${analytics.newUsers ?? 0} new this month`;
   document.getElementById('kpi-products-sub').textContent = `of ${stats.totalProducts} total`;
 
   const pct = stats.totalProducts > 0
@@ -348,7 +359,15 @@ document.getElementById('chart-period')?.addEventListener('change', async e => {
 });
 
 // ── Boot ──────────────────────────────────────────────────────────────────────
-try { await loadStats(); } catch(e) { showToast(e.message, 'error'); }
+try {
+  await loadStats();
+} catch(e) {
+  showToast('KPI load failed: ' + e.message, 'error');
+  ['kpi-revenue','kpi-orders','kpi-users','kpi-products'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.textContent = 'Error';
+  });
+}
 await Promise.all([pollRealtime(), loadRecentOrders()]);
 
 const rtTimer  = setInterval(pollRealtime, 30_000);

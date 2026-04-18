@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>DMCA Policy — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 760px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 8px; }
+    .static-date { font-size: 13px; color: var(--text-4); margin-bottom: 40px; }
+    h2 { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; margin: 36px 0 12px; }
+    p, li { font-size: 15px; color: var(--text-2); line-height: 1.8; margin-bottom: 14px; }
+    ul { padding-left: 20px; }
+    .highlight-box { background: rgba(124,58,237,.1); border: 1px solid rgba(124,58,237,.3); border-radius: var(--r-md); padding: 16px 20px; margin: 20px 0; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <h1 class="static-title">DMCA Policy</h1>
+  <p class="static-date">Last updated: January 2025</p>
+
+  <p>NexVault respects the intellectual property rights of others. We respond promptly to valid copyright infringement notices submitted in accordance with the Digital Millennium Copyright Act (DMCA).</p>
+
+  <h2>Reporting Copyright Infringement</h2>
+  <p>If you believe content on NexVault infringes your copyright, submit a notice to our designated DMCA agent with the following information:</p>
+  <ul>
+    <li>Your full name, address, phone number, and email</li>
+    <li>A description of the copyrighted work you claim is infringed</li>
+    <li>The URL or specific location on NexVault where the infringing content appears</li>
+    <li>A statement that you have a good-faith belief the use is not authorised by the copyright owner</li>
+    <li>A statement that the information in your notice is accurate and, under penalty of perjury, that you are the copyright owner or authorised to act on their behalf</li>
+    <li>Your electronic or physical signature</li>
+  </ul>
+
+  <div class="highlight-box">
+    <strong>DMCA Agent:</strong><br/>
+    NexVault Legal Team<br/>
+    Email: <strong>dmca@nexvault.in</strong><br/>
+    Response time: within 48 hours on business days
+  </div>
+
+  <h2>Counter-Notices</h2>
+  <p>If you believe your content was removed in error, you may submit a counter-notice containing: your contact details, identification of the removed content, a statement under penalty of perjury that removal was a mistake or misidentification, and your consent to jurisdiction.</p>
+
+  <h2>Repeat Infringers</h2>
+  <p>In appropriate circumstances, NexVault will terminate accounts of users who are repeat infringers of intellectual property rights.</p>
+
+  <h2>False Claims</h2>
+  <p>Submitting a false DMCA notice may result in liability for damages. Only submit notices for content you genuinely believe infringes your copyright.</p>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+await initNavbar();
+initFooter();
+</script>
+</body>
+</html>

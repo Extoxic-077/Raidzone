@@ -118,8 +118,10 @@ function setupSidebarEvents() {
 
 function openMobileSheet() {
   document.getElementById('filter-overlay')?.classList.add('open');
-  document.getElementById('filter-sheet')?.classList.add('open');
+  const sheet = document.getElementById('filter-sheet');
+  sheet?.classList.add('open');
   document.body.style.overflow = 'hidden';
+  history.pushState({ filterOpen: true }, '');
 }
 
 function closeMobileSheet() {
@@ -127,6 +129,43 @@ function closeMobileSheet() {
   document.getElementById('filter-sheet')?.classList.remove('open');
   document.body.style.overflow = '';
 }
+
+function setupSwipeToClose() {
+  const sheet = document.getElementById('filter-sheet');
+  if (!sheet) return;
+
+  let startY = 0;
+  let currentY = 0;
+
+  sheet.addEventListener('touchstart', e => {
+    startY = e.touches[0].clientY;
+    sheet.style.transition = 'none';
+  }, { passive: true });
+
+  sheet.addEventListener('touchmove', e => {
+    currentY = e.touches[0].clientY;
+    const delta = currentY - startY;
+    if (delta > 0) {
+      sheet.style.transform = `translateY(${delta}px)`;
+    }
+  }, { passive: true });
+
+  sheet.addEventListener('touchend', () => {
+    sheet.style.transition = '';
+    sheet.style.transform = '';
+    if (currentY - startY > 80) {
+      closeMobileSheet();
+      if (history.state?.filterOpen) history.back();
+    }
+  });
+}
+
+window.addEventListener('popstate', e => {
+  if (!e.state?.filterOpen) {
+    const sheet = document.getElementById('filter-sheet');
+    if (sheet?.classList.contains('open')) closeMobileSheet();
+  }
+});
 
 // ─── PRODUCT GRID ────────────────────────────────────────────────────────────
 
@@ -326,8 +365,15 @@ export async function renderCatalog() {
 
   // Mobile filter button
   document.getElementById('mobile-filter-btn')?.addEventListener('click', openMobileSheet);
-  document.getElementById('filter-overlay')?.addEventListener('click', closeMobileSheet);
-  document.getElementById('close-filter-sheet')?.addEventListener('click', closeMobileSheet);
+  document.getElementById('filter-overlay')?.addEventListener('click', () => {
+    closeMobileSheet();
+    if (history.state?.filterOpen) history.back();
+  });
+  document.getElementById('close-filter-sheet')?.addEventListener('click', () => {
+    closeMobileSheet();
+    if (history.state?.filterOpen) history.back();
+  });
+  setupSwipeToClose();
 
   // Populate mobile sheet sidebar
   const mobileSheet = document.getElementById('filter-sheet-content');

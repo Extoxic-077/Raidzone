@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Cookie Policy — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 760px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 8px; }
+    .static-date { font-size: 13px; color: var(--text-4); margin-bottom: 40px; }
+    h2 { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; margin: 36px 0 12px; }
+    p, li { font-size: 15px; color: var(--text-2); line-height: 1.8; margin-bottom: 14px; }
+    table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 13px; }
+    th { background: var(--bg2); padding: 10px 14px; text-align: left; font-weight: 700; color: var(--text-3); border-bottom: 1px solid var(--glass-border); }
+    td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--text-2); }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <h1 class="static-title">Cookie Policy</h1>
+  <p class="static-date">Last updated: January 2025</p>
+
+  <p>We use cookies and similar technologies to operate and improve NexVault. This page explains what cookies we use and how you can control them.</p>
+
+  <h2>What Are Cookies?</h2>
+  <p>Cookies are small text files stored on your device by your browser. They help websites remember information about your visit and preferences.</p>
+
+  <h2>Cookies We Use</h2>
+  <table>
+    <thead><tr><th>Cookie</th><th>Purpose</th><th>Duration</th><th>Type</th></tr></thead>
+    <tbody>
+      <tr><td>hv_token</td><td>Authentication — keeps you logged in</td><td>Session</td><td>Essential</td></tr>
+      <tr><td>hv_refresh</td><td>Refresh token for silent re-authentication</td><td>7 days</td><td>Essential</td></tr>
+      <tr><td>adminSidebarCollapsed</td><td>Remembers sidebar state for admin users</td><td>Persistent</td><td>Functional</td></tr>
+      <tr><td>adminSection_*</td><td>Remembers which admin nav sections are expanded</td><td>Persistent</td><td>Functional</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Essential Cookies</h2>
+  <p>Essential cookies are required for the platform to function. They enable authentication, shopping cart persistence, and security features. These cannot be disabled.</p>
+
+  <h2>Functional Cookies</h2>
+  <p>Functional cookies remember your preferences (like sidebar state) to improve your experience. You can clear these through your browser settings at any time.</p>
+
+  <h2>Analytics & Advertising</h2>
+  <p>We currently do not use third-party analytics or advertising cookies. Any future additions to this list will be disclosed in an updated policy.</p>
+
+  <h2>How to Control Cookies</h2>
+  <p>All modern browsers let you view and delete cookies through their settings menus. Note that disabling essential cookies will prevent you from logging in or making purchases.</p>
+
+  <h2>Contact</h2>
+  <p>Questions about cookies or data: <strong>privacy@nexvault.in</strong></p>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+await initNavbar();
+initFooter();
+</script>
+</body>
+</html>

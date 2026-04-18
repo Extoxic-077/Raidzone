@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Contact Us — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 760px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-hero { text-align: center; margin-bottom: 48px; }
+    .static-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--violet-light); margin-bottom: 12px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; margin-bottom: 16px; }
+    .static-lead { font-size: 16px; color: var(--text-3); line-height: 1.7; }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-bottom: 40px; }
+    @media (max-width: 640px) { .contact-grid { grid-template-columns: 1fr; } }
+    .contact-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); padding: 22px; }
+    .contact-card-icon { font-size: 24px; margin-bottom: 10px; }
+    .contact-card-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+    .contact-card-val { font-size: 13px; color: var(--violet-light); }
+    .contact-card-sub { font-size: 12px; color: var(--text-4); margin-top: 4px; }
+    .form-box { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); padding: 28px; }
+    .form-box h2 { font-family: var(--font-heading); font-size: 1.3rem; font-weight: 700; margin-bottom: 20px; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+    .field input, .field select, .field textarea {
+      width: 100%; box-sizing: border-box; padding: 11px 14px;
+      background: var(--bg2); border: 1px solid var(--glass-border);
+      border-radius: var(--r-md); color: var(--text-1); font-size: 14px;
+      font-family: var(--font-body); outline: none;
+    }
+    .field input:focus, .field select:focus, .field textarea:focus { border-color: var(--primary); }
+    .field textarea { min-height: 120px; resize: vertical; }
+    .btn-send { width: 100%; padding: 12px; background: var(--gradient); border: none; border-radius: var(--r-full); color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity .15s; margin-top: 4px; }
+    .btn-send:hover { opacity: .85; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <div class="static-hero">
+    <div class="static-eyebrow">Get in Touch</div>
+    <h1 class="static-title">We're here to help</h1>
+    <p class="static-lead">Our support team typically responds within 2 hours during business hours (9 AM – 9 PM IST, 7 days a week).</p>
+  </div>
+
+  <div class="contact-grid">
+    <div class="contact-card"><div class="contact-card-icon">📧</div><div class="contact-card-title">Email Support</div><div class="contact-card-val">support@nexvault.in</div><div class="contact-card-sub">Typical reply: under 2 hours</div></div>
+    <div class="contact-card"><div class="contact-card-icon">💬</div><div class="contact-card-title">Live Chat</div><div class="contact-card-val">Available in app</div><div class="contact-card-sub">9 AM – 9 PM IST daily</div></div>
+    <div class="contact-card"><div class="contact-card-icon">🐛</div><div class="contact-card-title">Report a Bug</div><div class="contact-card-val">bugs@nexvault.in</div><div class="contact-card-sub">Include order ID if relevant</div></div>
+    <div class="contact-card"><div class="contact-card-icon">🤝</div><div class="contact-card-title">Partnerships</div><div class="contact-card-val">partners@nexvault.in</div><div class="contact-card-sub">B2B & seller enquiries</div></div>
+  </div>
+
+  <div class="form-box">
+    <h2>Send a message</h2>
+    <div class="field"><label>Your Name</label><input id="c-name" type="text" placeholder="Rahul Sharma"/></div>
+    <div class="field"><label>Email</label><input id="c-email" type="email" placeholder="rahul@example.com"/></div>
+    <div class="field"><label>Topic</label>
+      <select id="c-topic">
+        <option value="">Select a topic</option>
+        <option>Order issue</option>
+        <option>Key not working</option>
+        <option>Refund request</option>
+        <option>Account problem</option>
+        <option>Payment failed</option>
+        <option>Other</option>
+      </select>
+    </div>
+    <div class="field"><label>Message</label><textarea id="c-msg" placeholder="Describe your issue in detail. Include your order ID if applicable."></textarea></div>
+    <button class="btn-send" id="c-submit">Send Message</button>
+  </div>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+import { showToast } from './js/components/toast.js';
+await initNavbar();
+initFooter();
+
+document.getElementById('c-submit').addEventListener('click', () => {
+  const name  = document.getElementById('c-name').value.trim();
+  const email = document.getElementById('c-email').value.trim();
+  const topic = document.getElementById('c-topic').value;
+  const msg   = document.getElementById('c-msg').value.trim();
+  if (!name || !email || !topic || !msg) { showToast('Please fill all fields', 'error'); return; }
+  showToast('Message sent! We\'ll reply to ' + email + ' shortly.', 'success');
+  document.getElementById('c-name').value = '';
+  document.getElementById('c-email').value = '';
+  document.getElementById('c-topic').value = '';
+  document.getElementById('c-msg').value = '';
+});
+</script>
+</body>
+</html>

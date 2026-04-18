@@ -224,6 +224,9 @@ public class AuthService {
         if (request.nickname() != null) {
             user.setNickname(request.nickname().isBlank() ? null : request.nickname());
         }
+        if (request.postalCode() != null) {
+            user.setPostalCode(request.postalCode().isBlank() ? null : request.postalCode());
+        }
 
         user = userRepository.save(user);
         log.info("User {} updated profile", userId);
@@ -304,5 +307,27 @@ public class AuthService {
         user.setPasswordHash(passwordEncoder.encode(newPassword));
         userRepository.save(user);
         log.info("User {} changed password", userId);
+    }
+
+    /**
+     * Finds an active user by email, returning empty Optional silently
+     * (used for forgot-password — never reveal whether an account exists).
+     */
+    @Transactional(readOnly = true)
+    public Optional<User> findActiveByEmailSilent(String email) {
+        return userRepository.findByEmailAndIsActiveTrue(email);
+    }
+
+    /**
+     * Resets the password after forgot-password OTP verification.
+     */
+    @Transactional
+    public void resetPassword(String email, String newPassword) {
+        User user = userRepository.findByEmailAndIsActiveTrue(email)
+                .orElseThrow(() -> new UnauthorizedException("Invalid or expired reset link"));
+
+        user.setPasswordHash(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
+        log.info("Password reset for user {}", email);
     }
 }

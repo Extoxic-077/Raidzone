@@ -373,6 +373,12 @@ function openEditModal(user) {
           <input name="nickname" value="${user.nickname || ''}" placeholder="Optional"
             style="width:100%;box-sizing:border-box;background:var(--bg3);border:1px solid var(--glass-border);border-radius:var(--r-md);color:var(--text-1);padding:10px 14px;font-size:.9rem;outline:none;"/>
         </div>
+        <div>
+          <label style="font-size:.8rem;color:var(--text-3);display:block;margin-bottom:6px">Postal Code (PIN)</label>
+          <input name="postalCode" value="${user.postalCode || ''}" placeholder="6-digit PIN code"
+            inputmode="numeric" maxlength="6" pattern="[0-9]{6}"
+            style="width:100%;box-sizing:border-box;background:var(--bg3);border:1px solid var(--glass-border);border-radius:var(--r-md);color:var(--text-1);padding:10px 14px;font-size:.9rem;outline:none;font-family:var(--font-mono);letter-spacing:4px;"/>
+        </div>
         <div style="display:flex;gap:12px;justify-content:flex-end;margin-top:8px;">
           <button type="button" id="cancel-edit-btn"
             style="padding:10px 20px;background:transparent;border:1px solid var(--glass-border);border-radius:var(--r-full);color:var(--text-3);cursor:pointer;font-size:.875rem;">
@@ -396,10 +402,17 @@ function openEditModal(user) {
     const btn = document.getElementById('save-edit-btn');
     btn.disabled = true; btn.textContent = 'Saving…';
     try {
-      const updated = await updateMe({
-        name:     fd.get('name') || undefined,
-        phone:    fd.get('phone') || undefined,
-        nickname: fd.get('nickname') || undefined,
+      const pin = fd.get('postalCode')?.replace(/\D/g, '') || '';
+    if (pin && pin.length !== 6) {
+      showToast('PIN code must be exactly 6 digits', 'error');
+      btn.disabled = false; btn.textContent = 'Save Changes';
+      return;
+    }
+    const updated = await updateMe({
+        name:       fd.get('name') || undefined,
+        phone:      fd.get('phone') || undefined,
+        nickname:   fd.get('nickname') || undefined,
+        postalCode: pin || undefined,
       });
       // Update sessionStorage with new user data
       const stored = JSON.parse(sessionStorage.getItem('hv_user') || '{}');

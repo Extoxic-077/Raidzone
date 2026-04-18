@@ -9,5 +9,6 @@ import jakarta.validation.constraints.Size;
 public record UpdateProfileRequest(
         @Size(min = 2, max = 255) String name,
         @Size(max = 20)           String phone,
-        @Size(min = 3, max = 100) String nickname
+        @Size(min = 3, max = 100) String nickname,
+        @Size(min = 6, max = 10)  String postalCode
 ) {}

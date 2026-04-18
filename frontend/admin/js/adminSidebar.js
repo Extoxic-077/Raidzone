@@ -14,9 +14,11 @@ const PAGES = {
   products:   'products.html',
   categories: 'categories.html',
   coupons:    'coupons.html',
+  warehouse:  'warehouse.html',
   orders:     'orders.html',
   payments:   'payments.html',
   users:      'users.html',
+  campaigns:  'campaigns.html',
   monitoring: 'monitoring.html',
 };
 
@@ -94,6 +96,7 @@ export async function initAdminSidebar(activePage = 'dashboard') {
         ${link('products',   activePage, icons.products,   'Products')}
         ${link('categories', activePage, icons.categories, 'Categories')}
         ${link('coupons',    activePage, icons.coupons,    'Coupons')}
+        ${link('warehouse',  activePage, icons.warehouse,  'Key Warehouse')}
       </div>
 
       <div class="admin-nav-section-header" data-section="commerce">
@@ -110,7 +113,8 @@ export async function initAdminSidebar(activePage = 'dashboard') {
         <svg class="section-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polyline points="6 9 12 15 18 9"/></svg>
       </div>
       <div class="admin-nav-group" id="section-people">
-        ${link('users', activePage, icons.users, 'Users')}
+        ${link('users',     activePage, icons.users,     'Users')}
+        ${link('campaigns', activePage, icons.campaigns, 'Campaigns')}
       </div>
 
       <div class="admin-nav-section-header" data-section="system">
@@ -267,6 +271,8 @@ const icons = {
   payments:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>`,
   users:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
   monitoring: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`,
+  warehouse:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>`,
+  campaigns:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
   grafana:    `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>`,
   api:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>`,
   back:       `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polyline points="15 18 9 12 15 6"/></svg>`,

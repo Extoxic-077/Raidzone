@@ -586,3 +586,4 @@ export async function markAllNotificationsRead() {
 export async function markNotificationRead(id) {
   return authApiFetch(`/notifications/${id}/read`, { method: 'PUT' });
 }
+

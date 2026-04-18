@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Careers — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 760px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-hero { text-align: center; margin-bottom: 56px; }
+    .static-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--violet-light); margin-bottom: 12px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; margin-bottom: 16px; }
+    .static-lead { font-size: 16px; color: var(--text-3); line-height: 1.7; max-width: 560px; margin: 0 auto; }
+    .static-section { margin-bottom: 48px; }
+    .static-section h2 { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 700; margin-bottom: 14px; }
+    .static-section p { font-size: 15px; color: var(--text-2); line-height: 1.8; margin-bottom: 14px; }
+    .job-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); padding: 22px 24px; margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .job-title { font-weight: 700; font-size: 15px; margin-bottom: 4px; }
+    .job-meta { font-size: 13px; color: var(--text-3); }
+    .job-tag { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 11px; font-weight: 600; background: rgba(124,58,237,.15); color: var(--violet-light); border: 1px solid rgba(124,58,237,.3); }
+    .btn-apply { padding: 8px 20px; background: var(--gradient); border: none; border-radius: var(--r-full); color: #fff; font-weight: 700; font-size: 13px; cursor: pointer; white-space: nowrap; }
+    .perks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin: 24px 0; }
+    .perk { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); padding: 18px; }
+    .perk-icon { font-size: 22px; margin-bottom: 8px; }
+    .perk-title { font-weight: 700; font-size: 13px; margin-bottom: 4px; }
+    .perk-desc { font-size: 12px; color: var(--text-3); line-height: 1.5; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <div class="static-hero">
+    <div class="static-eyebrow">Join the Team</div>
+    <h1 class="static-title">Build the future of digital commerce</h1>
+    <p class="static-lead">We're a small, high-impact team obsessed with shipping great products. Remote-first, equity-backed, and growing fast.</p>
+  </div>
+
+  <div class="static-section">
+    <h2>Open Roles</h2>
+    <div class="job-card">
+      <div><div class="job-title">Senior Backend Engineer</div><div class="job-meta">Remote · Full-time <span class="job-tag" style="margin-left:8px">Java / Spring Boot</span></div></div>
+      <button class="btn-apply" onclick="showApplyToast()">Apply</button>
+    </div>
+    <div class="job-card">
+      <div><div class="job-title">Frontend Developer</div><div class="job-meta">Remote · Full-time <span class="job-tag" style="margin-left:8px">Vanilla JS / CSS</span></div></div>
+      <button class="btn-apply" onclick="showApplyToast()">Apply</button>
+    </div>
+    <div class="job-card">
+      <div><div class="job-title">Product Designer</div><div class="job-meta">Remote · Full-time <span class="job-tag" style="margin-left:8px">Figma / UX</span></div></div>
+      <button class="btn-apply" onclick="showApplyToast()">Apply</button>
+    </div>
+    <div class="job-card">
+      <div><div class="job-title">DevOps Engineer</div><div class="job-meta">Remote · Contract <span class="job-tag" style="margin-left:8px">Docker / Linux</span></div></div>
+      <button class="btn-apply" onclick="showApplyToast()">Apply</button>
+    </div>
+  </div>
+
+  <div class="static-section">
+    <h2>Perks & Benefits</h2>
+    <div class="perks-grid">
+      <div class="perk"><div class="perk-icon">🏠</div><div class="perk-title">Remote First</div><div class="perk-desc">Work from anywhere in India.</div></div>
+      <div class="perk"><div class="perk-icon">📈</div><div class="perk-title">ESOPs</div><div class="perk-desc">Meaningful equity from day one.</div></div>
+      <div class="perk"><div class="perk-icon">🏥</div><div class="perk-title">Health Cover</div><div class="perk-desc">Full family health insurance.</div></div>
+      <div class="perk"><div class="perk-icon">📚</div><div class="perk-title">Learning Budget</div><div class="perk-desc">₹50,000/yr for courses & books.</div></div>
+      <div class="perk"><div class="perk-icon">⚡</div><div class="perk-title">Fast Shipping</div><div class="perk-desc">Move fast and break nothing important.</div></div>
+      <div class="perk"><div class="perk-icon">🎮</div><div class="perk-title">Free Keys</div><div class="perk-desc">All the games & subs you can redeem.</div></div>
+    </div>
+  </div>
+
+  <div class="static-section">
+    <h2>No roles fit?</h2>
+    <p>We always want to hear from exceptional people. Send your CV and portfolio to <strong style="color:var(--violet-light)">careers@nexvault.in</strong> and tell us why you'd be a great fit.</p>
+  </div>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+import { showToast } from './js/components/toast.js';
+await initNavbar();
+initFooter();
+window.showApplyToast = () => showToast('Applications open soon! Email careers@nexvault.in', 'info');
+</script>
+</body>
+</html>

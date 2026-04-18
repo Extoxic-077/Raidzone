@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Press — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 760px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-hero { text-align: center; margin-bottom: 56px; }
+    .static-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--violet-light); margin-bottom: 12px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; margin-bottom: 16px; }
+    .static-lead { font-size: 16px; color: var(--text-3); line-height: 1.7; }
+    .static-section { margin-bottom: 48px; }
+    .static-section h2 { font-family: var(--font-heading); font-size: 1.3rem; font-weight: 700; margin-bottom: 16px; }
+    .static-section p { font-size: 15px; color: var(--text-2); line-height: 1.8; margin-bottom: 14px; }
+    .press-contact { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); padding: 24px; margin-top: 24px; }
+    .asset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 20px; }
+    .asset-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); padding: 20px; text-align: center; cursor: pointer; transition: border-color .2s; }
+    .asset-card:hover { border-color: var(--glass-border-accent); }
+    .asset-icon { font-size: 32px; margin-bottom: 10px; }
+    .asset-name { font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+    .asset-size { font-size: 11px; color: var(--text-4); }
+    .fact-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 20px; }
+    @media (max-width: 480px) { .fact-grid { grid-template-columns: 1fr 1fr; } }
+    .fact-box { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); padding: 16px; text-align: center; }
+    .fact-val { font-size: 1.6rem; font-weight: 800; color: var(--violet-light); font-family: var(--font-mono); }
+    .fact-lbl { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <div class="static-hero">
+    <div class="static-eyebrow">Newsroom</div>
+    <h1 class="static-title">NexVault Press Kit</h1>
+    <p class="static-lead">Resources and information for journalists, bloggers, and content creators covering NexVault.</p>
+  </div>
+
+  <div class="static-section">
+    <h2>Company Facts</h2>
+    <div class="fact-grid">
+      <div class="fact-box"><div class="fact-val">2024</div><div class="fact-lbl">Founded</div></div>
+      <div class="fact-box"><div class="fact-val">India</div><div class="fact-lbl">Headquarters</div></div>
+      <div class="fact-box"><div class="fact-val">50K+</div><div class="fact-lbl">Customers</div></div>
+      <div class="fact-box"><div class="fact-val">2M+</div><div class="fact-lbl">Keys Sold</div></div>
+      <div class="fact-box"><div class="fact-val">99.9%</div><div class="fact-lbl">Uptime</div></div>
+      <div class="fact-box"><div class="fact-val">INR</div><div class="fact-lbl">Currency</div></div>
+    </div>
+  </div>
+
+  <div class="static-section">
+    <h2>Brand Assets</h2>
+    <p>Use the following assets when covering NexVault. Please do not alter colours, proportions, or spacing of the logo.</p>
+    <div class="asset-grid">
+      <div class="asset-card" onclick="toast('Logo SVG — contact press@nexvault.in')"><div class="asset-icon">⬡</div><div class="asset-name">Logo (SVG)</div><div class="asset-size">Vector · All sizes</div></div>
+      <div class="asset-card" onclick="toast('Logo PNG — contact press@nexvault.in')"><div class="asset-icon">🖼️</div><div class="asset-name">Logo (PNG)</div><div class="asset-size">2x · Dark bg</div></div>
+      <div class="asset-card" onclick="toast('Brand guide — contact press@nexvault.in')"><div class="asset-icon">🎨</div><div class="asset-name">Brand Guide</div><div class="asset-size">Colors & typography</div></div>
+      <div class="asset-card" onclick="toast('Screenshots — contact press@nexvault.in')"><div class="asset-icon">📱</div><div class="asset-name">Screenshots</div><div class="asset-size">App · Web · Mobile</div></div>
+    </div>
+  </div>
+
+  <div class="static-section">
+    <h2>Press Contact</h2>
+    <div class="press-contact">
+      <p style="margin:0 0 6px;font-weight:700">Media enquiries</p>
+      <p style="margin:0;color:var(--violet-light)">press@nexvault.in</p>
+      <p style="margin:8px 0 0;font-size:13px;color:var(--text-3)">We aim to respond to all press enquiries within 24 hours on business days.</p>
+    </div>
+  </div>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+import { showToast } from './js/components/toast.js';
+await initNavbar();
+initFooter();
+window.toast = msg => showToast(msg, 'info');
+</script>
+</body>
+</html>

@@ -9,7 +9,10 @@ import NexVault.model.Category;
 import NexVault.model.Product;
 import NexVault.model.User;
 import NexVault.repository.*;
+import NexVault.dto.request.CampaignRequest;
 import NexVault.service.AdminProductService;
+import NexVault.service.DigitalKeyService;
+import NexVault.service.EmailCampaignService;
 import NexVault.service.FileStorageService;
 import NexVault.service.StripeService;
 import NexVault.service.RazorpayService;
@@ -52,6 +55,8 @@ public class AdminController {
     private final CouponRepository couponRepository;
     private final StripeService stripeService;
     private final RazorpayService razorpayService;
+    private final DigitalKeyService digitalKeyService;
+    private final EmailCampaignService emailCampaignService;
 
     // ── Dashboard stats ───────────────────────────────────────────────────────
 
@@ -389,5 +394,54 @@ public class AdminController {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    // ── Digital Keys ──────────────────────────────────────────────────────────
+
+    @PostMapping("/products/{id}/keys")
+    @Operation(summary = "Bulk-add digital keys for a product")
+    public ResponseEntity<ApiResponse<Map<String, Object>>> addKeys(
+            @PathVariable UUID id,
+            @RequestBody Map<String, Object> body) {
+
+        @SuppressWarnings("unchecked")
+        List<String> keys = (List<String>) body.get("keys");
+        if (keys == null || keys.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("Field 'keys' must be a non-empty array of strings"));
+        }
+        int added = digitalKeyService.addKeys(id, keys);
+        long total = digitalKeyService.countAvailable(id);
+        return ResponseEntity.ok(ApiResponse.ok(
+                Map.of("added", added, "totalAvailable", total)));
+    }
+
+    @GetMapping("/products/{id}/keys")
+    @Operation(summary = "List all keys for a product (admin view, decrypted)")
+    public ResponseEntity<ApiResponse<List<DigitalKeyService.AdminKeyView>>> listKeys(
+            @PathVariable UUID id) {
+        return ResponseEntity.ok(ApiResponse.ok(digitalKeyService.getKeysForProduct(id)));
+    }
+
+    @GetMapping("/products/{id}/keys/count")
+    @Operation(summary = "Count available keys for a product")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> countKeys(@PathVariable UUID id) {
+        long available = digitalKeyService.countAvailable(id);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("available", available)));
+    }
+
+    // ── Email Campaigns ───────────────────────────────────────────────────────
+
+    @GetMapping("/campaigns/subscriber-count")
+    @Operation(summary = "Count active newsletter subscribers")
+    public ResponseEntity<ApiResponse<Map<String, Long>>> subscriberCount() {
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("count", emailCampaignService.countSubscribers())));
+    }
+
+    @PostMapping("/campaigns/send")
+    @Operation(summary = "Send an email campaign to all active subscribers")
+    public ResponseEntity<ApiResponse<String>> sendCampaign(@Valid @RequestBody CampaignRequest req) {
+        emailCampaignService.sendCampaign(req.subject(), req.htmlBody(), req.includeRegistered());
+        return ResponseEntity.ok(ApiResponse.ok("Campaign queued for delivery"));
     }
 }

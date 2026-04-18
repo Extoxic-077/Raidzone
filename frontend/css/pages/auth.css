@@ -536,9 +536,15 @@
   font-size: 13px;
   font-weight: 500;
   font-family: var(--font-body);
-  cursor: not-allowed;
-  opacity: 0.6;
+  cursor: pointer;
+  transition: background var(--ease-fast), border-color var(--ease-fast), color var(--ease-fast);
   margin-top: 16px;
+}
+
+.btn-profile-action:hover {
+  background: var(--glass);
+  border-color: var(--glass-border-accent);
+  color: var(--text-1);
 }
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */

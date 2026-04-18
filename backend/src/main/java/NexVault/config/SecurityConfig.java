@@ -70,7 +70,9 @@ public class SecurityConfig {
                             "/api/v1/auth/verify-email",
                             "/api/v1/auth/resend-otp",
                             "/api/v1/auth/refresh",
-                            "/api/v1/auth/oauth/**"
+                            "/api/v1/auth/oauth/**",
+                            "/api/v1/auth/forgot-password",
+                            "/api/v1/auth/reset-password"
                     ).permitAll()
                     // ── Public read-only product catalogue ───────────────────────
                     .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
@@ -85,8 +87,12 @@ public class SecurityConfig {
                     .requestMatchers(HttpMethod.GET, "/api/v1/payments/stripe/config").permitAll()
                     .requestMatchers("/api/v1/payments/stripe/webhook").permitAll()
                     .requestMatchers("/api/v1/payments/coinbase/webhook").permitAll()
+                    // ── Newsletter subscribe/unsubscribe (public) ────────────────
+                    .requestMatchers("/api/v1/subscribe").permitAll()
                     // ── Notifications (requires authentication) ──────────────────
                     .requestMatchers("/api/v1/notifications/**").authenticated()
+                    // ── My Keys (requires authentication) ────────────────────────
+                    .requestMatchers("/api/v1/my-keys/**").authenticated()
                     // ── Admin (requires ADMIN role) ──────────────────────────────
                     .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
                     // ── Everything else requires authentication ──────────────────

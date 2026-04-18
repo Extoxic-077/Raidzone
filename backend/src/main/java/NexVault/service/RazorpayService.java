@@ -37,6 +37,8 @@ public class RazorpayService {
     private final PaymentRepository   paymentRepository;
     private final CartService         cartService;
     private final NotificationService notificationService;
+    private final DigitalKeyService   digitalKeyService;
+    private final EmailService        emailService;
 
     @Value("${app.razorpay.key-id:rzp_test_placeholder}")
     private String keyId;
@@ -136,6 +138,16 @@ public class RazorpayService {
         orderRepository.save(order);
         cartService.clearCart(userId);
 
+        order.getItems().forEach(item -> {
+            try {
+                if (item.getProduct() != null) {
+                    digitalKeyService.assignKey(item.getId(), item.getProduct().getId());
+                }
+            } catch (Exception e) {
+                log.warn("Could not assign digital key for item {}: {}", item.getId(), e.getMessage());
+            }
+        });
+
         try {
             notificationService.notifyOrderConfirmed(order.getUser(), order);
             notificationService.notifyPaymentSuccess(order.getUser(), payment);
@@ -143,7 +155,34 @@ public class RazorpayService {
             log.warn("Could not send payment notifications: {}", e.getMessage());
         }
 
+        try {
+            emailService.sendOrderReceiptEmail(
+                order.getUser().getEmail(),
+                order.getUser().getName(),
+                order.getId().toString().substring(0, 8).toUpperCase(),
+                buildItemsHtml(order),
+                "₹" + order.getTotalAmount().toBigInteger(),
+                "Razorpay"
+            );
+        } catch (Exception e) {
+            log.warn("Could not send receipt email for order {}: {}", order.getId(), e.getMessage());
+        }
+
         log.info("Razorpay payment confirmed for order {}", order.getId());
         return true;
+    }
+
+    private String buildItemsHtml(Order order) {
+        StringBuilder sb = new StringBuilder();
+        for (NexVault.model.OrderItem item : order.getItems()) {
+            String name = item.getProduct() != null ? item.getProduct().getName() : "Product";
+            sb.append(String.format(
+                "<tr><td style=\"color:#F1F0F7;padding:6px 0;\">%s × %d</td>" +
+                "<td style=\"text-align:right;color:#C084FC;font-weight:700;\">₹%s</td></tr>",
+                name, item.getQuantity(),
+                item.getLineTotal() != null ? item.getLineTotal().toBigInteger() : "0"
+            ));
+        }
+        return sb.toString();
     }
 }

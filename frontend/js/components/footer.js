@@ -62,32 +62,32 @@ export function initFooter() {
       <div class="footer-col">
         <div class="footer-col-heading">Company</div>
         <ul class="footer-links">
-          <li><a href="#">About Us</a></li>
-          <li><a href="#">Careers</a></li>
-          <li><a href="#">Blog</a></li>
-          <li><a href="#">Press</a></li>
-          <li><a href="#">Partnerships</a></li>
+          <li><a href="about.html">About Us</a></li>
+          <li><a href="careers.html">Careers</a></li>
+          <li><a href="blog.html">Blog</a></li>
+          <li><a href="press.html">Press</a></li>
+          <li><a href="partnerships.html">Partnerships</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <div class="footer-col-heading">Support</div>
         <ul class="footer-links">
-          <li><a href="#">Help Center</a></li>
-          <li><a href="#">Contact Us</a></li>
-          <li><a href="#">Live Chat</a></li>
-          <li><a href="#">Order Tracking</a></li>
-          <li><a href="#">Refund Policy</a></li>
+          <li><a href="help.html">Help Center</a></li>
+          <li><a href="contact.html">Contact Us</a></li>
+          <li><a href="contact.html">Live Chat</a></li>
+          <li><a href="order-tracking.html">Order Tracking</a></li>
+          <li><a href="refund-policy.html">Refund Policy</a></li>
         </ul>
       </div>
 
       <div class="footer-col">
         <div class="footer-col-heading">Legal</div>
         <ul class="footer-links">
-          <li><a href="#">Privacy Policy</a></li>
-          <li><a href="#">Terms of Service</a></li>
-          <li><a href="#">Cookie Policy</a></li>
-          <li><a href="#">DMCA</a></li>
+          <li><a href="privacy.html">Privacy Policy</a></li>
+          <li><a href="terms.html">Terms of Service</a></li>
+          <li><a href="cookies.html">Cookie Policy</a></li>
+          <li><a href="dmca.html">DMCA</a></li>
         </ul>
       </div>
     </div>
@@ -102,6 +102,16 @@ export function initFooter() {
     </div>
   `;
 
+  // Mobile accordion for footer columns
+  el.querySelectorAll('.footer-col').forEach(col => {
+    const heading = col.querySelector('.footer-col-heading');
+    if (!heading) return;
+    heading.addEventListener('click', () => {
+      if (window.innerWidth >= 640) return;
+      col.classList.toggle('open');
+    });
+  });
+
   // Social buttons
   el.querySelectorAll('.footer-social-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -110,14 +120,29 @@ export function initFooter() {
   });
 
   // Newsletter subscribe
-  document.getElementById('footer-subscribe')?.addEventListener('click', () => {
-    const email = document.getElementById('footer-email')?.value?.trim();
+  document.getElementById('footer-subscribe')?.addEventListener('click', async () => {
+    const inp   = document.getElementById('footer-email');
+    const email = inp?.value?.trim();
     if (!email || !email.includes('@')) {
       showToast('Please enter a valid email address', 'error');
       return;
     }
-    showToast('Thanks for subscribing!', 'success');
-    const inp = document.getElementById('footer-email');
-    if (inp) inp.value = '';
+    const btn = document.getElementById('footer-subscribe');
+    btn.disabled = true; btn.textContent = '…';
+    try {
+      const API = window.__API_BASE__ || '/api/v1';
+      const res = await fetch(`${API}/subscribe`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      });
+      if (!res.ok) throw new Error('Request failed');
+      showToast('Thanks for subscribing!', 'success');
+      if (inp) inp.value = '';
+    } catch {
+      showToast('Could not subscribe. Try again later.', 'error');
+    } finally {
+      btn.disabled = false; btn.textContent = 'Subscribe';
+    }
   });
 }

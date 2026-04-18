@@ -43,11 +43,78 @@
   <div id="toast-container"></div>
   <div id="bottom-nav"></div>
 
+  <!-- Review modal -->
+  <div id="review-modal" style="display:none" aria-modal="true" role="dialog">
+    <div class="review-modal-backdrop" id="review-backdrop"></div>
+    <div class="review-modal-box">
+      <button class="review-modal-close" id="review-close" aria-label="Close">×</button>
+      <h3 class="review-modal-title">Leave a Review</h3>
+      <p class="review-modal-product" id="review-product-name"></p>
+      <div class="review-stars" id="review-stars" role="group" aria-label="Rating">
+        <button class="star-btn" data-val="1" aria-label="1 star">★</button>
+        <button class="star-btn" data-val="2" aria-label="2 star">★</button>
+        <button class="star-btn" data-val="3" aria-label="3 star">★</button>
+        <button class="star-btn" data-val="4" aria-label="4 star">★</button>
+        <button class="star-btn" data-val="5" aria-label="5 star">★</button>
+      </div>
+      <textarea id="review-comment" placeholder="Share your experience… (optional)" rows="4"></textarea>
+      <button class="btn-review-submit" id="review-submit">Submit Review</button>
+    </div>
+  </div>
+
+  <style>
+    .btn-review {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 5px 12px; font-size: 12px; font-weight: 600;
+      background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3);
+      border-radius: 999px; color: var(--violet-light); cursor: pointer;
+      transition: background .15s;
+    }
+    .btn-review:hover { background: rgba(124,58,237,.3); }
+    .order-review-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+
+    #review-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    .review-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); }
+    .review-modal-box {
+      position: relative; background: var(--bg1); border: 1px solid var(--glass-border);
+      border-radius: var(--r-xl); padding: 32px; width: 100%; max-width: 440px; margin: 16px;
+      z-index: 1;
+    }
+    .review-modal-close {
+      position: absolute; top: 16px; right: 16px; background: none; border: none;
+      font-size: 22px; color: var(--text-3); cursor: pointer; line-height: 1;
+    }
+    .review-modal-title { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 800; margin-bottom: 4px; }
+    .review-modal-product { font-size: 13px; color: var(--violet-light); margin-bottom: 20px; }
+    .review-stars { display: flex; gap: 6px; margin-bottom: 16px; }
+    .star-btn {
+      background: none; border: none; font-size: 28px; cursor: pointer;
+      color: var(--text-4); transition: color .1s, transform .1s;
+    }
+    .star-btn.active, .star-btn.hover { color: #f59e0b; transform: scale(1.15); }
+    #review-comment {
+      width: 100%; box-sizing: border-box; padding: 10px 14px;
+      background: var(--bg2); border: 1px solid var(--glass-border);
+      border-radius: var(--r-md); color: var(--text-1); font-size: 14px;
+      font-family: var(--font-body); resize: vertical; outline: none;
+      margin-bottom: 16px;
+    }
+    #review-comment:focus { border-color: var(--primary); }
+    .btn-review-submit {
+      width: 100%; padding: 12px; background: var(--gradient);
+      border: none; border-radius: var(--r-full); color: #fff;
+      font-weight: 700; font-size: 14px; cursor: pointer; transition: opacity .15s;
+    }
+    .btn-review-submit:hover { opacity: .85; }
+    .btn-review-submit:disabled { opacity: .5; cursor: not-allowed; }
+  </style>
+
 <script src="/js/config.js"></script>
 <script type="module">
 import { initNavbar } from './js/components/navbar.js';
 import { initAuth, isLoggedIn } from './js/auth.js';
-import { getMyOrders } from './js/api.js';
+import { getMyOrders, createReview } from './js/api.js';
+import { showToast } from './js/components/toast.js';
 
 await initAuth();
 if (!isLoggedIn()) {
@@ -155,6 +222,14 @@ function orderCardHTML(order) {
           ${order.shippingName} &nbsp;·&nbsp; ${order.shippingEmail}
         </div>
         <div class="order-footer-right">
+          ${order.status === 'CONFIRMED' ? `
+          <div class="order-review-btns">
+            ${order.items.filter(i => i.productId).map(i =>
+              `<button class="btn-review" data-product-id="${i.productId}" data-product-name="${i.productName}">
+                ★ Review ${i.productName.split(' ').slice(0,2).join(' ')}
+              </button>`
+            ).join('')}
+          </div>` : ''}
           <div class="order-total">${fmtPrice(order.totalAmount)}</div>
         </div>
       </div>
@@ -220,6 +295,64 @@ try {
 } catch (err) {
   root.innerHTML = `<div class="orders-error">${err.message}</div>`;
 }
+
+// ── Review modal ──────────────────────────────────────────────────────────────
+let reviewProductId = null;
+let selectedRating  = 0;
+
+function openReviewModal(productId, productName) {
+  reviewProductId = productId;
+  selectedRating  = 0;
+  document.getElementById('review-product-name').textContent = productName;
+  document.getElementById('review-comment').value = '';
+  document.querySelectorAll('.star-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('review-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeReviewModal() {
+  document.getElementById('review-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+document.getElementById('review-close').addEventListener('click', closeReviewModal);
+document.getElementById('review-backdrop').addEventListener('click', closeReviewModal);
+
+const stars = document.querySelectorAll('.star-btn');
+stars.forEach(btn => {
+  btn.addEventListener('mouseenter', () => {
+    stars.forEach(s => s.classList.toggle('hover', Number(s.dataset.val) <= Number(btn.dataset.val)));
+  });
+  btn.addEventListener('mouseleave', () => {
+    stars.forEach(s => s.classList.remove('hover'));
+  });
+  btn.addEventListener('click', () => {
+    selectedRating = Number(btn.dataset.val);
+    stars.forEach(s => s.classList.toggle('active', Number(s.dataset.val) <= selectedRating));
+  });
+});
+
+document.getElementById('review-submit').addEventListener('click', async () => {
+  if (!selectedRating) { showToast('Please select a star rating', 'error'); return; }
+  const comment = document.getElementById('review-comment').value.trim();
+  const btn = document.getElementById('review-submit');
+  btn.disabled = true; btn.textContent = 'Submitting…';
+  try {
+    await createReview(reviewProductId, { rating: selectedRating, comment: comment || null });
+    showToast('Review submitted! Thank you.', 'success');
+    closeReviewModal();
+  } catch (e) {
+    showToast(e.message || 'Could not submit review', 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = 'Submit Review';
+  }
+});
+
+// Event delegation for review buttons in order cards
+root.addEventListener('click', e => {
+  const btn = e.target.closest('.btn-review');
+  if (btn) openReviewModal(btn.dataset.productId, btn.dataset.productName);
+});
 </script>
 
 </body>

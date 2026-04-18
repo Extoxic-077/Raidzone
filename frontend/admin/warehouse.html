@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Key Warehouse — NexVault Admin</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/pages/admin.css"/>
+  <style>
+    body { background: var(--bg0); color: var(--text-1); font-family: var(--font-body); min-height: 100vh; }
+    .admin-layout { display: flex; min-height: 100vh; }
+    .wh-main { flex: 1; padding: 32px; max-width: 960px; margin: 0 auto; }
+    .wh-title { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+    .wh-sub { color: var(--text-3); font-size: 14px; margin-bottom: 28px; }
+
+    .product-select-wrap { margin-bottom: 24px; }
+    .product-select-wrap label { display: block; font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
+    #product-select {
+      width: 100%; max-width: 480px; padding: 12px 16px;
+      background: var(--bg2); border: 1px solid var(--glass-border);
+      border-radius: var(--r-md); color: var(--text-1); font-size: 14px; cursor: pointer;
+    }
+
+    .key-stats { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
+    .key-stat {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--r-lg); padding: 16px 24px; min-width: 140px;
+    }
+    .key-stat-val { font-size: 2rem; font-weight: 800; font-family: var(--font-mono); color: var(--violet-light); }
+    .key-stat-lbl { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+
+    .upload-box {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--r-lg); padding: 24px; margin-bottom: 24px;
+    }
+    .upload-box-title { font-weight: 700; font-size: 15px; margin-bottom: 12px; }
+    #keys-textarea {
+      width: 100%; min-height: 140px; box-sizing: border-box;
+      background: var(--bg2); border: 1px solid var(--glass-border);
+      border-radius: var(--r-md); color: var(--text-1); padding: 12px;
+      font-family: var(--font-mono); font-size: 13px; resize: vertical;
+      outline: none; line-height: 1.6;
+    }
+    #keys-textarea:focus { border-color: var(--primary); }
+    .upload-hint { font-size: 12px; color: var(--text-4); margin: 8px 0 16px; }
+    .btn-upload {
+      padding: 10px 24px; background: var(--gradient); border: none;
+      border-radius: var(--r-full); color: #fff; font-weight: 700;
+      font-size: 14px; cursor: pointer; transition: opacity .15s;
+    }
+    .btn-upload:hover { opacity: .85; }
+    .btn-upload:disabled { opacity: .5; cursor: not-allowed; }
+
+    .keys-table-wrap {
+      background: var(--glass); border: 1px solid var(--glass-border);
+      border-radius: var(--r-lg); overflow: hidden;
+    }
+    .keys-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    .keys-table th {
+      background: var(--bg2); padding: 10px 16px; text-align: left;
+      font-size: 11px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: .06em; color: var(--text-3); border-bottom: 1px solid var(--glass-border);
+    }
+    .keys-table td { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .keys-table tr:last-child td { border-bottom: none; }
+    .badge-available { background: rgba(34,197,94,.15); color: #22c55e; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .badge-sold      { background: rgba(239,68,68,.12); color: #ef4444;  padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
+    .no-product { text-align: center; padding: 60px 20px; color: var(--text-4); font-size: 14px; }
+  </style>
+</head>
+<body>
+<div class="admin-layout">
+  <aside class="admin-sidebar"></aside>
+  <div class="admin-content">
+  <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Key Warehouse</span></div>
+  <div class="wh-main">
+    <h1 class="wh-title">Key Warehouse</h1>
+    <p class="wh-sub">Manage digital product keys per product. Keys are AES-256 encrypted at rest.</p>
+
+    <div class="product-select-wrap">
+      <label>Select Product</label>
+      <select id="product-select"><option value="">— Loading products… —</option></select>
+    </div>
+
+    <div id="wh-content" class="no-product">Select a product to manage its keys.</div>
+  </div>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
+import { showToast } from '../js/components/toast.js';
+import { initAdminSidebar } from './js/adminSidebar.js';
+
+await initAuth();
+if (!isLoggedIn() || !isAdmin()) { window.location.href = '../login.html'; }
+await initAdminSidebar('warehouse');
+
+const API = window.__API_BASE__ || '/api/v1';
+
+function authHeaders() {
+  const token = sessionStorage.getItem('hv_token');
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
+}
+
+async function apiFetch(path, opts = {}) {
+  const res = await fetch(`${API}${path}`, { headers: authHeaders(), ...opts });
+  const json = await res.json();
+  if (!res.ok) throw new Error(json.message || `Error ${res.status}`);
+  return json.data;
+}
+
+// Load products
+const sel = document.getElementById('product-select');
+try {
+  const data = await apiFetch('/products?size=200');
+  const products = data.content || data;
+  sel.innerHTML = '<option value="">— Select a product —</option>' +
+    products.map(p => `<option value="${p.id}">${p.emoji || ''} ${p.name}</option>`).join('');
+} catch (e) { showToast(e.message, 'error'); }
+
+let currentProductId = null;
+
+sel.addEventListener('change', () => {
+  currentProductId = sel.value || null;
+  if (currentProductId) loadProduct(currentProductId);
+  else document.getElementById('wh-content').innerHTML = '<div class="no-product">Select a product to manage its keys.</div>';
+});
+
+async function loadProduct(productId) {
+  const content = document.getElementById('wh-content');
+  content.innerHTML = '<div class="no-product">Loading…</div>';
+  try {
+    const [countData, keysData] = await Promise.all([
+      apiFetch(`/admin/products/${productId}/keys/count`),
+      apiFetch(`/admin/products/${productId}/keys`),
+    ]);
+    const total = keysData.length;
+    const available = countData.available ?? 0;
+    const sold = total - available;
+
+    content.innerHTML = `
+      <div class="key-stats">
+        <div class="key-stat"><div class="key-stat-val">${available}</div><div class="key-stat-lbl">Available</div></div>
+        <div class="key-stat"><div class="key-stat-val">${sold}</div><div class="key-stat-lbl">Sold</div></div>
+        <div class="key-stat"><div class="key-stat-val">${total}</div><div class="key-stat-lbl">Total</div></div>
+      </div>
+
+      <div class="upload-box">
+        <div class="upload-box-title">Add Keys</div>
+        <textarea id="keys-textarea" placeholder="Paste keys here — one per line&#10;XXXXX-XXXXX-XXXXX&#10;YYYYY-YYYYY-YYYYY"></textarea>
+        <p class="upload-hint">Each non-empty line is treated as one key. Keys are encrypted before storage.</p>
+        <button class="btn-upload" id="upload-btn">Upload Keys</button>
+      </div>
+
+      <div class="keys-table-wrap">
+        <table class="keys-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Status</th>
+              <th>Added</th>
+              <th>Assigned</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${keysData.length === 0
+              ? '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-4)">No keys yet</td></tr>'
+              : keysData.map((k, i) => `
+                <tr>
+                  <td style="color:var(--text-4);font-family:var(--font-mono)">${i + 1}</td>
+                  <td><span class="${k.status === 'AVAILABLE' ? 'badge-available' : 'badge-sold'}">${k.status}</span></td>
+                  <td style="color:var(--text-3)">${k.addedAt ? new Date(k.addedAt).toLocaleString('en-IN') : '—'}</td>
+                  <td style="color:var(--text-3)">${k.assignedAt ? new Date(k.assignedAt).toLocaleString('en-IN') : '—'}</td>
+                </tr>`).join('')
+            }
+          </tbody>
+        </table>
+      </div>`;
+
+    document.getElementById('upload-btn').addEventListener('click', async () => {
+      const raw = document.getElementById('keys-textarea').value;
+      const keys = raw.split('\n').map(l => l.trim()).filter(Boolean);
+      if (!keys.length) { showToast('No keys to upload', 'error'); return; }
+      const btn = document.getElementById('upload-btn');
+      btn.disabled = true; btn.textContent = 'Uploading…';
+      try {
+        const result = await apiFetch(`/admin/products/${productId}/keys`, {
+          method: 'POST',
+          body: JSON.stringify({ keys }),
+        });
+        showToast(`Added ${result.added} key(s). Total available: ${result.totalAvailable}`, 'success');
+        loadProduct(productId);
+      } catch (e) {
+        showToast(e.message, 'error');
+        btn.disabled = false; btn.textContent = 'Upload Keys';
+      }
+    });
+
+  } catch (e) {
+    content.innerHTML = `<div class="no-product">Error: ${e.message}</div>`;
+  }
+}
+</script>
+</body>
+</html>

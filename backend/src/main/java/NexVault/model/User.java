@@ -49,6 +49,10 @@ public class User {
     @Column(name = "nickname", unique = true, length = 100)
     private String nickname;
 
+    /** Optional 6-digit Indian postal code (PIN). */
+    @Column(name = "postal_code", length = 10)
+    private String postalCode;
+
     /** Bcrypt-hashed password. Null for OAuth-only accounts. */
     @Column(name = "password_hash")
     private String passwordHash;
@@ -74,6 +78,10 @@ public class User {
     /** Whether the account is active.  Soft-delete by setting to {@code false}. */
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = Boolean.TRUE;
+
+    /** Whether the user has opted in to marketing emails. Defaults to true. */
+    @Column(name = "email_subscribed", nullable = false)
+    private Boolean emailSubscribed = Boolean.TRUE;
 
     /** Timestamp of account creation.  Set automatically by Spring Data auditing. */
     @CreatedDate

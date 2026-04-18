@@ -62,6 +62,9 @@ public class ProductController {
             @Parameter(description = "Maximum price in INR (inclusive)", example = "2000")
             @RequestParam(required = false) BigDecimal maxPrice,
 
+            @Parameter(description = "Minimum average rating (1-5)", example = "4")
+            @RequestParam(required = false) BigDecimal minRating,
+
             @Parameter(description = "Full-text search across name, description, brand")
             @RequestParam(required = false) String search,
 
@@ -69,7 +72,7 @@ public class ProductController {
             @RequestParam(required = false) String sort) {
 
         Page<ProductResponse> products =
-                productService.getAllProducts(page, size, categoryId, minPrice, maxPrice, search, sort);
+                productService.getAllProducts(page, size, categoryId, minPrice, maxPrice, minRating, search, sort);
         return ResponseEntity.ok(ApiResponse.ok(products));
     }
 

@@ -282,6 +282,35 @@ public class AuthController {
         return ResponseEntity.ok(ApiResponse.ok(null, "Password changed successfully"));
     }
 
+    // ── Forgot / Reset Password ───────────────────────────────────────────────
+
+    @PostMapping("/forgot-password")
+    @Operation(summary = "Send password reset OTP to email (always returns 200 for security)")
+    public ResponseEntity<ApiResponse<Void>> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+
+        authService.findActiveByEmailSilent(request.email()).ifPresent(user -> {
+            try {
+                otpService.generateAndSend(user, "PASSWORD_RESET");
+            } catch (Exception e) {
+                log.warn("Could not send password reset OTP: {}", e.getMessage());
+            }
+        });
+        return ResponseEntity.ok(ApiResponse.ok(null,
+                "If that email is registered, a reset code has been sent."));
+    }
+
+    @PostMapping("/reset-password")
+    @Operation(summary = "Reset password using the OTP code sent to email")
+    public ResponseEntity<ApiResponse<Void>> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+
+        User user = authService.findActiveUserByEmail(request.email());
+        otpService.verify(user, request.code(), "PASSWORD_RESET");
+        authService.resetPassword(request.email(), request.newPassword());
+        return ResponseEntity.ok(ApiResponse.ok(null, "Password reset successfully. You can now log in."));
+    }
+
     // ── Private helpers ───────────────────────────────────────────────────────
 
     private ResponseCookie buildRefreshCookie(String token) {

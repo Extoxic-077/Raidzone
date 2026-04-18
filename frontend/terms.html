@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Terms of Service — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 760px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 8px; }
+    .static-date { font-size: 13px; color: var(--text-4); margin-bottom: 40px; }
+    h2 { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; margin: 36px 0 12px; }
+    p, li { font-size: 15px; color: var(--text-2); line-height: 1.8; margin-bottom: 14px; }
+    ul { padding-left: 20px; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <h1 class="static-title">Terms of Service</h1>
+  <p class="static-date">Last updated: January 2025 · Effective: January 2025</p>
+
+  <p>By creating an account or making a purchase on NexVault, you agree to these Terms of Service. Please read them carefully.</p>
+
+  <h2>1. Eligibility</h2>
+  <p>You must be at least 18 years old (or have parental consent) to use NexVault. By using the platform you represent that you meet this requirement.</p>
+
+  <h2>2. Account Responsibility</h2>
+  <p>You are responsible for maintaining the confidentiality of your login credentials and for all activity that occurs under your account. Notify us immediately if you suspect unauthorised access.</p>
+
+  <h2>3. Purchases</h2>
+  <p>All prices are in Indian Rupees (INR) inclusive of applicable taxes. By completing a purchase you agree to pay the displayed price. Digital goods are delivered instantly on payment confirmation.</p>
+
+  <h2>4. Digital Goods</h2>
+  <p>All sales of digital codes and keys are final once revealed. We do not offer refunds for personal preference. See our <a href="refund-policy.html" style="color:var(--violet-light)">Refund Policy</a> for valid refund situations.</p>
+
+  <h2>5. Prohibited Conduct</h2>
+  <ul>
+    <li>Reselling keys purchased on NexVault without explicit written permission</li>
+    <li>Using automated tools to scrape prices or purchase keys in bulk</li>
+    <li>Fraudulent chargebacks or false refund claims</li>
+    <li>Attempting to access other users' accounts or data</li>
+    <li>Uploading or distributing malware, spam, or illegal content</li>
+  </ul>
+
+  <h2>6. Intellectual Property</h2>
+  <p>All content on NexVault (design, code, trademarks, text) belongs to NexVault or its licensors. You may not reproduce or redistribute it without written permission.</p>
+
+  <h2>7. Limitation of Liability</h2>
+  <p>To the maximum extent permitted by law, NexVault shall not be liable for indirect, incidental, or consequential damages. Our total liability for any claim shall not exceed the amount you paid for the relevant purchase.</p>
+
+  <h2>8. Governing Law</h2>
+  <p>These terms are governed by the laws of India. Any disputes shall be subject to the exclusive jurisdiction of the courts of Mumbai, Maharashtra.</p>
+
+  <h2>9. Changes to Terms</h2>
+  <p>We may update these terms periodically. Continued use of the platform after changes constitutes acceptance. We will notify users of material changes by email.</p>
+
+  <h2>10. Contact</h2>
+  <p>Questions about these terms: <strong>legal@nexvault.in</strong></p>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+await initNavbar();
+initFooter();
+</script>
+</body>
+</html>

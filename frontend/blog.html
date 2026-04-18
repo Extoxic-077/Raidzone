@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Blog — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 900px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-hero { text-align: center; margin-bottom: 56px; }
+    .static-eyebrow { font-size: 12px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: var(--violet-light); margin-bottom: 12px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(2rem, 5vw, 3rem); font-weight: 800; margin-bottom: 16px; }
+    .static-lead { font-size: 16px; color: var(--text-3); line-height: 1.7; }
+    .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 24px; }
+    .blog-card { background: var(--glass); border: 1px solid var(--glass-border); border-radius: var(--r-lg); overflow: hidden; transition: transform .2s, border-color .2s; cursor: pointer; }
+    .blog-card:hover { transform: translateY(-3px); border-color: var(--glass-border-accent); }
+    .blog-thumb { width: 100%; height: 160px; background: linear-gradient(135deg, rgba(124,58,237,.3), rgba(34,211,238,.2)); display: flex; align-items: center; justify-content: center; font-size: 48px; }
+    .blog-body { padding: 20px; }
+    .blog-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: var(--violet-light); margin-bottom: 8px; }
+    .blog-title { font-family: var(--font-heading); font-size: 1rem; font-weight: 700; margin-bottom: 8px; line-height: 1.4; }
+    .blog-excerpt { font-size: 13px; color: var(--text-3); line-height: 1.6; margin-bottom: 12px; }
+    .blog-meta { font-size: 12px; color: var(--text-4); }
+    .coming-soon { text-align: center; padding: 60px 20px; color: var(--text-4); }
+    .coming-soon h3 { font-family: var(--font-heading); font-size: 1.4rem; font-weight: 700; color: var(--text-2); margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <div class="static-hero">
+    <div class="static-eyebrow">NexVault Blog</div>
+    <h1 class="static-title">Insights, guides & updates</h1>
+    <p class="static-lead">Tips on gaming, digital savings, and platform updates from the NexVault team.</p>
+  </div>
+
+  <div class="blog-grid">
+    <div class="blog-card">
+      <div class="blog-thumb">🎮</div>
+      <div class="blog-body">
+        <div class="blog-tag">Gaming</div>
+        <div class="blog-title">Top 10 Steam Games to Grab on Sale This Week</div>
+        <div class="blog-excerpt">We've curated the best value games available right now — from indie gems to AAA blockbusters.</div>
+        <div class="blog-meta">Jan 15, 2025 · 4 min read</div>
+      </div>
+    </div>
+    <div class="blog-card">
+      <div class="blog-thumb">🔑</div>
+      <div class="blog-body">
+        <div class="blog-tag">Guide</div>
+        <div class="blog-title">How to Redeem a Steam Key: Step-by-Step for Beginners</div>
+        <div class="blog-excerpt">Just bought your first game key? Here's exactly how to redeem it on Steam, Epic, and other platforms.</div>
+        <div class="blog-meta">Jan 10, 2025 · 3 min read</div>
+      </div>
+    </div>
+    <div class="blog-card">
+      <div class="blog-thumb">💳</div>
+      <div class="blog-body">
+        <div class="blog-tag">Gift Cards</div>
+        <div class="blog-title">Best Gift Cards to Buy for Gamers in India (2025)</div>
+        <div class="blog-excerpt">From Amazon Pay to PlayStation Store — the gift cards gamers actually want this year.</div>
+        <div class="blog-meta">Jan 5, 2025 · 5 min read</div>
+      </div>
+    </div>
+    <div class="blog-card">
+      <div class="blog-thumb">🔒</div>
+      <div class="blog-body">
+        <div class="blog-tag">Security</div>
+        <div class="blog-title">How NexVault Protects Your Digital Keys</div>
+        <div class="blog-excerpt">A behind-the-scenes look at our AES-256 encryption, secure storage, and fraud prevention systems.</div>
+        <div class="blog-meta">Dec 28, 2024 · 6 min read</div>
+      </div>
+    </div>
+    <div class="blog-card">
+      <div class="blog-thumb">🎁</div>
+      <div class="blog-body">
+        <div class="blog-tag">Tips</div>
+        <div class="blog-title">5 Ways to Save Money on Game Purchases in India</div>
+        <div class="blog-excerpt">From regional pricing to bundle deals — smart strategies for getting more from your gaming budget.</div>
+        <div class="blog-meta">Dec 20, 2024 · 4 min read</div>
+      </div>
+    </div>
+    <div class="blog-card">
+      <div class="blog-thumb">🚀</div>
+      <div class="blog-body">
+        <div class="blog-tag">Updates</div>
+        <div class="blog-title">NexVault 2.0: What's New</div>
+        <div class="blog-excerpt">Digital keys, Razorpay integration, real-time notifications — a complete rundown of everything we shipped.</div>
+        <div class="blog-meta">Dec 15, 2024 · 7 min read</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+import { showToast } from './js/components/toast.js';
+await initNavbar();
+initFooter();
+document.querySelectorAll('.blog-card').forEach(c => c.addEventListener('click', () => showToast('Full article coming soon!', 'info')));
+</script>
+</body>
+</html>

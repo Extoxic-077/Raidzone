@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Refund Policy — NexVault</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="css/variables.css"/>
+  <link rel="stylesheet" href="css/base.css"/>
+  <link rel="stylesheet" href="css/components.css"/>
+  <style>
+    .static-page { max-width: 760px; margin: 0 auto; padding: 60px 24px 120px; }
+    .static-title { font-family: var(--font-heading); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 8px; }
+    .static-date { font-size: 13px; color: var(--text-4); margin-bottom: 40px; }
+    h2 { font-family: var(--font-heading); font-size: 1.2rem; font-weight: 700; margin: 36px 0 12px; }
+    p, li { font-size: 15px; color: var(--text-2); line-height: 1.8; margin-bottom: 14px; }
+    ul { padding-left: 20px; }
+    .highlight-box { background: rgba(124,58,237,.1); border: 1px solid rgba(124,58,237,.3); border-radius: var(--r-md); padding: 16px 20px; margin: 20px 0; }
+  </style>
+</head>
+<body>
+<div id="navbar"></div>
+
+<div class="static-page">
+  <h1 class="static-title">Refund Policy</h1>
+  <p class="static-date">Last updated: January 2025</p>
+
+  <div class="highlight-box">
+    <strong>Summary:</strong> Digital goods are non-refundable once the key has been revealed, except in cases where the key is provably invalid or already used.
+  </div>
+
+  <h2>1. Digital Goods Policy</h2>
+  <p>All sales of digital codes, gift cards, game keys, and subscription credits are final once the product key has been displayed or delivered to the buyer. This is because digital goods are immediately usable and cannot be "returned" in the traditional sense.</p>
+
+  <h2>2. Eligible Refunds</h2>
+  <p>You are entitled to a full refund or replacement in the following circumstances:</p>
+  <ul>
+    <li>The key you received is invalid (not accepted by the platform)</li>
+    <li>The key was already redeemed by someone else before your purchase</li>
+    <li>You were charged but did not receive a key due to a technical error</li>
+    <li>The product delivered was materially different from what was advertised</li>
+  </ul>
+  <p>Refund requests must be submitted within <strong>48 hours</strong> of purchase with evidence (screenshot of the error message from the platform).</p>
+
+  <h2>3. Non-Eligible Situations</h2>
+  <ul>
+    <li>You changed your mind after the key was revealed</li>
+    <li>You purchased the wrong region (e.g., a US key when you needed an India key)</li>
+    <li>The game or service was not to your liking after redemption</li>
+    <li>Fraudulent claims — we track redemption and will take legal action for abuse</li>
+  </ul>
+
+  <h2>4. How to Request a Refund</h2>
+  <p>Contact support@nexvault.in with your order ID, a description of the issue, and supporting screenshots. We process legitimate refund requests within 3–5 business days.</p>
+
+  <h2>5. Payment Refund Timeline</h2>
+  <p>Approved refunds are processed within 5–7 business days to your original payment method. For UPI and cards, bank processing may add an additional 1–3 days.</p>
+
+  <h2>6. Contact</h2>
+  <p>For refund disputes, email <strong>support@nexvault.in</strong> or use the <a href="contact.html" style="color:var(--violet-light)">contact form</a>.</p>
+</div>
+
+<div id="footer"></div>
+<div id="toast-container"></div>
+
+<script src="/js/config.js"></script>
+<script type="module">
+import { initNavbar } from './js/components/navbar.js';
+import { initFooter } from './js/components/footer.js';
+await initNavbar();
+initFooter();
+</script>
+</body>
+</html>
