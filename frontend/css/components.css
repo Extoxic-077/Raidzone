@@ -972,6 +972,23 @@
   font-family: var(--font-body);
 }
 
+/* Isolate footer from page-level p/li/ul overrides in static pages */
+#footer p  { margin-bottom: 0; }
+#footer li { margin-bottom: 0; }
+#footer ul { padding-left: 0; list-style: none; margin-bottom: 0; }
+
+/* ─── STATIC PAGES MOBILE ───────────────────────── */
+@media (max-width: 767px) {
+  .static-page {
+    padding-left: 16px;
+    padding-right: 16px;
+    padding-top: 72px;
+  }
+  .static-title { font-size: 1.6rem !important; }
+  table { display: block; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .highlight-box { padding: 12px 14px; }
+}
+
 /* ─── EMPTY STATE ────────────────────────────── */
 .empty-state {
   text-align: center;
