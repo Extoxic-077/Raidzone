@@ -42,6 +42,59 @@
 
   <div id="toast-container"></div>
 
+  <!-- OTP Verify Modal -->
+  <div id="otp-modal" style="display:none" aria-modal="true" role="dialog">
+    <div class="key-modal-backdrop" id="otp-backdrop"></div>
+    <div class="key-modal-box">
+      <button class="key-modal-close" id="otp-close">×</button>
+      <div class="key-modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="44" height="44" style="color:var(--violet-light)"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </div>
+      <h3 class="key-modal-title">Verify Your Identity</h3>
+      <p class="key-modal-desc" id="otp-desc">For security, verify with a one-time code sent to your email before accessing your key.</p>
+      <div id="otp-step-send">
+        <button class="btn-send-otp" id="btn-send-otp">Send OTP to Email</button>
+      </div>
+      <div id="otp-step-verify" style="display:none">
+        <p class="key-modal-hint" id="otp-sent-hint">Code sent to your email</p>
+        <div class="otp-inputs" id="otp-inputs">
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric"/>
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric"/>
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric"/>
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric"/>
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric"/>
+          <input class="otp-digit" maxlength="1" type="text" inputmode="numeric"/>
+        </div>
+        <button class="btn-verify-otp" id="btn-verify-otp">Verify &amp; Reveal Key</button>
+        <button class="btn-resend-otp" id="btn-resend-otp">Resend OTP</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Key Reveal Modal -->
+  <div id="key-modal" style="display:none" aria-modal="true" role="dialog">
+    <div class="key-modal-backdrop" id="key-backdrop"></div>
+    <div class="key-modal-box">
+      <button class="key-modal-close" id="key-close">×</button>
+      <div class="key-modal-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="44" height="44" style="color:#22c55e"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+      </div>
+      <h3 class="key-modal-title">Your Activation Key</h3>
+      <div class="key-modal-warning">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <span>Never share this key. Keys are non-refundable once revealed. Linked to your account.</span>
+      </div>
+      <div class="key-display-wrap">
+        <div class="key-display" id="key-display-value">••••••••••••••••</div>
+        <button class="btn-toggle-key" id="btn-toggle-key" aria-label="Show key">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+      </div>
+      <button class="btn-copy-key" id="btn-copy-key">Copy Key</button>
+      <button class="btn-key-done" id="btn-key-done">Close</button>
+    </div>
+  </div>
+
   <!-- Review modal -->
   <div id="review-modal" style="display:none" aria-modal="true" role="dialog">
     <div class="review-modal-backdrop" id="review-backdrop"></div>
@@ -62,6 +115,93 @@
   </div>
 
   <style>
+    /* ── Key + OTP buttons ── */
+    .btn-redeem-key {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 12px; font-size: 11.5px; font-weight: 700;
+      background: var(--gradient); border: none;
+      border-radius: 999px; color: #fff; cursor: pointer;
+      transition: opacity .15s; white-space: nowrap;
+    }
+    .btn-redeem-key:hover { opacity: .85; }
+    .btn-view-key {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 4px 12px; font-size: 11.5px; font-weight: 600;
+      background: rgba(100,100,120,.25); border: 1px solid rgba(255,255,255,.1);
+      border-radius: 999px; color: var(--text-3); cursor: pointer; white-space: nowrap;
+    }
+    .btn-view-key:hover { background: rgba(100,100,120,.4); }
+    .oi-key-action { margin-left: auto; flex-shrink: 0; }
+
+    .order-redeemed-badge {
+      padding: 2px 8px; border-radius: 999px; font-size: 10px; font-weight: 700;
+      text-transform: uppercase; letter-spacing: .05em;
+      background: rgba(100,100,120,.3); color: var(--text-4);
+    }
+    .order-card-delivered { opacity: .8; }
+
+    /* ── Key / OTP modals ── */
+    .key-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.65); backdrop-filter: blur(6px); }
+    .key-modal-box {
+      position: relative; background: var(--bg1); border: 1px solid var(--glass-border);
+      border-radius: var(--r-xl); padding: 32px 28px; width: 100%; max-width: 420px; margin: 16px;
+      z-index: 1; display: flex; flex-direction: column; align-items: center; gap: 14px; text-align: center;
+    }
+    .key-modal-close {
+      position: absolute; top: 14px; right: 14px; background: none; border: none;
+      font-size: 22px; color: var(--text-3); cursor: pointer; line-height: 1;
+    }
+    .key-modal-icon { display: flex; justify-content: center; }
+    .key-modal-title { font-family: var(--font-heading); font-size: 1.15rem; font-weight: 800; color: var(--text-1); margin: 0; }
+    .key-modal-desc { font-size: 13px; color: var(--text-3); margin: 0; line-height: 1.5; }
+    .key-modal-hint { font-size: 12px; color: var(--text-4); margin: 0; }
+
+    .btn-send-otp {
+      padding: 11px 28px; background: var(--gradient); border: none;
+      border-radius: 999px; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer;
+    }
+    .btn-send-otp:hover { opacity: .88; }
+
+    .otp-inputs { display: flex; gap: 8px; justify-content: center; margin: 4px 0; }
+    .otp-digit {
+      width: 40px; height: 48px; text-align: center; font-size: 1.4rem; font-weight: 700;
+      background: var(--bg2); border: 1px solid var(--glass-border); border-radius: 10px;
+      color: var(--text-1); outline: none;
+    }
+    .otp-digit:focus { border-color: var(--violet); box-shadow: 0 0 0 3px rgba(124,58,237,.15); }
+    .btn-verify-otp {
+      padding: 10px 28px; background: var(--gradient); border: none;
+      border-radius: 999px; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer;
+    }
+    .btn-resend-otp { background: none; border: none; color: var(--violet-light); font-size: 13px; cursor: pointer; text-decoration: underline; }
+
+    .key-modal-warning {
+      display: flex; align-items: flex-start; gap: 8px; text-align: left;
+      padding: 10px 14px; border-radius: 10px;
+      background: rgba(239,68,68,.08); border: 1px solid rgba(239,68,68,.25);
+      color: var(--danger); font-size: 12px; line-height: 1.5; width: 100%; box-sizing: border-box;
+    }
+    .key-display-wrap {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--bg2); border: 1px solid var(--glass-border); border-radius: 12px;
+      padding: 12px 16px; width: 100%; box-sizing: border-box;
+    }
+    .key-display {
+      flex: 1; font-family: var(--font-mono); font-size: 14px; font-weight: 700;
+      color: var(--text-1); letter-spacing: .08em; word-break: break-all; text-align: left;
+    }
+    .btn-toggle-key { background: none; border: none; color: var(--text-3); cursor: pointer; flex-shrink: 0; }
+    .btn-copy-key {
+      width: 100%; padding: 10px; background: rgba(124,58,237,.15); border: 1px solid rgba(124,58,237,.3);
+      border-radius: 999px; color: var(--violet-light); font-weight: 700; font-size: 13px; cursor: pointer;
+    }
+    .btn-copy-key:hover { background: rgba(124,58,237,.3); }
+    .btn-key-done {
+      width: 100%; padding: 10px; background: transparent; border: 1px solid var(--glass-border);
+      border-radius: 999px; color: var(--text-3); font-size: 13px; cursor: pointer;
+    }
+
+    /* ── Review modal ── */
     .btn-review {
       display: inline-flex; align-items: center; gap: 6px;
       padding: 5px 12px; font-size: 12px; font-weight: 600;
@@ -73,6 +213,7 @@
     .order-review-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
 
     #review-modal { position: fixed; inset: 0; z-index: 1000; display: flex; align-items: center; justify-content: center; }
+    #otp-modal, #key-modal { position: fixed; inset: 0; z-index: 1001; display: flex; align-items: center; justify-content: center; }
     .review-modal-backdrop { position: absolute; inset: 0; background: rgba(0,0,0,.6); backdrop-filter: blur(4px); }
     .review-modal-box {
       position: relative; background: var(--bg1); border: 1px solid var(--glass-border);
@@ -172,10 +313,28 @@ function orderCardHTML(order) {
   const isPending   = order.status === 'PENDING_PAYMENT';
   const isCancelled = order.status === 'CANCELLED';
 
+  const isDelivered = order.status === 'DELIVERED';
   const itemsHtml = order.items.map(item => {
     const thumb = item.imageUrl
       ? `<img src="${item.imageUrl}" alt="${item.productName}" class="oi-img"/>`
       : `<div class="oi-emoji">${item.productEmoji || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h1m4 0h1"/><path d="M8 7v2"/></svg>'}</div>`;
+
+    // Determine key button
+    let keyBtn = '';
+    if (item.keyId && !isPending && !isCancelled) {
+      const sessionKey = `redeemed_${order.id}_${item.productId}`;
+      const alreadyInSession = !!sessionStorage.getItem(sessionKey);
+      if (item.isRevealed || alreadyInSession) {
+        keyBtn = `<button class="btn-view-key" data-key-id="${item.keyId}" data-order-id="${order.id}" data-product-id="${item.productId}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          View Key</button>`;
+      } else if (order.status === 'CONFIRMED') {
+        keyBtn = `<button class="btn-redeem-key" data-key-id="${item.keyId}" data-order-id="${order.id}" data-product-id="${item.productId}" data-product-name="${item.productName}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
+          Redeem</button>`;
+      }
+    }
+
     return `
       <div class="order-item">
         <div class="oi-thumb">${thumb}</div>
@@ -183,6 +342,7 @@ function orderCardHTML(order) {
           <div class="oi-name">${item.productName}</div>
           <div class="oi-qty">Qty: ${item.quantity} · ${fmtPrice(item.lineTotal)}</div>
         </div>
+        ${keyBtn ? `<div class="oi-key-action">${keyBtn}</div>` : ''}
       </div>`;
   }).join('');
 
@@ -200,8 +360,11 @@ function orderCardHTML(order) {
        </div>`
     : '';
 
+  const allRedeemed = order.items.every(i => !i.keyId || i.isRevealed
+      || !!sessionStorage.getItem(`redeemed_${order.id}_${i.productId}`));
+
   return `
-    <div class="order-card ${isPending ? 'order-card-pending' : ''} ${isCancelled ? 'order-card-cancelled' : ''}">
+    <div class="order-card ${isPending ? 'order-card-pending' : ''} ${isCancelled ? 'order-card-cancelled' : ''} ${isDelivered ? 'order-card-delivered' : ''}">
       <div class="order-card-header">
         <div class="order-id-wrap">
           <span class="order-id-label">Order</span>
@@ -209,6 +372,8 @@ function orderCardHTML(order) {
         </div>
         <div class="order-meta">
           ${statusBadge(order.status)}
+          ${allRedeemed && order.items.some(i => i.keyId)
+            ? `<span class="order-redeemed-badge">Redeemed</span>` : ''}
           <span class="order-date">${fmtDate(order.createdAt)}</span>
         </div>
       </div>
@@ -351,6 +516,176 @@ document.getElementById('review-submit').addEventListener('click', async () => {
 root.addEventListener('click', e => {
   const btn = e.target.closest('.btn-review');
   if (btn) openReviewModal(btn.dataset.productId, btn.dataset.productName);
+});
+
+// ── Redeem / View Key flow ─────────────────────────────────────────────────────
+
+const API = window.__API_BASE__ || '/api/v1';
+function authHeaders() {
+  const t = sessionStorage.getItem('hv_token');
+  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` };
+}
+
+let redeemKeyId = null;
+let redeemOrderId = null;
+let redeemProductId = null;
+let revealedKeyValue = null;
+let keyVisible = false;
+
+// OTP modal open
+async function openOtpModal(keyId, orderId, productId) {
+  redeemKeyId  = keyId;
+  redeemOrderId = orderId;
+  redeemProductId = productId;
+  document.getElementById('otp-step-send').style.display = 'block';
+  document.getElementById('otp-step-verify').style.display = 'none';
+  document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
+  document.getElementById('otp-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeOtpModal() {
+  document.getElementById('otp-modal').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function openKeyModal(keyValue) {
+  revealedKeyValue = keyValue;
+  keyVisible = false;
+  document.getElementById('key-display-value').textContent = '••••••••••••••••';
+  document.getElementById('btn-copy-key').textContent = 'Copy Key';
+  document.getElementById('key-modal').style.display = 'flex';
+  document.body.style.overflow = 'hidden';
+}
+
+function closeKeyModal() {
+  document.getElementById('key-modal').style.display = 'none';
+  document.body.style.overflow = '';
+  // Re-render to update button states
+  getMyOrders().then(orders => renderOrders(orders)).catch(() => {});
+}
+
+// Send OTP
+document.getElementById('btn-send-otp').addEventListener('click', async () => {
+  const btn = document.getElementById('btn-send-otp');
+  btn.disabled = true; btn.textContent = 'Sending…';
+  try {
+    const res = await fetch(`${API}/purchases/send-reveal-otp`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({})
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || 'Failed to send OTP');
+    document.getElementById('otp-sent-hint').textContent = `Code sent to ${json.data?.maskedEmail || 'your email'}`;
+    document.getElementById('otp-step-send').style.display = 'none';
+    document.getElementById('otp-step-verify').style.display = 'block';
+    document.querySelectorAll('.otp-digit')[0].focus();
+  } catch (e) {
+    showToast(e.message, 'error');
+    btn.disabled = false; btn.textContent = 'Send OTP to Email';
+  }
+});
+
+// OTP digit auto-advance
+document.querySelectorAll('.otp-digit').forEach((input, i, all) => {
+  input.addEventListener('input', () => {
+    input.value = input.value.replace(/\D/g, '').slice(-1);
+    if (input.value && i < all.length - 1) all[i + 1].focus();
+  });
+  input.addEventListener('keydown', e => {
+    if (e.key === 'Backspace' && !input.value && i > 0) all[i - 1].focus();
+  });
+});
+
+// Verify OTP
+document.getElementById('btn-verify-otp').addEventListener('click', async () => {
+  const otp = [...document.querySelectorAll('.otp-digit')].map(i => i.value).join('');
+  if (otp.length < 6) { showToast('Enter all 6 digits', 'error'); return; }
+  const btn = document.getElementById('btn-verify-otp');
+  btn.disabled = true; btn.textContent = 'Verifying…';
+  try {
+    const res = await fetch(`${API}/purchases/reveal-key`, {
+      method: 'POST', headers: authHeaders(),
+      body: JSON.stringify({ keyId: redeemKeyId, otp }),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json.message || 'Invalid OTP');
+    sessionStorage.setItem(`redeemed_${redeemOrderId}_${redeemProductId}`, '1');
+    closeOtpModal();
+    openKeyModal(json.data?.keyValue);
+  } catch (e) {
+    showToast(e.message, 'error');
+    btn.disabled = false; btn.textContent = 'Verify & Reveal Key';
+  }
+});
+
+// Resend OTP
+document.getElementById('btn-resend-otp').addEventListener('click', async () => {
+  try {
+    await fetch(`${API}/purchases/send-reveal-otp`, {
+      method: 'POST', headers: authHeaders(), body: JSON.stringify({})
+    });
+    showToast('New OTP sent', 'success');
+    document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
+    document.querySelectorAll('.otp-digit')[0].focus();
+  } catch (e) { showToast('Could not resend OTP', 'error'); }
+});
+
+// Close OTP modal
+document.getElementById('otp-close').addEventListener('click', closeOtpModal);
+document.getElementById('otp-backdrop').addEventListener('click', closeOtpModal);
+
+// Toggle key visibility
+document.getElementById('btn-toggle-key').addEventListener('click', () => {
+  keyVisible = !keyVisible;
+  document.getElementById('key-display-value').textContent = keyVisible ? revealedKeyValue : '••••••••••••••••';
+});
+
+// Copy key
+document.getElementById('btn-copy-key').addEventListener('click', async () => {
+  try {
+    await navigator.clipboard.writeText(revealedKeyValue);
+    document.getElementById('btn-copy-key').textContent = 'Copied!';
+    setTimeout(() => { document.getElementById('btn-copy-key').textContent = 'Copy Key'; }, 2000);
+  } catch { showToast('Could not copy', 'error'); }
+});
+
+// Close key modal
+document.getElementById('key-close').addEventListener('click', closeKeyModal);
+document.getElementById('key-backdrop').addEventListener('click', closeKeyModal);
+document.getElementById('btn-key-done').addEventListener('click', closeKeyModal);
+
+// Event delegation for Redeem / View Key
+root.addEventListener('click', async e => {
+  const redeemBtn = e.target.closest('.btn-redeem-key');
+  if (redeemBtn) {
+    const { keyId, orderId, productId } = redeemBtn.dataset;
+    const sessionKey = `redeemed_${orderId}_${productId}`;
+    if (sessionStorage.getItem(sessionKey)) {
+      // Already verified in this session — fetch directly
+      try {
+        const res = await fetch(`${API}/purchases/my-key/${keyId}`, { headers: authHeaders() });
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.message);
+        openKeyModal(json.data?.keyValue);
+      } catch (e) { openOtpModal(keyId, orderId, productId); }
+    } else {
+      openOtpModal(keyId, orderId, productId);
+    }
+    return;
+  }
+
+  const viewBtn = e.target.closest('.btn-view-key');
+  if (viewBtn) {
+    const { keyId, orderId, productId } = viewBtn.dataset;
+    try {
+      const res = await fetch(`${API}/purchases/my-key/${keyId}`, { headers: authHeaders() });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.message);
+      openKeyModal(json.data?.keyValue);
+    } catch (e) {
+      showToast(e.message, 'error');
+    }
+  }
 });
 </script>
 

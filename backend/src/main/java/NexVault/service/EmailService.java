@@ -156,17 +156,24 @@ public class EmailService {
     }
 
     private String buildSubject(String purpose, String otpCode) {
-        if ("REGISTER".equals(purpose)) {
-            return "NexVault — Verify your email: " + otpCode;
-        }
+        if ("REGISTER".equals(purpose))    return "NexVault — Verify your email: " + otpCode;
+        if ("KEY_REVEAL".equals(purpose))  return "NexVault — Key Access Code: " + otpCode;
         return "NexVault — Your login code: " + otpCode;
     }
 
     private String buildHtml(String userName, String otpCode, String purpose) {
-        String title   = "REGISTER".equals(purpose) ? "Verify your email" : "Your login code";
-        String subtitle = "REGISTER".equals(purpose)
-                ? "Enter this code to complete your NexVault registration."
-                : "Enter this code to sign in to your NexVault account.";
+        String title, subtitle;
+        if ("REGISTER".equals(purpose)) {
+            title    = "Verify your email";
+            subtitle = "Enter this code to complete your NexVault registration.";
+        } else if ("KEY_REVEAL".equals(purpose)) {
+            title    = "Your Key Access Code";
+            subtitle = "Enter this one-time code to reveal your activation key. It expires in 10 minutes.<br/>" +
+                       "If you didn't request this, please secure your account immediately.";
+        } else {
+            title    = "Your login code";
+            subtitle = "Enter this code to sign in to your NexVault account.";
+        }
 
         return """
             <!DOCTYPE html>

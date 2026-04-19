@@ -139,6 +139,9 @@ public class Product {
     @Column(name = "sort_order", nullable = false)
     private Integer sortOrder = 0;
 
+    @Column(name = "stock_count", nullable = false)
+    private Integer stockCount = 0;
+
     /** Timestamp when this product was first created.  Set by Spring Data auditing. */
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

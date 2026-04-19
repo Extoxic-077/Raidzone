@@ -136,11 +136,26 @@ function render(cart) {
   }
 
   const itemsHtml = cart.items.map(item => {
-    const pct = item.originalPrice && item.price
+    const oos = item.isAvailable === false;
+    const pct = !oos && item.originalPrice && item.price
       ? Math.round((1 - item.price / item.originalPrice) * 100) : null;
     const imgHtml = item.imageUrl
-      ? `<img src="${item.imageUrl}" alt="${item.name}" class="cart-item-img"/>`
-      : `<div class="cart-item-emoji">${item.imageEmoji || '🎮'}</div>`;
+      ? `<img src="${item.imageUrl}" alt="${item.name}" class="cart-item-img" style="${oos ? 'opacity:0.45' : ''}"/>`
+      : `<div class="cart-item-emoji" style="${oos ? 'opacity:0.45' : ''}">${item.imageEmoji || ''}</div>`;
+    if (oos) {
+      return `
+        <div class="cart-item cart-item-oos" data-id="${item.productId}">
+          <div class="cart-item-thumb">${imgHtml}</div>
+          <div class="cart-item-details" style="grid-column:2/-1">
+            <div class="cart-item-name" style="opacity:0.5">${item.name}</div>
+            <div class="cart-oos-warning">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+              ${item.name} is no longer available.
+              <button class="cart-oos-remove-btn" data-id="${item.productId}">Remove</button>
+            </div>
+          </div>
+        </div>`;
+    }
     return `
       <div class="cart-item" data-id="${item.productId}">
         <div class="cart-item-thumb">${imgHtml}</div>
@@ -228,6 +243,15 @@ function attachCartEvents(cart) {
             couponDiscount = 0;
           }
         }
+        render(updated);
+      } catch (err) { showToast(err.message, 'error'); }
+    });
+  });
+
+  root.querySelectorAll('.cart-oos-remove-btn').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      try {
+        const updated = await removeCartItem(btn.dataset.id);
         render(updated);
       } catch (err) { showToast(err.message, 'error'); }
     });

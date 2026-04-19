@@ -12,83 +12,145 @@
   <link rel="stylesheet" href="../css/components.css"/>
   <link rel="stylesheet" href="../css/pages/admin.css"/>
   <style>
-    body { background: var(--bg0); color: var(--text-1); font-family: var(--font-body); min-height: 100vh; }
-    .admin-layout { display: flex; min-height: 100vh; }
-    .wh-main { flex: 1; padding: 32px; max-width: 960px; margin: 0 auto; }
-    .wh-title { font-family: var(--font-heading); font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
-    .wh-sub { color: var(--text-3); font-size: 14px; margin-bottom: 28px; }
+    body { background:var(--bg0); color:var(--text-1); font-family:var(--font-body); min-height:100vh; }
+    .admin-layout { display:flex; min-height:100vh; }
+    .wh-main { flex:1; padding:32px; max-width:1100px; margin:0 auto; }
+    .wh-title { font-family:var(--font-heading); font-size:1.8rem; font-weight:800; margin-bottom:6px; }
+    .wh-sub { color:var(--text-3); font-size:14px; margin-bottom:28px; }
 
-    .product-select-wrap { margin-bottom: 24px; }
-    .product-select-wrap label { display: block; font-size: 12px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: .06em; margin-bottom: 8px; }
-    #product-select {
-      width: 100%; max-width: 480px; padding: 12px 16px;
-      background: var(--bg2); border: 1px solid var(--glass-border);
-      border-radius: var(--r-md); color: var(--text-1); font-size: 14px; cursor: pointer;
-    }
+    /* ── Products table ── */
+    .wh-table-wrap { background:var(--glass); border:1px solid var(--glass-border); border-radius:var(--r-lg); overflow:hidden; }
+    .wh-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .wh-table th { background:var(--bg2); padding:10px 16px; text-align:left; font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-3); border-bottom:1px solid var(--glass-border); white-space:nowrap; }
+    .wh-table td { padding:11px 16px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle; }
+    .wh-table tr:last-child td { border-bottom:none; }
+    .wh-table tr:hover td { background:rgba(255,255,255,.02); }
 
-    .key-stats { display: flex; gap: 16px; margin-bottom: 24px; flex-wrap: wrap; }
-    .key-stat {
-      background: var(--glass); border: 1px solid var(--glass-border);
-      border-radius: var(--r-lg); padding: 16px 24px; min-width: 140px;
-    }
-    .key-stat-val { font-size: 2rem; font-weight: 800; font-family: var(--font-mono); color: var(--violet-light); }
-    .key-stat-lbl { font-size: 12px; color: var(--text-3); margin-top: 4px; }
+    .wh-product-cell { display:flex; align-items:center; gap:10px; }
+    .wh-product-emoji { font-size:1.2rem; width:32px; text-align:center; }
+    .wh-product-img { width:32px; height:32px; border-radius:6px; object-fit:cover; }
+    .wh-product-name { font-weight:500; color:var(--text-1); }
+    .wh-product-cat { font-size:11px; color:var(--text-4); margin-top:2px; }
 
-    .upload-box {
-      background: var(--glass); border: 1px solid var(--glass-border);
-      border-radius: var(--r-lg); padding: 24px; margin-bottom: 24px;
-    }
-    .upload-box-title { font-weight: 700; font-size: 15px; margin-bottom: 12px; }
-    #keys-textarea {
-      width: 100%; min-height: 140px; box-sizing: border-box;
-      background: var(--bg2); border: 1px solid var(--glass-border);
-      border-radius: var(--r-md); color: var(--text-1); padding: 12px;
-      font-family: var(--font-mono); font-size: 13px; resize: vertical;
-      outline: none; line-height: 1.6;
-    }
-    #keys-textarea:focus { border-color: var(--primary); }
-    .upload-hint { font-size: 12px; color: var(--text-4); margin: 8px 0 16px; }
-    .btn-upload {
-      padding: 10px 24px; background: var(--gradient); border: none;
-      border-radius: var(--r-full); color: #fff; font-weight: 700;
-      font-size: 14px; cursor: pointer; transition: opacity .15s;
-    }
-    .btn-upload:hover { opacity: .85; }
-    .btn-upload:disabled { opacity: .5; cursor: not-allowed; }
+    .wh-num { font-family:var(--font-mono); font-weight:700; }
+    .wh-num-avail { color:#22c55e; }
+    .wh-num-used  { color:var(--text-3); }
+    .wh-num-total { color:var(--violet-light); }
 
-    .keys-table-wrap {
-      background: var(--glass); border: 1px solid var(--glass-border);
-      border-radius: var(--r-lg); overflow: hidden;
-    }
-    .keys-table { width: 100%; border-collapse: collapse; font-size: 13px; }
-    .keys-table th {
-      background: var(--bg2); padding: 10px 16px; text-align: left;
-      font-size: 11px; font-weight: 700; text-transform: uppercase;
-      letter-spacing: .06em; color: var(--text-3); border-bottom: 1px solid var(--glass-border);
-    }
-    .keys-table td { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.04); }
-    .keys-table tr:last-child td { border-bottom: none; }
-    .badge-available { background: rgba(34,197,94,.15); color: #22c55e; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
-    .badge-sold      { background: rgba(239,68,68,.12); color: #ef4444;  padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; }
-    .no-product { text-align: center; padding: 60px 20px; color: var(--text-4); font-size: 14px; }
+    .wh-stock-badge { display:inline-block; padding:3px 9px; border-radius:var(--r-full); font-size:11px; font-weight:700; }
+    .stock-ok   { background:rgba(34,197,94,.14); color:#22c55e; }
+    .stock-low  { background:rgba(234,179,8,.14); color:var(--warning); }
+    .stock-oos  { background:rgba(239,68,68,.14); color:var(--danger); }
+
+    .wh-actions { display:flex; gap:6px; }
+    .btn-wh { padding:5px 12px; border-radius:var(--r-full); font-size:12px; font-weight:600; cursor:pointer; border:none; transition:opacity .15s; white-space:nowrap; }
+    .btn-wh-add  { background:var(--gradient); color:#fff; }
+    .btn-wh-view { background:var(--glass); border:1px solid var(--glass-border); color:var(--text-2); }
+    .btn-wh:hover { opacity:.82; }
+
+    .wh-empty { text-align:center; padding:60px 20px; color:var(--text-4); font-size:14px; }
+    .wh-loading { padding:40px; text-align:center; color:var(--text-4); }
+
+    /* ── Search ── */
+    .wh-toolbar { display:flex; align-items:center; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+    .wh-search { flex:1; min-width:200px; height:38px; padding:0 14px; background:var(--bg2); border:1px solid var(--glass-border); border-radius:var(--r-full); color:var(--text-1); font-size:13px; outline:none; }
+    .wh-search:focus { border-color:var(--violet); }
+
+    /* ── Modals ── */
+    .wh-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(4px); z-index:1000; display:flex; align-items:center; justify-content:center; padding:20px; opacity:0; pointer-events:none; transition:opacity .2s; }
+    .wh-modal-overlay.open { opacity:1; pointer-events:all; }
+    .wh-modal { background:var(--bg1); border:1px solid var(--glass-border); border-radius:var(--r-xl); padding:28px; width:100%; max-width:620px; max-height:85vh; display:flex; flex-direction:column; gap:16px; }
+    .wh-modal-title { font-family:var(--font-heading); font-size:1.1rem; font-weight:800; color:var(--text-1); }
+    .wh-modal-body { overflow-y:auto; flex:1; min-height:0; }
+    .wh-modal-footer { display:flex; gap:10px; justify-content:flex-end; flex-shrink:0; }
+
+    .wh-label { font-size:12px; font-weight:600; color:var(--text-3); text-transform:uppercase; letter-spacing:.06em; margin-bottom:6px; }
+    .wh-textarea { width:100%; min-height:160px; box-sizing:border-box; background:var(--bg2); border:1px solid var(--glass-border); border-radius:var(--r-md); color:var(--text-1); padding:12px; font-family:var(--font-mono); font-size:13px; resize:vertical; outline:none; line-height:1.7; }
+    .wh-textarea:focus { border-color:var(--violet); }
+    .wh-preview { padding:10px 14px; border-radius:var(--r-md); font-size:13px; background:rgba(124,58,237,.08); border:1px solid rgba(124,58,237,.2); color:var(--text-2); margin-top:8px; }
+
+    .btn-cancel { padding:9px 20px; background:transparent; border:1px solid var(--glass-border); border-radius:var(--r-full); color:var(--text-3); font-size:13px; font-weight:600; cursor:pointer; }
+    .btn-import { padding:9px 20px; background:var(--gradient); border:none; border-radius:var(--r-full); color:#fff; font-size:13px; font-weight:700; cursor:pointer; }
+    .btn-import:disabled { opacity:.5; cursor:not-allowed; }
+
+    /* ── Keys table inside modal ── */
+    .keys-filter-bar { display:flex; gap:6px; margin-bottom:12px; }
+    .keys-filter-btn { padding:5px 14px; border-radius:var(--r-full); font-size:12px; font-weight:600; border:1px solid var(--glass-border); background:transparent; color:var(--text-3); cursor:pointer; }
+    .keys-filter-btn.active { background:var(--violet); border-color:var(--violet); color:#fff; }
+
+    .keys-modal-table { width:100%; border-collapse:collapse; font-size:12px; }
+    .keys-modal-table th { background:var(--bg2); padding:8px 10px; text-align:left; font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--text-4); border-bottom:1px solid var(--glass-border); }
+    .keys-modal-table td { padding:8px 10px; border-bottom:1px solid rgba(255,255,255,.03); vertical-align:middle; }
+    .keys-modal-table tr:last-child td { border-bottom:none; }
+    .key-val-cell { font-family:var(--font-mono); font-size:11px; color:var(--text-2); word-break:break-all; max-width:220px; }
+    .key-actions-cell { display:flex; gap:4px; white-space:nowrap; }
+    .btn-key-edit { background:transparent; border:1px solid var(--glass-border); border-radius:var(--r-sm); padding:3px 8px; font-size:11px; color:var(--text-3); cursor:pointer; }
+    .btn-key-del  { background:transparent; border:1px solid rgba(239,68,68,.3); border-radius:var(--r-sm); padding:3px 8px; font-size:11px; color:var(--danger); cursor:pointer; }
+    .btn-key-edit:hover { background:var(--glass); color:var(--text-1); }
+    .btn-key-del:hover  { background:rgba(239,68,68,.12); }
+
+    .keys-pagination { display:flex; align-items:center; justify-content:space-between; margin-top:12px; font-size:12px; color:var(--text-4); }
+    .pagination-btns { display:flex; gap:6px; }
+    .pagination-btns button { padding:4px 10px; border-radius:var(--r-full); border:1px solid var(--glass-border); background:transparent; color:var(--text-3); cursor:pointer; font-size:12px; }
+    .pagination-btns button:disabled { opacity:.4; cursor:not-allowed; }
+
+    /* ── Edit key inline ── */
+    .key-edit-input { background:var(--bg2); border:1px solid var(--violet); border-radius:var(--r-sm); padding:3px 8px; color:var(--text-1); font-family:var(--font-mono); font-size:11px; width:160px; outline:none; }
+    .btn-key-save { background:var(--gradient); border:none; border-radius:var(--r-sm); padding:3px 8px; font-size:11px; color:#fff; cursor:pointer; }
   </style>
 </head>
 <body>
 <div class="admin-layout">
   <aside class="admin-sidebar"></aside>
   <div class="admin-content">
-  <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Key Warehouse</span></div>
-  <div class="wh-main">
-    <h1 class="wh-title">Key Warehouse</h1>
-    <p class="wh-sub">Manage digital product keys per product. Keys are AES-256 encrypted at rest.</p>
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Key Warehouse</span></div>
+    <div class="wh-main">
+      <h1 class="wh-title">Key Warehouse</h1>
+      <p class="wh-sub">Manage digital product keys. Keys are AES-256-GCM encrypted at rest.</p>
 
-    <div class="product-select-wrap">
-      <label>Select Product</label>
-      <select id="product-select"><option value="">— Loading products… —</option></select>
+      <div class="wh-toolbar">
+        <input class="wh-search" id="wh-search" type="text" placeholder="Search products…"/>
+      </div>
+
+      <div id="wh-table-wrap" class="wh-table-wrap">
+        <div class="wh-loading">Loading…</div>
+      </div>
     </div>
-
-    <div id="wh-content" class="no-product">Select a product to manage its keys.</div>
   </div>
+</div>
+
+<!-- Add Keys Modal -->
+<div class="wh-modal-overlay" id="add-modal">
+  <div class="wh-modal">
+    <div class="wh-modal-title" id="add-modal-title">Add Keys</div>
+    <div class="wh-modal-body">
+      <div class="wh-label">Paste keys — one per line</div>
+      <textarea class="wh-textarea" id="add-keys-textarea"
+        placeholder="KEY-ABCD-1234-EFGH&#10;KEY-IJKL-5678-MNOP&#10;KEY-QRST-9012-UVWX"></textarea>
+      <div class="wh-preview" id="add-preview" style="display:none"></div>
+    </div>
+    <div class="wh-modal-footer">
+      <button class="btn-cancel" id="add-cancel">Cancel</button>
+      <button class="btn-import" id="add-import" disabled>Import Keys</button>
+    </div>
+  </div>
+</div>
+
+<!-- View Keys Modal -->
+<div class="wh-modal-overlay" id="view-modal">
+  <div class="wh-modal" style="max-width:700px">
+    <div class="wh-modal-title" id="view-modal-title">Keys</div>
+    <div style="flex-shrink:0">
+      <div class="keys-filter-bar">
+        <button class="keys-filter-btn active" data-filter="all">All</button>
+        <button class="keys-filter-btn" data-filter="AVAILABLE">Available</button>
+        <button class="keys-filter-btn" data-filter="SOLD">Used</button>
+      </div>
+    </div>
+    <div class="wh-modal-body" id="view-modal-body">Loading…</div>
+    <div class="wh-modal-footer">
+      <button class="btn-cancel" id="view-close">Close</button>
+    </div>
   </div>
 </div>
 
@@ -119,97 +181,302 @@ async function apiFetch(path, opts = {}) {
   return json.data;
 }
 
-// Load products
-const sel = document.getElementById('product-select');
-try {
-  const data = await apiFetch('/products?size=200');
-  const products = data.content || data;
-  sel.innerHTML = '<option value="">— Select a product —</option>' +
-    products.map(p => `<option value="${p.id}">${p.emoji || ''} ${p.name}</option>`).join('');
-} catch (e) { showToast(e.message, 'error'); }
+// ── State ────────────────────────────────────────────────────────────────────
 
+let allProducts = [];
 let currentProductId = null;
+let currentProductName = '';
+let viewFilter = 'all';
+let viewPage = 0;
+const PAGE_SIZE = 20;
+let allKeys = [];
 
-sel.addEventListener('change', () => {
-  currentProductId = sel.value || null;
-  if (currentProductId) loadProduct(currentProductId);
-  else document.getElementById('wh-content').innerHTML = '<div class="no-product">Select a product to manage its keys.</div>';
-});
+// ── Load warehouse overview ───────────────────────────────────────────────────
 
-async function loadProduct(productId) {
-  const content = document.getElementById('wh-content');
-  content.innerHTML = '<div class="no-product">Loading…</div>';
+async function loadWarehouse() {
+  const wrap = document.getElementById('wh-table-wrap');
   try {
-    const [countData, keysData] = await Promise.all([
-      apiFetch(`/admin/products/${productId}/keys/count`),
-      apiFetch(`/admin/products/${productId}/keys`),
-    ]);
-    const total = keysData.length;
-    const available = countData.available ?? 0;
-    const sold = total - available;
-
-    content.innerHTML = `
-      <div class="key-stats">
-        <div class="key-stat"><div class="key-stat-val">${available}</div><div class="key-stat-lbl">Available</div></div>
-        <div class="key-stat"><div class="key-stat-val">${sold}</div><div class="key-stat-lbl">Sold</div></div>
-        <div class="key-stat"><div class="key-stat-val">${total}</div><div class="key-stat-lbl">Total</div></div>
-      </div>
-
-      <div class="upload-box">
-        <div class="upload-box-title">Add Keys</div>
-        <textarea id="keys-textarea" placeholder="Paste keys here — one per line&#10;XXXXX-XXXXX-XXXXX&#10;YYYYY-YYYYY-YYYYY"></textarea>
-        <p class="upload-hint">Each non-empty line is treated as one key. Keys are encrypted before storage.</p>
-        <button class="btn-upload" id="upload-btn">Upload Keys</button>
-      </div>
-
-      <div class="keys-table-wrap">
-        <table class="keys-table">
-          <thead>
-            <tr>
-              <th>#</th>
-              <th>Status</th>
-              <th>Added</th>
-              <th>Assigned</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${keysData.length === 0
-              ? '<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-4)">No keys yet</td></tr>'
-              : keysData.map((k, i) => `
-                <tr>
-                  <td style="color:var(--text-4);font-family:var(--font-mono)">${i + 1}</td>
-                  <td><span class="${k.status === 'AVAILABLE' ? 'badge-available' : 'badge-sold'}">${k.status}</span></td>
-                  <td style="color:var(--text-3)">${k.addedAt ? new Date(k.addedAt).toLocaleString('en-IN') : '—'}</td>
-                  <td style="color:var(--text-3)">${k.assignedAt ? new Date(k.assignedAt).toLocaleString('en-IN') : '—'}</td>
-                </tr>`).join('')
-            }
-          </tbody>
-        </table>
-      </div>`;
-
-    document.getElementById('upload-btn').addEventListener('click', async () => {
-      const raw = document.getElementById('keys-textarea').value;
-      const keys = raw.split('\n').map(l => l.trim()).filter(Boolean);
-      if (!keys.length) { showToast('No keys to upload', 'error'); return; }
-      const btn = document.getElementById('upload-btn');
-      btn.disabled = true; btn.textContent = 'Uploading…';
-      try {
-        const result = await apiFetch(`/admin/products/${productId}/keys`, {
-          method: 'POST',
-          body: JSON.stringify({ keys }),
-        });
-        showToast(`Added ${result.added} key(s). Total available: ${result.totalAvailable}`, 'success');
-        loadProduct(productId);
-      } catch (e) {
-        showToast(e.message, 'error');
-        btn.disabled = false; btn.textContent = 'Upload Keys';
-      }
-    });
-
+    allProducts = await apiFetch('/admin/warehouse');
+    renderTable(allProducts);
   } catch (e) {
-    content.innerHTML = `<div class="no-product">Error: ${e.message}</div>`;
+    wrap.innerHTML = `<div class="wh-empty">Error loading: ${e.message}</div>`;
   }
 }
+
+function stockBadge(p) {
+  if (p.availableKeys > 10) return `<span class="wh-stock-badge stock-ok">In Stock (${p.availableKeys})</span>`;
+  if (p.availableKeys > 0)  return `<span class="wh-stock-badge stock-low">Low Stock (${p.availableKeys})</span>`;
+  return `<span class="wh-stock-badge stock-oos">Out of Stock</span>`;
+}
+
+function renderTable(products) {
+  const wrap = document.getElementById('wh-table-wrap');
+  if (!products.length) {
+    wrap.innerHTML = '<div class="wh-empty">No products found.</div>';
+    return;
+  }
+  wrap.innerHTML = `
+    <table class="wh-table">
+      <thead>
+        <tr>
+          <th>Product</th>
+          <th>Category</th>
+          <th>Available</th>
+          <th>Used</th>
+          <th>Total</th>
+          <th>Stock Status</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${products.map(p => `
+          <tr>
+            <td>
+              <div class="wh-product-cell">
+                ${p.imageUrl
+                  ? `<img src="${p.imageUrl}" class="wh-product-img" alt=""/>`
+                  : `<span class="wh-product-emoji">${p.emoji || ''}</span>`}
+                <div>
+                  <div class="wh-product-name">${p.productName}</div>
+                </div>
+              </div>
+            </td>
+            <td style="color:var(--text-3);font-size:12px">${p.categoryName || '—'}</td>
+            <td><span class="wh-num wh-num-avail">${p.availableKeys}</span></td>
+            <td><span class="wh-num wh-num-used">${p.usedKeys}</span></td>
+            <td><span class="wh-num wh-num-total">${p.totalKeys}</span></td>
+            <td>${stockBadge(p)}</td>
+            <td>
+              <div class="wh-actions">
+                <button class="btn-wh btn-wh-add" data-id="${p.productId}" data-name="${p.productName}">Add Keys</button>
+                <button class="btn-wh btn-wh-view" data-id="${p.productId}" data-name="${p.productName}">View Keys</button>
+              </div>
+            </td>
+          </tr>`).join('')}
+      </tbody>
+    </table>`;
+
+  wrap.querySelectorAll('.btn-wh-add').forEach(btn => {
+    btn.addEventListener('click', () => openAddModal(btn.dataset.id, btn.dataset.name));
+  });
+  wrap.querySelectorAll('.btn-wh-view').forEach(btn => {
+    btn.addEventListener('click', () => openViewModal(btn.dataset.id, btn.dataset.name));
+  });
+}
+
+// ── Search ────────────────────────────────────────────────────────────────────
+
+document.getElementById('wh-search').addEventListener('input', e => {
+  const q = e.target.value.toLowerCase();
+  const filtered = q ? allProducts.filter(p =>
+    p.productName.toLowerCase().includes(q) ||
+    (p.categoryName || '').toLowerCase().includes(q)
+  ) : allProducts;
+  renderTable(filtered);
+});
+
+// ── Add Keys Modal ────────────────────────────────────────────────────────────
+
+function openAddModal(productId, productName) {
+  currentProductId = productId;
+  currentProductName = productName;
+  document.getElementById('add-modal-title').textContent = `Add Keys — ${productName}`;
+  document.getElementById('add-keys-textarea').value = '';
+  document.getElementById('add-preview').style.display = 'none';
+  document.getElementById('add-import').disabled = true;
+  document.getElementById('add-modal').classList.add('open');
+}
+
+document.getElementById('add-keys-textarea').addEventListener('input', () => {
+  const lines = document.getElementById('add-keys-textarea').value
+    .split('\n').map(l => l.trim()).filter(Boolean);
+  const unique = [...new Set(lines)];
+  const dupes = lines.length - unique.length;
+  const preview = document.getElementById('add-preview');
+  const importBtn = document.getElementById('add-import');
+  if (unique.length === 0) {
+    preview.style.display = 'none';
+    importBtn.disabled = true;
+  } else {
+    preview.style.display = 'block';
+    preview.innerHTML = `Ready to import: <strong>${unique.length}</strong> key${unique.length !== 1 ? 's' : ''}` +
+      (dupes > 0 ? ` &nbsp;·&nbsp; Duplicates found: <strong>${dupes}</strong> (will be skipped)` : '');
+    importBtn.disabled = false;
+  }
+});
+
+document.getElementById('add-cancel').addEventListener('click', () => {
+  document.getElementById('add-modal').classList.remove('open');
+});
+
+document.getElementById('add-import').addEventListener('click', async () => {
+  const lines = document.getElementById('add-keys-textarea').value
+    .split('\n').map(l => l.trim()).filter(Boolean);
+  const keys = [...new Set(lines)];
+  if (!keys.length) return;
+  const btn = document.getElementById('add-import');
+  btn.disabled = true; btn.textContent = 'Importing…';
+  try {
+    const result = await apiFetch(`/admin/products/${currentProductId}/keys`, {
+      method: 'POST',
+      body: JSON.stringify({ keys }),
+    });
+    showToast(`Successfully added ${result.added} key${result.added !== 1 ? 's' : ''}`, 'success');
+    document.getElementById('add-modal').classList.remove('open');
+    await loadWarehouse();
+  } catch (e) {
+    showToast(e.message, 'error');
+    btn.disabled = false; btn.textContent = 'Import Keys';
+  }
+});
+
+// ── View Keys Modal ───────────────────────────────────────────────────────────
+
+async function openViewModal(productId, productName) {
+  currentProductId = productId;
+  currentProductName = productName;
+  viewFilter = 'all';
+  viewPage = 0;
+  document.getElementById('view-modal-title').textContent = `Keys — ${productName}`;
+  document.querySelectorAll('.keys-filter-btn').forEach(b => b.classList.toggle('active', b.dataset.filter === 'all'));
+  document.getElementById('view-modal').classList.add('open');
+  await loadKeys(productId);
+}
+
+async function loadKeys(productId) {
+  const body = document.getElementById('view-modal-body');
+  body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--text-4)">Loading…</div>';
+  try {
+    allKeys = await apiFetch(`/admin/warehouse/${productId}/keys`);
+    renderKeys();
+  } catch (e) {
+    body.innerHTML = `<div style="text-align:center;padding:24px;color:var(--danger)">${e.message}</div>`;
+  }
+}
+
+function renderKeys() {
+  const filtered = viewFilter === 'all' ? allKeys
+    : allKeys.filter(k => k.status === viewFilter);
+  const total = filtered.length;
+  const pages = Math.ceil(total / PAGE_SIZE);
+  const slice = filtered.slice(viewPage * PAGE_SIZE, (viewPage + 1) * PAGE_SIZE);
+
+  const body = document.getElementById('view-modal-body');
+  if (!total) {
+    body.innerHTML = `<div style="text-align:center;padding:32px;color:var(--text-4)">No keys for this filter.</div>`;
+    return;
+  }
+
+  body.innerHTML = `
+    <table class="keys-modal-table">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Key</th>
+          <th>Status</th>
+          <th>Used At</th>
+          <th>Order ID</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="keys-tbody">
+        ${slice.map((k, i) => keyRow(k, viewPage * PAGE_SIZE + i + 1)).join('')}
+      </tbody>
+    </table>
+    <div class="keys-pagination">
+      <span>Showing ${viewPage * PAGE_SIZE + 1}–${Math.min((viewPage + 1) * PAGE_SIZE, total)} of ${total}</span>
+      <div class="pagination-btns">
+        <button id="pg-prev" ${viewPage === 0 ? 'disabled' : ''}>← Prev</button>
+        <button id="pg-next" ${viewPage >= pages - 1 ? 'disabled' : ''}>Next →</button>
+      </div>
+    </div>`;
+
+  document.getElementById('pg-prev')?.addEventListener('click', () => { viewPage--; renderKeys(); });
+  document.getElementById('pg-next')?.addEventListener('click', () => { viewPage++; renderKeys(); });
+
+  body.querySelectorAll('.btn-key-edit').forEach(btn => {
+    btn.addEventListener('click', () => startEditKey(btn.dataset.id, btn.dataset.val));
+  });
+  body.querySelectorAll('.btn-key-del').forEach(btn => {
+    btn.addEventListener('click', () => deleteKey(btn.dataset.id));
+  });
+}
+
+function keyRow(k, n) {
+  const isAvail = k.status === 'AVAILABLE';
+  const shortOrderId = k.orderId ? k.orderId.substring(0, 8) + '…' : '—';
+  return `<tr id="key-row-${k.id}">
+    <td style="color:var(--text-4);font-family:var(--font-mono)">${n}</td>
+    <td class="key-val-cell">${k.maskedKey || '—'}</td>
+    <td><span class="${isAvail ? 'badge-available' : 'badge-sold'}">${isAvail ? 'AVAILABLE' : 'USED'}</span></td>
+    <td style="color:var(--text-3)">${k.assignedAt ? new Date(k.assignedAt).toLocaleDateString('en-IN') : '—'}</td>
+    <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-4)">${shortOrderId}</td>
+    <td class="key-actions-cell">
+      ${isAvail ? `
+        <button class="btn-key-edit" data-id="${k.id}" data-val="${k.maskedKey || ''}">Edit</button>
+        <button class="btn-key-del" data-id="${k.id}">Delete</button>
+      ` : '—'}
+    </td>
+  </tr>`;
+}
+
+function startEditKey(keyId, currentVal) {
+  const row = document.getElementById(`key-row-${keyId}`);
+  if (!row) return;
+  const valCell = row.querySelector('.key-val-cell');
+  valCell.innerHTML = `
+    <input class="key-edit-input" id="edit-input-${keyId}" value="" placeholder="Enter new key value"/>
+    <button class="btn-key-save" id="edit-save-${keyId}">Save</button>
+    <button class="btn-cancel" style="padding:3px 8px;font-size:11px" id="edit-cancel-${keyId}">✕</button>`;
+  document.getElementById(`edit-cancel-${keyId}`).addEventListener('click', renderKeys);
+  document.getElementById(`edit-save-${keyId}`).addEventListener('click', async () => {
+    const newVal = document.getElementById(`edit-input-${keyId}`).value.trim();
+    if (!newVal) { showToast('Key value cannot be empty', 'error'); return; }
+    try {
+      await apiFetch(`/admin/warehouse/keys/${keyId}`, {
+        method: 'PUT',
+        body: JSON.stringify({ keyValue: newVal }),
+      });
+      showToast('Key updated', 'success');
+      await loadKeys(currentProductId);
+    } catch (e) { showToast(e.message, 'error'); }
+  });
+}
+
+async function deleteKey(keyId) {
+  if (!confirm('Delete this key? This cannot be undone.')) return;
+  try {
+    await apiFetch(`/admin/warehouse/keys/${keyId}`, { method: 'DELETE' });
+    showToast('Key deleted', 'success');
+    await loadKeys(currentProductId);
+    await loadWarehouse();
+  } catch (e) { showToast(e.message, 'error'); }
+}
+
+document.querySelectorAll('.keys-filter-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    viewFilter = btn.dataset.filter;
+    viewPage = 0;
+    document.querySelectorAll('.keys-filter-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    renderKeys();
+  });
+});
+
+document.getElementById('view-close').addEventListener('click', () => {
+  document.getElementById('view-modal').classList.remove('open');
+});
+
+// Close on overlay click
+['add-modal', 'view-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target === e.currentTarget) e.currentTarget.classList.remove('open');
+  });
+});
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+
+await loadWarehouse();
 </script>
 </body>
 </html>

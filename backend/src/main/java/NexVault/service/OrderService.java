@@ -3,13 +3,16 @@ package NexVault.service;
 import NexVault.dto.request.CreateOrderRequest;
 import NexVault.dto.response.CartResponse;
 import NexVault.dto.response.CouponApplyResponse;
+import NexVault.dto.response.OrderItemResponse;
 import NexVault.dto.response.OrderResponse;
 import NexVault.exception.ResourceNotFoundException;
 import NexVault.model.Coupon;
+import NexVault.model.DigitalKey;
 import NexVault.model.Order;
 import NexVault.model.OrderItem;
 import NexVault.model.User;
 import NexVault.repository.CouponRepository;
+import NexVault.repository.DigitalKeyRepository;
 import NexVault.repository.OrderRepository;
 import NexVault.repository.ProductRepository;
 import NexVault.repository.UserRepository;
@@ -27,12 +30,13 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class OrderService {
 
-    private final OrderRepository   orderRepository;
-    private final UserRepository    userRepository;
-    private final ProductRepository productRepository;
-    private final CartService       cartService;
-    private final CouponService     couponService;
-    private final CouponRepository  couponRepository;
+    private final OrderRepository      orderRepository;
+    private final UserRepository       userRepository;
+    private final ProductRepository    productRepository;
+    private final CartService          cartService;
+    private final CouponService        couponService;
+    private final CouponRepository     couponRepository;
+    private final DigitalKeyRepository digitalKeyRepository;
 
     @Transactional
     public OrderResponse createOrder(UUID userId, CreateOrderRequest req) {
@@ -101,7 +105,25 @@ public class OrderService {
     public List<OrderResponse> getMyOrders(UUID userId) {
         return orderRepository.findByUserIdWithItems(userId)
                 .stream()
-                .map(OrderResponse::from)
+                .map(order -> enrichWithKeyRevealStatus(order))
                 .toList();
+    }
+
+    private OrderResponse enrichWithKeyRevealStatus(Order order) {
+        var enrichedItems = order.getItems().stream().map(item -> {
+            OrderItemResponse base = OrderItemResponse.from(item);
+            if (item.getDigitalKeyId() == null) return base;
+            boolean revealed = digitalKeyRepository.findById(item.getDigitalKeyId())
+                    .map(DigitalKey::isRevealed).orElse(false);
+            return base.withRevealStatus(revealed);
+        }).toList();
+
+        return new OrderResponse(
+                order.getId(), order.getStatus(), order.getTotalAmount(),
+                order.getDiscountAmount(), order.getCouponCode(), order.getPaymentMethod(),
+                order.getPaidAt(), order.getTotalItems(), order.getShippingName(),
+                order.getShippingEmail(), order.getShippingPhone(), order.getShippingAddress(),
+                enrichedItems, order.getCreatedAt()
+        );
     }
 }

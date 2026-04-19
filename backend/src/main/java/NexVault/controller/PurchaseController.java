@@ -8,6 +8,8 @@ import NexVault.model.User;
 import NexVault.repository.ProductRepository;
 import NexVault.repository.PurchaseRepository;
 import NexVault.repository.UserRepository;
+import NexVault.service.DigitalKeyService;
+import NexVault.service.OtpService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -43,6 +45,8 @@ public class PurchaseController {
     private final PurchaseRepository purchaseRepository;
     private final ProductRepository  productRepository;
     private final UserRepository     userRepository;
+    private final DigitalKeyService  digitalKeyService;
+    private final OtpService         otpService;
 
     /**
      * Records that the authenticated user purchased {@code productId}.
@@ -91,5 +95,64 @@ public class PurchaseController {
         UUID userId = (UUID) auth.getPrincipal();
         boolean purchased = purchaseRepository.existsByUser_IdAndProduct_Id(userId, productId);
         return ResponseEntity.ok(ApiResponse.ok(Map.of("purchased", purchased)));
+    }
+
+    // ── Key reveal via OTP ────────────────────────────────────────────────────
+
+    @PostMapping("/send-reveal-otp")
+    @Operation(summary = "Send OTP to reveal a purchased key")
+    public ResponseEntity<ApiResponse<Map<String, String>>> sendRevealOtp(
+            @RequestBody Map<String, String> body,
+            Authentication auth) {
+
+        UUID userId = (UUID) auth.getPrincipal();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        otpService.generateAndSend(user, "KEY_REVEAL");
+
+        String masked = maskEmail(user.getEmail());
+        return ResponseEntity.ok(ApiResponse.ok(
+                Map.of("message", "OTP sent", "maskedEmail", masked)));
+    }
+
+    @PostMapping("/reveal-key")
+    @Operation(summary = "Verify OTP and reveal activation key")
+    public ResponseEntity<ApiResponse<Map<String, String>>> revealKey(
+            @RequestBody Map<String, String> body,
+            Authentication auth) {
+
+        UUID userId = (UUID) auth.getPrincipal();
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User", userId));
+
+        String otp   = body.get("otp");
+        UUID   keyId = UUID.fromString(body.get("keyId"));
+
+        otpService.verify(user, otp, "KEY_REVEAL");
+
+        String keyValue = digitalKeyService.revealKey(keyId, userId);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("keyValue", keyValue)));
+    }
+
+    @GetMapping("/my-key/{keyId}")
+    @Operation(summary = "Get already-revealed key without OTP")
+    public ResponseEntity<ApiResponse<Map<String, String>>> getMyKey(
+            @PathVariable UUID keyId,
+            Authentication auth) {
+
+        UUID userId = (UUID) auth.getPrincipal();
+        String keyValue = digitalKeyService.getRevealedKey(keyId, userId);
+        return ResponseEntity.ok(ApiResponse.ok(Map.of("keyValue", keyValue)));
+    }
+
+    private String maskEmail(String email) {
+        if (email == null || !email.contains("@")) return "***";
+        String[] parts = email.split("@");
+        String local = parts[0];
+        String masked = local.length() <= 2
+                ? local.charAt(0) + "***"
+                : local.charAt(0) + "***" + local.charAt(local.length() - 1);
+        return masked + "@" + parts[1];
     }
 }

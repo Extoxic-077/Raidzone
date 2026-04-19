@@ -39,4 +39,10 @@ public class DigitalKey {
 
     @Column(name = "added_at", nullable = false, updatable = false)
     private LocalDateTime addedAt = LocalDateTime.now();
+
+    @Column(name = "is_revealed", nullable = false)
+    private boolean isRevealed = false;
+
+    @Column(name = "revealed_at")
+    private LocalDateTime revealedAt;
 }

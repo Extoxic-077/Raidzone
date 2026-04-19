@@ -14,5 +14,6 @@ public record CartItemResponse(
         BigDecimal price,
         BigDecimal originalPrice,
         int quantity,
-        BigDecimal lineTotal
+        BigDecimal lineTotal,
+        boolean isAvailable
 ) {}

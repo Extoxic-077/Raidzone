@@ -61,6 +61,7 @@ public record ProductResponse(
         Boolean isActive,
         String badge,
         Integer sortOrder,
+        Integer stockCount,
         LocalDateTime createdAt,
         LocalDateTime updatedAt
 ) {
@@ -110,6 +111,7 @@ public record ProductResponse(
                 product.getIsActive(),
                 product.getBadge(),
                 product.getSortOrder(),
+                product.getStockCount(),
                 product.getCreatedAt(),
                 product.getUpdatedAt()
         );

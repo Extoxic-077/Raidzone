@@ -563,6 +563,10 @@
 .card-badge.hot   { background: var(--hot); }
 .card-badge.sale  { background: var(--danger); }
 .card-badge.new   { background: var(--success); }
+.card-oos-badge   { background: rgba(239,68,68,0.85); color: #fff; font-size: 9px; letter-spacing: 0.08em; left: 8px; }
+
+.card-oos-btn { background: rgba(100,100,120,0.35) !important; cursor: not-allowed !important; opacity: 0.55 !important; }
+.card-oos-btn:hover { opacity: 0.55 !important; }
 
 .card-wish {
   position: absolute;

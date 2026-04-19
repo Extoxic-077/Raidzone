@@ -283,6 +283,15 @@
 .btn-buy-now:hover { opacity: 0.85; transform: translateY(-1px); }
 .btn-buy-now:active { transform: scale(0.97); }
 
+.btn-oos {
+  background: rgba(100,100,120,0.3) !important;
+  color: var(--text-4) !important;
+  cursor: not-allowed !important;
+  opacity: 0.6 !important;
+  transform: none !important;
+}
+.btn-oos:hover { opacity: 0.6 !important; transform: none !important; }
+
 .btn-wishlist-detail {
   width: 48px;
   height: 48px;

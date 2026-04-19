@@ -12,7 +12,9 @@ public record OrderItemResponse(
         String imageUrl,
         BigDecimal price,
         int quantity,
-        BigDecimal lineTotal
+        BigDecimal lineTotal,
+        UUID keyId,
+        Boolean isRevealed
 ) {
     public static OrderItemResponse from(OrderItem item) {
         return new OrderItemResponse(
@@ -22,7 +24,16 @@ public record OrderItemResponse(
                 item.getImageUrl(),
                 item.getPrice(),
                 item.getQuantity(),
-                item.getLineTotal()
+                item.getLineTotal(),
+                item.getDigitalKeyId(),
+                null  // isRevealed populated separately by service
+        );
+    }
+
+    public OrderItemResponse withRevealStatus(Boolean revealed) {
+        return new OrderItemResponse(
+                productId, productName, productEmoji, imageUrl,
+                price, quantity, lineTotal, keyId, revealed
         );
     }
 }

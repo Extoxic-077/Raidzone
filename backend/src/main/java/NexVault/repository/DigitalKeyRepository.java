@@ -25,4 +25,14 @@ public interface DigitalKeyRepository extends JpaRepository<DigitalKey, UUID> {
     List<DigitalKey> findSoldKeysByUserId(@Param("userId") UUID userId);
 
     List<DigitalKey> findByProductIdOrderByAddedAtDesc(UUID productId);
+
+    @Query("""
+        SELECT k FROM DigitalKey k
+        JOIN k.orderItem oi
+        JOIN oi.order o
+        WHERE k.id = :keyId AND o.user.id = :userId
+        """)
+    java.util.Optional<DigitalKey> findByIdAndUserId(
+            @Param("keyId") UUID keyId,
+            @Param("userId") UUID userId);
 }

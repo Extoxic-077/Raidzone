@@ -417,7 +417,7 @@ public class AdminController {
     }
 
     @GetMapping("/products/{id}/keys")
-    @Operation(summary = "List all keys for a product (admin view, decrypted)")
+    @Operation(summary = "List all keys for a product (masked for available, full for sold)")
     public ResponseEntity<ApiResponse<List<DigitalKeyService.AdminKeyView>>> listKeys(
             @PathVariable UUID id) {
         return ResponseEntity.ok(ApiResponse.ok(digitalKeyService.getKeysForProduct(id)));
@@ -428,6 +428,40 @@ public class AdminController {
     public ResponseEntity<ApiResponse<Map<String, Long>>> countKeys(@PathVariable UUID id) {
         long available = digitalKeyService.countAvailable(id);
         return ResponseEntity.ok(ApiResponse.ok(Map.of("available", available)));
+    }
+
+    // ── Warehouse overview ────────────────────────────────────────────────────
+
+    @GetMapping("/warehouse")
+    @Operation(summary = "Get all products with key stock overview (ADMIN)")
+    public ResponseEntity<ApiResponse<List<DigitalKeyService.WarehouseProductView>>> getWarehouse() {
+        return ResponseEntity.ok(ApiResponse.ok(digitalKeyService.getWarehouseOverview()));
+    }
+
+    @GetMapping("/warehouse/{productId}/keys")
+    @Operation(summary = "List all keys for a product with masking (ADMIN)")
+    public ResponseEntity<ApiResponse<List<DigitalKeyService.AdminKeyView>>> listWarehouseKeys(
+            @PathVariable UUID productId) {
+        return ResponseEntity.ok(ApiResponse.ok(digitalKeyService.getKeysForProduct(productId)));
+    }
+
+    @DeleteMapping("/warehouse/keys/{keyId}")
+    @Operation(summary = "Delete an unused key (ADMIN)")
+    public ResponseEntity<ApiResponse<Void>> deleteKey(@PathVariable UUID keyId) {
+        digitalKeyService.deleteKey(keyId);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Key deleted"));
+    }
+
+    @PutMapping("/warehouse/keys/{keyId}")
+    @Operation(summary = "Update an unused key value (ADMIN)")
+    public ResponseEntity<ApiResponse<DigitalKeyService.AdminKeyView>> updateKey(
+            @PathVariable UUID keyId,
+            @RequestBody Map<String, String> body) {
+        String newValue = body.get("keyValue");
+        if (newValue == null || newValue.isBlank()) {
+            return ResponseEntity.badRequest().body(ApiResponse.error("keyValue is required"));
+        }
+        return ResponseEntity.ok(ApiResponse.ok(digitalKeyService.updateKey(keyId, newValue)));
     }
 
     // ── Email Campaigns ───────────────────────────────────────────────────────

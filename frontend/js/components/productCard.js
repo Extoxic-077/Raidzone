@@ -68,8 +68,16 @@ export function createProductCard(product) {
   const gradient = getCategoryGradient(product.categoryName || product.category || '');
   imgArea.style.background = gradient;
 
-  // Badge
-  if (product.badge) {
+  // Out of stock overlay badge
+  const isOutOfStock = product.isActive === false || product.stockCount === 0;
+  if (isOutOfStock) {
+    const oosLabel = document.createElement('div');
+    oosLabel.className = 'card-badge card-oos-badge';
+    oosLabel.textContent = 'OUT OF STOCK';
+    imgArea.appendChild(oosLabel);
+    imgArea.style.opacity = '0.6';
+  } else if (product.badge) {
+    // Regular badge only when in stock
     const badge = document.createElement('div');
     const badgeType = product.badge.toLowerCase();
     badge.className = `card-badge ${badgeType}`;
@@ -166,28 +174,35 @@ export function createProductCard(product) {
     priceBlock.appendChild(orig);
   }
 
+  const isOutOfStockBtn = product.isActive === false || product.stockCount === 0;
   const addBtn = document.createElement('button');
-  addBtn.className = 'card-add-btn';
-  addBtn.setAttribute('aria-label', 'Add to cart');
-  addBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>`;
-
-  addBtn.addEventListener('click', async (e) => {
-    e.stopPropagation();
-    if (!isLoggedIn()) {
-      showToast('Please sign in first', 'info');
-      setTimeout(() => { window.location.href = 'login.html'; }, 800);
-      return;
-    }
-    try {
-      await addToCart(product.id, 1);
-      addBtn.classList.add('click');
-      addBtn.addEventListener('animationend', () => addBtn.classList.remove('click'), { once: true });
-      animateCartBadge();
-      showToast(`${product.name} added to cart`, 'success');
-    } catch (err) {
-      showToast(err.message, 'error');
-    }
-  });
+  if (isOutOfStockBtn) {
+    addBtn.className = 'card-add-btn card-oos-btn';
+    addBtn.setAttribute('aria-label', 'Out of stock');
+    addBtn.disabled = true;
+    addBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>`;
+  } else {
+    addBtn.className = 'card-add-btn';
+    addBtn.setAttribute('aria-label', 'Add to cart');
+    addBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>`;
+    addBtn.addEventListener('click', async (e) => {
+      e.stopPropagation();
+      if (!isLoggedIn()) {
+        showToast('Please sign in first', 'info');
+        setTimeout(() => { window.location.href = 'login.html'; }, 800);
+        return;
+      }
+      try {
+        await addToCart(product.id, 1);
+        addBtn.classList.add('click');
+        addBtn.addEventListener('animationend', () => addBtn.classList.remove('click'), { once: true });
+        animateCartBadge();
+        showToast(`${product.name} added to cart`, 'success');
+      } catch (err) {
+        showToast(err.message, 'error');
+      }
+    });
+  }
 
   footer.appendChild(priceBlock);
   footer.appendChild(addBtn);

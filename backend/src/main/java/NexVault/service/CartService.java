@@ -120,8 +120,9 @@ public class CartService {
             UUID productId = UUID.fromString(entry.getKey().toString());
             int qty = toInt(entry.getValue());
             Product product = productMap.get(productId);
-            if (product == null || !Boolean.TRUE.equals(product.getIsActive())) continue;
+            if (product == null) continue;
 
+            boolean available = Boolean.TRUE.equals(product.getIsActive()) && product.getStockCount() > 0;
             BigDecimal lineTotal = product.getPrice().multiply(BigDecimal.valueOf(qty));
             items.add(new CartItemResponse(
                     product.getId(),
@@ -131,10 +132,13 @@ public class CartService {
                     product.getPrice(),
                     product.getOriginalPrice(),
                     qty,
-                    lineTotal
+                    lineTotal,
+                    available
             ));
-            subtotal = subtotal.add(lineTotal);
-            totalItems += qty;
+            if (available) {
+                subtotal = subtotal.add(lineTotal);
+                totalItems += qty;
+            }
         }
 
         items.sort(Comparator.comparing(CartItemResponse::name));

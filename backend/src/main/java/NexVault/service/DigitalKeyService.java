@@ -9,8 +9,10 @@ import NexVault.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
 import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
@@ -42,7 +44,8 @@ public class DigitalKeyService {
 
     @Transactional
     public int addKeys(UUID productId, List<String> rawKeys) {
-        Product product = productRepository.getReferenceById(productId);
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
         int added = 0;
         for (String raw : rawKeys) {
             String trimmed = raw.trim();
@@ -53,7 +56,14 @@ public class DigitalKeyService {
             digitalKeyRepository.save(key);
             added++;
         }
-        log.info("Added {} keys for product {}", added, productId);
+        // Sync denormalised stock count
+        long available = digitalKeyRepository.countByProductIdAndStatus(productId, "AVAILABLE");
+        product.setStockCount((int) available);
+        if (available > 0 && !Boolean.TRUE.equals(product.getIsActive())) {
+            product.setIsActive(true);
+        }
+        productRepository.save(product);
+        log.info("Added {} keys for product {} (available now: {})", added, productId, available);
         return added;
     }
 
@@ -76,7 +86,18 @@ public class DigitalKeyService {
         oi.setDigitalKeyId(key.getId());
         orderItemRepository.save(oi);
 
-        log.info("Assigned key {} to order item {}", key.getId(), orderItemId);
+        // Sync denormalised stock count on product
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+        long remaining = digitalKeyRepository.countByProductIdAndStatus(productId, "AVAILABLE");
+        product.setStockCount((int) remaining);
+        if (remaining == 0) {
+            product.setIsActive(false);
+            log.warn("Product {} is now out of stock — deactivated", productId);
+        }
+        productRepository.save(product);
+
+        log.info("Assigned key {} to order item {} (remaining: {})", key.getId(), orderItemId, remaining);
         return decrypt(key.getKeyValue());
     }
 
@@ -107,10 +128,106 @@ public class DigitalKeyService {
                 .map(k -> new AdminKeyView(
                         k.getId(),
                         k.getStatus(),
+                        maskKey(k.getKeyValue(), k.getStatus()),
                         k.getOrderItem() != null ? k.getOrderItem().getId() : null,
+                        k.getOrderItem() != null && k.getOrderItem().getOrder() != null
+                                ? k.getOrderItem().getOrder().getId() : null,
+                        k.getOrderItem() != null && k.getOrderItem().getOrder() != null
+                                && k.getOrderItem().getOrder().getUser() != null
+                                ? k.getOrderItem().getOrder().getUser().getId() : null,
                         k.getAssignedAt(),
                         k.getAddedAt()
                 )).toList();
+    }
+
+    // ── Admin warehouse CRUD ──────────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<WarehouseProductView> getWarehouseOverview() {
+        return productRepository.findAll().stream()
+                .map(p -> {
+                    long available = digitalKeyRepository.countByProductIdAndStatus(p.getId(), "AVAILABLE");
+                    long sold      = digitalKeyRepository.countByProductIdAndStatus(p.getId(), "SOLD");
+                    return new WarehouseProductView(
+                            p.getId(), p.getName(), p.getEmoji(), p.getImageUrl(),
+                            p.getCategory() != null ? p.getCategory().getName() : null,
+                            (int) available, (int) sold, (int)(available + sold),
+                            Boolean.TRUE.equals(p.getIsActive()),
+                            available == 0
+                    );
+                }).toList();
+    }
+
+    @Transactional
+    public void deleteKey(UUID keyId) {
+        DigitalKey key = digitalKeyRepository.findById(keyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Key not found"));
+        if ("SOLD".equals(key.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "Cannot delete a key that has already been delivered to a customer");
+        }
+        UUID productId = key.getProduct().getId();
+        digitalKeyRepository.delete(key);
+
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found: " + productId));
+        long remaining = digitalKeyRepository.countByProductIdAndStatus(productId, "AVAILABLE");
+        product.setStockCount((int) remaining);
+        productRepository.save(product);
+    }
+
+    @Transactional
+    public AdminKeyView updateKey(UUID keyId, String newKeyValue) {
+        DigitalKey key = digitalKeyRepository.findById(keyId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Key not found"));
+        if ("SOLD".equals(key.getStatus())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Cannot edit a key that has been delivered");
+        }
+        key.setKeyValue(encrypt(newKeyValue.trim()));
+        digitalKeyRepository.save(key);
+        return new AdminKeyView(key.getId(), key.getStatus(),
+                maskKey(key.getKeyValue(), key.getStatus()), null, null, null,
+                key.getAssignedAt(), key.getAddedAt());
+    }
+
+    // ── Key reveal for users ──────────────────────────────────────────────────
+
+    @Transactional
+    public String revealKey(UUID keyId, UUID userId) {
+        DigitalKey key = digitalKeyRepository.findByIdAndUserId(keyId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Key not found or does not belong to your account"));
+        key.setRevealed(true);
+        key.setRevealedAt(LocalDateTime.now());
+        digitalKeyRepository.save(key);
+        return decrypt(key.getKeyValue());
+    }
+
+    @Transactional(readOnly = true)
+    public String getRevealedKey(UUID keyId, UUID userId) {
+        DigitalKey key = digitalKeyRepository.findByIdAndUserId(keyId, userId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.FORBIDDEN,
+                        "Key not found or does not belong to your account"));
+        if (!key.isRevealed()) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+                    "Key has not been revealed yet — use the reveal endpoint first");
+        }
+        return decrypt(key.getKeyValue());
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private String maskKey(String encryptedValue, String status) {
+        if ("SOLD".equals(status)) {
+            return decrypt(encryptedValue);
+        }
+        try {
+            String plain = decrypt(encryptedValue);
+            if (plain.length() <= 8) return "****";
+            return plain.substring(0, 4) + "****" + plain.substring(plain.length() - 4);
+        } catch (Exception e) {
+            return "****";
+        }
     }
 
     // ── DTOs ──────────────────────────────────────────────────────────────────
@@ -120,8 +237,13 @@ public class DigitalKeyService {
             String imageUrl, String keyValue, LocalDateTime assignedAt) {}
 
     public record AdminKeyView(
-            UUID id, String status, UUID orderItemId,
+            UUID id, String status, String maskedKey, UUID orderItemId, UUID orderId, UUID userId,
             LocalDateTime assignedAt, LocalDateTime addedAt) {}
+
+    public record WarehouseProductView(
+            UUID productId, String productName, String emoji, String imageUrl,
+            String categoryName, int availableKeys, int usedKeys, int totalKeys,
+            boolean isActive, boolean isOutOfStock) {}
 
     // ── Encryption helpers ────────────────────────────────────────────────────
 

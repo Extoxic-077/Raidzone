@@ -55,10 +55,6 @@ function userButtonHTML() {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
           My Orders
         </a>
-        <a href="my-keys.html" class="dropdown-item" role="menuitem">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 2l-2 2m-7.61 7.61a5.5 5.5 0 1 1-7.778 7.778 5.5 5.5 0 0 1 7.777-7.777zm0 0L15.5 7.5m0 0 3 3L22 7l-3-3m-3.5 3.5L19 4"/></svg>
-          My Keys
-        </a>
         <a href="wishlist.html" class="dropdown-item" role="menuitem">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
           My Wishlist
@@ -174,7 +170,6 @@ function renderMobileNavbar(el) {
               </div>
               <div class="dropdown-divider"></div>
               <a href="orders.html"   class="dropdown-item">My Orders</a>
-              <a href="my-keys.html" class="dropdown-item">My Keys</a>
               <a href="profile.html" class="dropdown-item">Profile</a>
               <a href="wishlist.html" class="dropdown-item">Wishlist</a>
               ${isAdmin() ? `<a href="admin/index.html" class="dropdown-item dropdown-item-admin">Admin Panel</a>` : ''}
@@ -567,6 +562,67 @@ function loadCartCount() {
     .catch(() => {});
 }
 
+// ── Browser push notifications ────────────────────────────────────────────────
+
+function initBrowserNotifications() {
+  if (!('Notification' in window)) return;
+  if (Notification.permission === 'default') {
+    // Ask on first login — slight delay so it doesn't feel intrusive
+    setTimeout(() => {
+      Notification.requestPermission().then(perm => {
+        if (perm === 'granted') localStorage.setItem('notifPermission', 'granted');
+      });
+    }, 3000);
+  }
+}
+
+function playBeep() {
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.frequency.value = 800;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(0.3, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + 0.25);
+  } catch { /* ignore if AudioContext blocked */ }
+}
+
+function showBrowserNotification(title, body, url) {
+  if (Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(title, { body, icon: '/favicon.ico', tag: title });
+    n.onclick = () => { window.focus(); if (url) window.location.href = url; n.close(); };
+    playBeep();
+  } catch { /* ignore */ }
+}
+
+let lastNotifCount = -1;
+
+async function startNotificationPolling() {
+  const poll = async () => {
+    try {
+      const data = await getNotificationCount();
+      const count = data?.count ?? data ?? 0;
+      if (lastNotifCount >= 0 && count > lastNotifCount) {
+        // Fetch new notifications to get their titles
+        const notifs = await getNotifications();
+        const newOnes = Array.isArray(notifs) ? notifs.filter(n => !n.read) : [];
+        for (const n of newOnes.slice(0, count - lastNotifCount)) {
+          showBrowserNotification(n.title || 'New notification', n.message || '', 'notifications.html');
+        }
+      }
+      lastNotifCount = count;
+    } catch { /* silent — don't break UI */ }
+  };
+  await poll();
+  setInterval(poll, 30000);
+}
+
 // ── Main export ───────────────────────────────────────────────────────────────
 
 export async function initNavbar() {
@@ -596,6 +652,12 @@ export async function initNavbar() {
   loadCartCount();
   loadNotifCount();
   setInterval(loadNotifCount, 60000);
+
+  // Browser push notifications + 30s polling for new notifications
+  if (isLoggedIn()) {
+    initBrowserNotifications();
+    startNotificationPolling();
+  }
 
   // Re-render on resize crossing the 768px breakpoint
   let wasMobile = isMobile;

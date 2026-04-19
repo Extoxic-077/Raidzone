@@ -103,6 +103,18 @@ public class NotificationService {
     }
 
     @Transactional
+    public void notifyKeyReady(User user, UUID orderId, UUID productId, String productName) {
+        String safeName = productName != null ? productName.replace("\"", "'") : "your product";
+        String meta = String.format(
+                "{\"orderId\":\"%s\",\"productId\":\"%s\",\"productName\":\"%s\"}",
+                orderId, productId, safeName);
+        createNotification(user.getId(), "KEY_READY",
+                "Your key is ready!",
+                "Your purchase of " + safeName + " is confirmed. Click Redeem in My Orders to get your activation key.",
+                meta);
+    }
+
+    @Transactional
     public void notifyWelcome(User user) {
         createNotification(user.getId(), "WELCOME",
                 "Welcome to NexVault!",

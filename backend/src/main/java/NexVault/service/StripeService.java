@@ -148,7 +148,11 @@ public class StripeService {
                 order.getItems().forEach(item -> {
                     try {
                         if (item.getProduct() != null) {
-                            digitalKeyService.assignKey(item.getId(), item.getProduct().getId());
+                            String assigned = digitalKeyService.assignKey(item.getId(), item.getProduct().getId());
+                            if (assigned != null) {
+                                notificationService.notifyKeyReady(order.getUser(), order.getId(),
+                                        item.getProduct().getId(), item.getProductName());
+                            }
                         }
                     } catch (Exception e) {
                         log.warn("Could not assign digital key for item {}: {}", item.getId(), e.getMessage());
