@@ -196,7 +196,7 @@ function summaryHTML() {
       </div>
       ${couponData ? `
         <div class="co-summary-row" style="color:#22D3EE">
-          <span>🏷️ Promo (${couponData.code})</span>
+          <span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:middle;margin-right:3px"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> Promo (${couponData.code})</span>
           <span style="font-family:var(--font-mono);font-weight:600">−${fmt(cpnDisc)}</span>
         </div>` : ''}
       <div class="co-summary-row">
@@ -216,14 +216,14 @@ async function renderStep1() {
   try {
     cart = await getCart();
   } catch (err) {
-    body.innerHTML = `<div class="co-error">⚠️ ${err.message}</div>`;
+    body.innerHTML = `<div class="co-error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="vertical-align:middle;margin-right:4px"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg> ${err.message}</div>`;
     return;
   }
 
   if (!cart.items || cart.items.length === 0) {
     body.innerHTML = `
       <div class="co-empty">
-        <div class="co-empty-icon">🛒</div>
+        <div class="co-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg></div>
         <p>Your cart is empty.</p>
         <a href="catalog.html" class="btn-co-primary">Browse Products</a>
       </div>`;
@@ -250,7 +250,7 @@ async function renderStep1() {
         </div>
       </div>
       <div class="co-card co-right">
-        ${couponData ? `<div class="co-savings-banner">🎉 Coupon ${couponData.code} — saving ${fmt(couponData.discountAmount)}!</div>` : ''}
+        ${couponData ? `<div class="co-savings-banner"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>Coupon ${couponData.code} — saving ${fmt(couponData.discountAmount)}!</div>` : ''}
         ${summaryHTML()}
         <div class="co-spacer"></div>
         <div class="co-actions">
@@ -280,9 +280,9 @@ function loadRazorpayScript() {
 function payTabsHTML() {
   return `
     <div class="payment-tabs" id="payment-tabs">
-      <button class="pay-tab ${activeTab==='stripe'    ? 'active':''}" data-tab="stripe">💳 Card</button>
-      <button class="pay-tab ${activeTab==='razorpay'  ? 'active':''}" data-tab="razorpay">🇮🇳 UPI / NetBanking</button>
-      <button class="pay-tab ${activeTab==='coinbase'  ? 'active':''}" data-tab="coinbase">₿ Crypto</button>
+      <button class="pay-tab ${activeTab==='stripe'    ? 'active':''}" data-tab="stripe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Card</button>
+      <button class="pay-tab ${activeTab==='razorpay'  ? 'active':''}" data-tab="razorpay"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>UPI / NetBanking</button>
+      <button class="pay-tab ${activeTab==='coinbase'  ? 'active':''}" data-tab="coinbase"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>Crypto</button>
     </div>`;
 }
 
@@ -297,7 +297,7 @@ function stripeTabHTML() {
         <span>Visa</span><span>Mastercard</span><span>RuPay</span><span>Amex</span>
       </div>
       <div class="pay-error" id="stripe-error" hidden></div>
-      <div class="stripe-lock-note">🔒 Secured by Stripe · Card details are never stored on our servers</div>
+      <div class="stripe-lock-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="vertical-align:middle;margin-right:3px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Secured by Stripe · Card details are never stored on our servers</div>
       <button class="btn-pay-tab" id="stripe-pay-btn">Pay ${fmt(grandTotal())} →</button>
     </div>`;
 }
@@ -307,12 +307,12 @@ function razorpayTabHTML() {
     <div class="pay-panel hidden" id="panel-razorpay">
       <div class="rzp-note">Razorpay checkout modal will open — pay via UPI, card, netbanking or wallet.</div>
       <div class="upi-badges">
-        <span class="upi-badge"><span class="upi-badge-icon">💳</span>Cards</span>
-        <span class="upi-badge"><span class="upi-badge-icon">📱</span>UPI</span>
+        <span class="upi-badge"><span class="upi-badge-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></span>Cards</span>
+        <span class="upi-badge"><span class="upi-badge-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>UPI</span>
         <span class="upi-badge"><span class="upi-badge-icon">🏦</span>NetBanking</span>
         <span class="upi-badge"><span class="upi-badge-icon">👛</span>Wallet</span>
       </div>
-      <div class="pay-security-note">🔒 Autocomplete disabled to enhance security</div>
+      <div class="pay-security-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="vertical-align:middle;margin-right:3px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Autocomplete disabled to enhance security</div>
       <div class="pay-error" id="rzp-error" hidden></div>
       <button class="btn-pay-tab btn-pay-razorpay" id="razorpay-pay-btn">Pay ${fmt(grandTotal())} with Razorpay →</button>
     </div>`;
@@ -363,7 +363,7 @@ async function renderPayment() {
         <button class="btn-co-ghost" id="back-to-review" style="align-self:flex-start;margin-top:8px">← Back to Review</button>
       </div>
       <div class="co-card co-right">
-        <div class="nvpay-secure-row">🔐 <span>256-bit SSL · Encrypted Checkout</span></div>
+        <div class="nvpay-secure-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>256-bit SSL · Encrypted Checkout</span></div>
         <div class="co-col-title" style="font-size:0.9rem;margin-bottom:10px">Order Summary</div>
         ${summaryHTML()}
         <div class="pay-disclaimer" style="margin-top:10px">
@@ -498,7 +498,7 @@ async function handleStripePay() {
     }
 
     // 5. Success — redirect after 1 s (webhook will confirm DB)
-    btn.innerHTML = '✅ Payment confirmed! Redirecting…';
+    btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg> Payment confirmed! Redirecting…';
     setTimeout(() => {
       window.location.href = `orders.html?success=true&orderId=${order.id}`;
     }, 1000);

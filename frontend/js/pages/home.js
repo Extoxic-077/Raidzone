@@ -9,48 +9,48 @@ import { makeDraggable } from '../utils/dragScroll.js';
 const SLIDES = [
   {
     gradient: 'linear-gradient(135deg, #0f0a2e, #1a0a3e)',
-    badge: '🔥 FLASH SALE',
+    badge: 'FLASH SALE',
     title: 'Steam Summer Sale',
     subtitle: 'Top titles up to 90% off',
     price: 'From ₹499',
     cta: 'Shop Now →',
-    emoji: '🎮',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" width="100" height="100"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 7l2 2 4-4"/></svg>`,
   },
   {
     gradient: 'linear-gradient(135deg, #0a1a2e, #0a2a1a)',
-    badge: '✨ NEW',
+    badge: 'NEW',
     title: 'Xbox Game Pass',
     subtitle: '100+ games, instant access',
     price: '₹1,299',
     cta: 'Get It Now →',
-    emoji: '🎯',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" width="100" height="100"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>`,
   },
   {
     gradient: 'linear-gradient(135deg, #1a1a0a, #2a180a)',
-    badge: '₿ CRYPTO',
+    badge: 'CRYPTO',
     title: 'Pay with Bitcoin',
     subtitle: '5% extra off with crypto',
     price: '5% Extra Off',
     cta: 'Learn More →',
-    emoji: '₿',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" width="100" height="100"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`,
   },
   {
     gradient: 'linear-gradient(135deg, #1a0a1a, #2e0a2e)',
-    badge: '⚡ HOT',
+    badge: 'HOT',
     title: 'Valorant VP Sale',
     subtitle: 'All regions, instant delivery',
     price: 'From ₹699',
     cta: 'Buy VP →',
-    emoji: '⚡',
+    icon: `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" width="100" height="100"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
   },
 ];
 
 const NEWS_CARDS = [
-  { type: 'PROMO',  emoji: '🔥', title: 'Steam Sale starts this Friday — up to 80% off',           date: 'Mar 25, 2026' },
-  { type: 'NEWS',   emoji: '₿', title: 'NexVault now accepts USDT crypto payments',               date: 'Mar 20, 2026' },
-  { type: 'UPDATE', emoji: '🎮', title: 'Valorant Episode 10 — new exclusive skins',               date: 'Mar 15, 2026' },
-  { type: 'PROMO',  emoji: '🇮🇳', title: 'Republic Day Sale — extra 10% with code INDIA26',        date: 'Jan 26, 2026' },
-  { type: 'NEWS',   emoji: '🏆', title: 'NexVault reaches 2 million orders delivered',            date: 'Jan 10, 2026' },
+  { type: 'PROMO',  icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`, title: 'Steam Sale starts this Friday — up to 80% off',           date: 'Mar 25, 2026' },
+  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`, title: 'NexVault now accepts USDT crypto payments',               date: 'Mar 20, 2026' },
+  { type: 'UPDATE', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`, title: 'Valorant Episode 10 — new exclusive skins',               date: 'Mar 15, 2026' },
+  { type: 'PROMO',  icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`, title: 'Republic Day Sale — extra 10% with code INDIA26',        date: 'Jan 26, 2026' },
+  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="8" r="6"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>`, title: 'NexVault reaches 2 million orders delivered',            date: 'Jan 10, 2026' },
 ];
 
 const BRANDS = ['Steam', 'Xbox', 'PlayStation', 'Riot Games', 'Epic Games', 'Blizzard', 'Netflix', 'Spotify', 'NordVPN'];
@@ -68,7 +68,7 @@ function initSlider() {
     slide.className = 'slide';
     slide.style.background = s.gradient;
     slide.innerHTML = `
-      <div class="slide-bg-emoji">${s.emoji}</div>
+      <div class="slide-bg-icon">${s.icon}</div>
       <span class="slide-badge">${s.badge}</span>
       <div class="slide-title">${s.title}</div>
       <div class="slide-subtitle">${s.subtitle}</div>
@@ -163,25 +163,29 @@ async function renderCategoryChips(activeId = null) {
   }
 }
 
-const CAT_EMOJIS = {
-  games: '🎮', 'pc games': '🖥️', 'gift card': '🎁',
-  'top-up': '📱', streaming: '🎬', 'vpn': '🔒', software: '💻',
+const CAT_ICONS = {
+  games:      `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M7 8h1m4 0h1"/><path d="M8 7v2"/></svg>`,
+  'gift card':`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polyline points="20 12 20 22 4 22 4 12"/><rect x="2" y="7" width="20" height="5"/><line x1="12" y1="22" x2="12" y2="7"/><path d="M12 7H7.5a2.5 2.5 0 0 1 0-5C11 2 12 7 12 7z"/><path d="M12 7h4.5a2.5 2.5 0 0 0 0-5C13 2 12 7 12 7z"/></svg>`,
+  'top-up':   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>`,
+  streaming:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>`,
+  vpn:        `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  software:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`,
 };
 
 function getCatEmoji(name) {
-  if (!name) return '📦';
+  if (!name) return CAT_ICONS.software;
   const lower = name.toLowerCase();
-  for (const [key, emoji] of Object.entries(CAT_EMOJIS)) {
-    if (lower.includes(key)) return emoji;
+  for (const [key, icon] of Object.entries(CAT_ICONS)) {
+    if (lower.includes(key)) return icon;
   }
-  return '📦';
+  return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`;
 }
 
 function createChip(cat, active) {
   const chip = document.createElement('button');
   chip.className = `cat-chip${active ? ' active' : ''}`;
-  const emoji = cat.emoji || getCatEmoji(cat.name || cat.slug || '');
-  chip.innerHTML = `<span class="cat-emoji">${emoji}</span><span class="cat-label">${cat.name || 'All'}</span>`;
+  const icon = getCatEmoji(cat.name || cat.slug || '');
+  chip.innerHTML = `<span class="cat-icon">${icon}</span><span class="cat-label">${cat.name || 'All'}</span>`;
   return chip;
 }
 
@@ -278,7 +282,7 @@ async function renderFlashDeals() {
         ${dealIconHTML}
         <div class="deal-info">
           <div class="deal-name" title="${p.name}">${p.name}</div>
-          <div class="deal-delivery">⚡ Instant Delivery</div>
+          <div class="deal-delivery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Instant Delivery</div>
           <div class="deal-price-row">
             <span class="deal-price">₹${(p.price || 0).toLocaleString('en-IN')}</span>
             ${p.originalPrice ? `<span class="deal-orig">₹${p.originalPrice.toLocaleString('en-IN')}</span>` : ''}
@@ -317,7 +321,7 @@ function renderNews() {
 
     card.innerHTML = `
       <div class="news-img" style="background:${newsGrads[item.type] || newsGrads.NEWS}">
-        <span class="news-emoji">${item.emoji}</span>
+        <span class="news-icon">${item.icon}</span>
         <div class="news-img-overlay"></div>
         <span class="news-type-badge ${item.type}">${item.type}</span>
       </div>

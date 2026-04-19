@@ -156,16 +156,14 @@
   justify-content: center;
 }
 
-.slide-bg-emoji {
+.slide-bg-icon {
   position: absolute;
   bottom: -10px;
   right: 20px;
-  font-size: 120px;
-  opacity: 0.08;
+  opacity: 0.12;
   transform: rotate(-15deg);
   pointer-events: none;
   user-select: none;
-  line-height: 1;
 }
 
 .slide-badge {
@@ -358,7 +356,8 @@
 
 .cat-chip.active .cat-label { color: var(--violet-light); }
 
-.cat-emoji { font-size: 26px; line-height: 1; }
+.cat-icon { display: flex; align-items: center; justify-content: center; color: var(--text-3); }
+.cat-chip.active .cat-icon { color: var(--violet-light); }
 
 .cat-label {
   font-size: 11px;
@@ -532,10 +531,13 @@
   overflow: hidden;
 }
 
-.news-emoji {
-  font-size: 48px;
+.news-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   position: relative;
   z-index: 1;
+  color: rgba(255,255,255,0.7);
 }
 
 .news-img-overlay {

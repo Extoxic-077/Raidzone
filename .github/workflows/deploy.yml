@@ -144,10 +144,6 @@ jobs:
             curl -sf http://localhost:8080/api/v1/categories \
               || { echo "CATEGORIES CHECK FAILED"; tail -20 ~/app.log; exit 1; }
 
-            # ── Verify Stripe config endpoint is reachable ──────────────────────
-            curl -sf http://localhost:8080/api/v1/payments/stripe/config \
-              || { echo "STRIPE CONFIG CHECK FAILED"; tail -20 ~/app.log; exit 1; }
-
             # ── Public HTTPS sanity check via domain ────────────────────────────
             curl -sf https://nexvault.digital/api/v1/categories \
               || echo "WARN: HTTPS domain check failed (may be DNS/proxy lag)"

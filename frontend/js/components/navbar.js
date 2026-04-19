@@ -216,12 +216,15 @@ function renderBottomNav() {
       <span>Catalog</span>
     </a>
     <button class="bottom-nav-item ${page === 'cart' ? 'active' : ''}" id="bottom-nav-cart">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <path d="M16 10a4 4 0 0 1-8 0"/>
-      </svg>
-      <span>Cart <span class="mobile-cart-badge" id="cart-badge-mobile"></span></span>
+      <span class="bottom-nav-icon-wrap">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+          <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+          <line x1="3" y1="6" x2="21" y2="6"/>
+          <path d="M16 10a4 4 0 0 1-8 0"/>
+        </svg>
+        <span class="mobile-cart-badge" id="cart-badge-mobile"></span>
+      </span>
+      <span>Cart</span>
     </button>
   `;
 
@@ -294,14 +297,18 @@ function injectDropdownStyles() {
     }
     .bottom-nav-item.active { color: var(--primary); }
     .bottom-nav-item:hover  { color: var(--text-2); }
-    .bottom-nav-item.active svg { stroke: var(--primary); }
+    .bottom-nav-item svg { display: block; stroke: currentColor; transition: stroke 0.15s ease; }
+
+    .bottom-nav-icon-wrap {
+      position: relative; display: inline-flex; align-items: center; justify-content: center;
+    }
 
     .mobile-cart-badge {
-      display: inline-block; min-width: 16px; height: 16px;
+      position: absolute; top: -6px; right: -8px;
+      min-width: 16px; height: 16px;
       background: var(--primary); color: #fff; border-radius: 8px;
       font-size: 10px; font-weight: 700; line-height: 16px;
-      padding: 0 4px; text-align: center; vertical-align: middle;
-      margin-left: 2px;
+      padding: 0 4px; text-align: center;
     }
     .mobile-cart-badge:empty { display: none; }
 
@@ -339,7 +346,7 @@ function injectDropdownStyles() {
       border-left: 3px solid var(--primary);
     }
     .notif-item--unread:hover { background: rgba(124,58,237,0.1); }
-    .notif-icon { font-size: 1.2rem; flex-shrink: 0; padding-top: 2px; }
+    .notif-icon { flex-shrink: 0; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: var(--glass); color: var(--violet-light); }
     .notif-content { flex: 1; min-width: 0; }
     .notif-title { font-size: 12px; font-weight: 600; color: var(--text-1); margin-bottom: 2px; }
     .notif-msg   { font-size: 11px; color: var(--text-3); line-height: 1.4; white-space: normal; }
@@ -437,12 +444,12 @@ function bindDropdown(btnId, dropdownId, logoutId) {
 // ── Notification helpers ──────────────────────────────────────────────────────
 
 const NOTIF_ICONS = {
-  LOGIN_NEW_DEVICE: '🔐',
-  ORDER_CONFIRMED:  '✅',
-  ORDER_DELIVERED:  '📦',
-  PAYMENT_SUCCESS:  '💳',
-  PAYMENT_FAILED:   '❌',
-  WELCOME:          '🎉',
+  LOGIN_NEW_DEVICE: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
+  ORDER_CONFIRMED:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
+  ORDER_DELIVERED:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
+  PAYMENT_SUCCESS:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>`,
+  PAYMENT_FAILED:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
+  WELCOME:          `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
 };
 
 function timeAgoNotif(iso) {
@@ -465,7 +472,7 @@ function renderNotifList(notifications) {
   el.innerHTML = notifications.slice(0, 5).map(n => `
     <div class="notif-item ${n.isRead ? '' : 'notif-item--unread'}" data-id="${n.id}"
          onclick="window.__notifMarkRead && window.__notifMarkRead('${n.id}', this)">
-      <span class="notif-icon">${NOTIF_ICONS[n.type] || '🔔'}</span>
+      <span class="notif-icon">${NOTIF_ICONS[n.type] || `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`}</span>
       <div class="notif-content">
         <div class="notif-title">${n.title}</div>
         <div class="notif-msg">${n.message}</div>

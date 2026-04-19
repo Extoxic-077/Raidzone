@@ -26,7 +26,7 @@ function showSignInPrompt(action = 'continue') {
       box-shadow:0 24px 64px rgba(0,0,0,0.6);
       animation:slideUp 0.22s ease;
     ">
-      <div style="font-size:48px;margin-bottom:16px">🔐</div>
+      <div style="margin-bottom:16px;display:flex;justify-content:center"><svg viewBox="0 0 24 24" fill="none" stroke="#C084FC" stroke-width="1.5" width="48" height="48"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
       <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:700;color:#F1F0F7;margin:0 0 10px">
         Sign in required
       </h2>
@@ -187,7 +187,7 @@ async function loadAndRenderReviews(productId) {
         ? renderWriteReviewSection(myReview, writeFormOpen)
         : loggedIn
           ? `<div class="review-locked-notice">
-               <span class="review-locked-icon">🔒</span>
+               <span class="review-locked-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span>
                <span>Purchase this product to leave a review.</span>
              </div>`
           : ''
@@ -439,8 +439,8 @@ function renderProductUI(product) {
             </div>
 
             <div class="delivery-badges">
-              <span class="delivery-badge instant">⚡ Instant Delivery</span>
-              <span class="delivery-badge region">🌍 ${product.region || 'Global'}</span>
+              <span class="delivery-badge instant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Instant Delivery</span>
+              <span class="delivery-badge region"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> ${product.region || 'Global'}</span>
             </div>
 
             <div class="product-actions">
@@ -454,7 +454,7 @@ function renderProductUI(product) {
             </div>
 
             <div class="payment-strip">Pay with: Visa · Mastercard · UPI · GPay · Apple Pay · PayTM · Bitcoin</div>
-            <div class="security-note">🔐 256-bit SSL · Digital key delivered to email instantly</div>
+            <div class="security-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>256-bit SSL · Digital key delivered to email instantly</div>
           </div>
         </div>
 
@@ -646,7 +646,7 @@ export async function renderProduct() {
     container.innerHTML = `
       <div class="product-inner" style="padding-top:80px">
         <div class="empty-state">
-          <div class="empty-state-icon">⚠️</div>
+          <div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
           <h3>Product not found</h3>
           <p>${err.message}</p>
           <a href="catalog.html" class="btn btn-primary" style="margin-top:16px;display:inline-flex">← Back to Catalog</a>

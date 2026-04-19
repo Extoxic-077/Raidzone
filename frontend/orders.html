@@ -21,7 +21,7 @@
 
   <!-- Success banner (shown when ?success=true) -->
   <div id="order-success-banner" style="display:none" class="order-success-banner">
-    <span class="order-success-icon">🎉</span>
+    <span class="order-success-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="24" height="24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
     <div>
       <strong>Payment confirmed!</strong> Your order is being processed.
     </div>
@@ -151,9 +151,9 @@ function fmtDate(iso) {
 }
 
 const PROVIDER_LABEL = {
-  STRIPE:   '💳 Card',
-  RAZORPAY: '🇮🇳 UPI/NetBanking',
-  COINBASE: '₿ Crypto',
+  STRIPE:   'Card',
+  RAZORPAY: 'UPI/NetBanking',
+  COINBASE: 'Crypto',
 };
 
 function statusBadge(status) {
@@ -175,7 +175,7 @@ function orderCardHTML(order) {
   const itemsHtml = order.items.map(item => {
     const thumb = item.imageUrl
       ? `<img src="${item.imageUrl}" alt="${item.productName}" class="oi-img"/>`
-      : `<div class="oi-emoji">${item.productEmoji || '🎮'}</div>`;
+      : `<div class="oi-emoji">${item.productEmoji || '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="28" height="28"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h1m4 0h1"/><path d="M8 7v2"/></svg>'}</div>`;
     return `
       <div class="order-item">
         <div class="oi-thumb">${thumb}</div>
@@ -188,7 +188,7 @@ function orderCardHTML(order) {
 
   const couponRow = (order.discountAmount && Number(order.discountAmount) > 0)
     ? `<div class="order-coupon-row">
-         <span class="order-coupon-label">🏷️ Promo <span class="order-coupon-code">${order.couponCode || ''}</span></span>
+         <span class="order-coupon-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13" style="vertical-align:middle;margin-right:3px"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg> Promo <span class="order-coupon-code">${order.couponCode || ''}</span></span>
          <span class="order-coupon-saving">−${fmtPrice(order.discountAmount)}</span>
        </div>`
     : '';
@@ -261,7 +261,7 @@ function renderOrders(orders) {
   } else if (!pending.length) {
     html += `
       <div class="orders-empty">
-        <div class="orders-empty-icon">📦</div>
+        <div class="orders-empty-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg></div>
         <h3>No orders yet</h3>
         <p>Once you make a purchase, your orders will appear here.</p>
         <a href="catalog.html" class="btn-orders-shop">Start Shopping →</a>

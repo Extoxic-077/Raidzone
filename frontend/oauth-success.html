@@ -41,9 +41,9 @@
     }
 
     .status-icon {
-      font-size: 48px;
       margin-bottom: 16px;
-      display: block;
+      display: flex;
+      justify-content: center;
     }
 
     h1 {
@@ -122,7 +122,7 @@ const content = document.getElementById('content');
 if (error) {
   // Show error state
   content.innerHTML = `
-    <span class="status-icon">⚠️</span>
+    <span class="status-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" width="48" height="48"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
     <h1>Login Failed</h1>
     <p>${decodeURIComponent(error)}</p>
     <a href="login.html" class="btn">Try Again</a>
@@ -147,14 +147,14 @@ if (error) {
     const firstName = decodeURIComponent(name).split(' ')[0];
     if (isNew) {
       content.innerHTML = `
-        <span class="status-icon">🎉</span>
+        <span class="status-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#C084FC" stroke-width="1.5" width="48" height="48"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg></span>
         <h1>Welcome, ${firstName}!</h1>
         <p>Your account has been created with NexVault.</p>
         <div class="spinner"></div>
       `;
     } else {
       content.innerHTML = `
-        <span class="status-icon">✅</span>
+        <span class="status-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#22C55E" stroke-width="1.5" width="48" height="48"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>
         <h1>Welcome back, ${firstName}!</h1>
         <p>You've been signed in successfully.</p>
         <div class="spinner"></div>
@@ -169,7 +169,7 @@ if (error) {
 
   } catch (e) {
     content.innerHTML = `
-      <span class="status-icon">⚠️</span>
+      <span class="status-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" width="48" height="48"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
       <h1>Something went wrong</h1>
       <p>Could not process your login. Please try again.</p>
       <a href="login.html" class="btn">Back to Login</a>
@@ -177,7 +177,7 @@ if (error) {
   }
 } else {
   content.innerHTML = `
-    <span class="status-icon">⚠️</span>
+    <span class="status-icon"><svg viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="1.5" width="48" height="48"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></span>
     <h1>No token received</h1>
     <p>The OAuth flow did not complete correctly.</p>
     <a href="login.html" class="btn">Back to Login</a>

@@ -109,7 +109,7 @@ const timeAgo = iso => {
   return `${Math.floor(m/1440)}d ago`;
 };
 
-const PROVIDER_ICONS = { STRIPE: '💳', RAZORPAY: '🇮🇳', COINBASE: '₿' };
+const PROVIDER_ICONS = { STRIPE: 'Card', RAZORPAY: 'UPI', COINBASE: 'Crypto' };
 const STATUS_CLASS = {
   PENDING_PAYMENT: 'badge-pending-payment',
   CONFIRMED:       'badge-confirmed',
@@ -290,14 +290,14 @@ async function openOrderModal(orderId) {
           </div>
           <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.06em;color:var(--text-4);margin-bottom:10px">Status</div>
           <select class="admin-form-select" id="modal-status-select" style="margin-bottom:16px">
-            <option value="PENDING_PAYMENT" ${o.status==='PENDING_PAYMENT'?'selected':''}>⏳ Pending Payment</option>
-            <option value="CONFIRMED" ${o.status==='CONFIRMED'?'selected':''}>✓ Confirmed</option>
-            <option value="DELIVERED" ${o.status==='DELIVERED'?'selected':''}>📦 Delivered</option>
-            <option value="CANCELLED" ${o.status==='CANCELLED'?'selected':''}>✗ Cancelled</option>
+            <option value="PENDING_PAYMENT" ${o.status==='PENDING_PAYMENT'?'selected':''}>Pending Payment</option>
+            <option value="CONFIRMED" ${o.status==='CONFIRMED'?'selected':''}>Confirmed</option>
+            <option value="DELIVERED" ${o.status==='DELIVERED'?'selected':''}>Delivered</option>
+            <option value="CANCELLED" ${o.status==='CANCELLED'?'selected':''}>Cancelled</option>
           </select>
           ${o.couponCode ? `
             <div style="background:rgba(34,211,238,0.06);border:1px solid rgba(34,211,238,0.2);border-radius:10px;padding:10px 12px;font-size:12px;display:flex;justify-content:space-between">
-              <span>🏷️ Coupon: <strong style="font-family:var(--font-mono)">${o.couponCode}</strong></span>
+              <span>Coupon: <strong style="font-family:var(--font-mono)">${o.couponCode}</strong></span>
               <span style="color:#22D3EE;font-weight:600">−${fmt(o.discountAmount ?? 0)}</span>
             </div>` : ''}
           <div style="margin-top:12px;font-size:11px;color:var(--text-4)">

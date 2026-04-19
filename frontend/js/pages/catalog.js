@@ -226,7 +226,7 @@ async function fetchAndRenderProducts(append = false) {
       grid.innerHTML = '';
       const empty = document.createElement('div');
       empty.className = 'empty-state';
-      empty.innerHTML = `<div class="empty-state-icon">🔍</div><h3>No products found</h3><p>Try adjusting your filters or search query.</p>`;
+      empty.innerHTML = `<div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><h3>No products found</h3><p>Try adjusting your filters or search query.</p>`;
       grid.appendChild(empty);
       loading = false;
       return;
@@ -252,7 +252,7 @@ async function fetchAndRenderProducts(append = false) {
       grid.innerHTML = '';
       const empty = document.createElement('div');
       empty.className = 'empty-state';
-      empty.innerHTML = `<div class="empty-state-icon">⚠️</div><h3>Couldn't load products</h3><p>${err.message}</p>`;
+      empty.innerHTML = `<div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><h3>Couldn't load products</h3><p>${err.message}</p>`;
       grid.appendChild(empty);
     }
     showToast('Failed to load products', 'error');

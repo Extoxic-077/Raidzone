@@ -177,8 +177,10 @@
 }
 
 .orders-empty-icon {
-  font-size: 4rem;
   margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  color: var(--text-4);
   filter: drop-shadow(0 0 20px rgba(34,211,238,0.2));
   animation: pulse 3s ease-in-out infinite;
 }
@@ -340,8 +342,10 @@
 }
 
 .order-success-icon {
-  font-size: 1.5rem;
   flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  color: var(--success);
 }
 
 .order-success-banner strong {
