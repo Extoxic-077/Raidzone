@@ -386,14 +386,14 @@ function orderCardHTML(order) {
           ${order.shippingName} &nbsp;·&nbsp; ${order.shippingEmail}
         </div>
         <div class="order-footer-right">
-          ${order.status === 'CONFIRMED' ? `
-          <div class="order-review-btns">
-            ${order.items.filter(i => i.productId).map(i =>
-              `<button class="btn-review" data-product-id="${i.productId}" data-product-name="${i.productName}">
+          ${order.status === 'CONFIRMED' ? (() => {
+            const btns = order.items
+              .filter(i => i.productId && !i.hasReviewed && !sessionStorage.getItem(`reviewed_${i.productId}`))
+              .map(i => `<button class="btn-review" data-product-id="${i.productId}" data-product-name="${i.productName}">
                 ★ Review ${i.productName.split(' ').slice(0,2).join(' ')}
-              </button>`
-            ).join('')}
-          </div>` : ''}
+              </button>`).join('');
+            return btns ? `<div class="order-review-btns">${btns}</div>` : '';
+          })() : ''}
           <div class="order-total">${fmtPrice(order.totalAmount)}</div>
         </div>
       </div>
@@ -504,10 +504,16 @@ document.getElementById('review-submit').addEventListener('click', async () => {
   try {
     await createReview(reviewProductId, { rating: selectedRating, comment: comment || null });
     showToast('Review submitted! Thank you.', 'success');
+    sessionStorage.setItem(`reviewed_${reviewProductId}`, '1');
+    // Remove this product's review button from all order cards
+    document.querySelectorAll(`.btn-review[data-product-id="${reviewProductId}"]`).forEach(b => {
+      const wrap = b.closest('.order-review-btns');
+      b.remove();
+      if (wrap && !wrap.children.length) wrap.remove();
+    });
     closeReviewModal();
   } catch (e) {
     showToast(e.message || 'Could not submit review', 'error');
-  } finally {
     btn.disabled = false; btn.textContent = 'Submit Review';
   }
 });
@@ -531,12 +537,22 @@ let keyVisible = false;
 
 // OTP modal open
 async function openOtpModal(keyId, orderId, productId) {
-  redeemKeyId  = keyId;
-  redeemOrderId = orderId;
+  redeemKeyId   = keyId;
+  redeemOrderId  = orderId;
   redeemProductId = productId;
+  // Reset step 1 button state (may be disabled from a previous open)
+  const sendBtn = document.getElementById('btn-send-otp');
+  sendBtn.disabled = false;
+  sendBtn.textContent = 'Send OTP to Email';
+  // Reset step 2
+  const verifyBtn = document.getElementById('btn-verify-otp');
+  verifyBtn.disabled = false;
+  verifyBtn.textContent = 'Verify & Reveal Key';
+  document.getElementById('otp-sent-hint').textContent = 'Code sent to your email';
+  document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
+  // Show step 1
   document.getElementById('otp-step-send').style.display = 'block';
   document.getElementById('otp-step-verify').style.display = 'none';
-  document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
   document.getElementById('otp-modal').style.display = 'flex';
   document.body.style.overflow = 'hidden';
 }

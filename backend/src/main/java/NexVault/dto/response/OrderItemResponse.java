@@ -14,7 +14,8 @@ public record OrderItemResponse(
         int quantity,
         BigDecimal lineTotal,
         UUID keyId,
-        Boolean isRevealed
+        Boolean isRevealed,
+        Boolean hasReviewed
 ) {
     public static OrderItemResponse from(OrderItem item) {
         return new OrderItemResponse(
@@ -26,14 +27,22 @@ public record OrderItemResponse(
                 item.getQuantity(),
                 item.getLineTotal(),
                 item.getDigitalKeyId(),
-                null  // isRevealed populated separately by service
+                null,
+                null
         );
     }
 
     public OrderItemResponse withRevealStatus(Boolean revealed) {
         return new OrderItemResponse(
                 productId, productName, productEmoji, imageUrl,
-                price, quantity, lineTotal, keyId, revealed
+                price, quantity, lineTotal, keyId, revealed, hasReviewed
+        );
+    }
+
+    public OrderItemResponse withReviewStatus(Boolean reviewed) {
+        return new OrderItemResponse(
+                productId, productName, productEmoji, imageUrl,
+                price, quantity, lineTotal, keyId, isRevealed, reviewed
         );
     }
 }

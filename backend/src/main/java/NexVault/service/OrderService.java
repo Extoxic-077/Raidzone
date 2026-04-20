@@ -15,6 +15,7 @@ import NexVault.repository.CouponRepository;
 import NexVault.repository.DigitalKeyRepository;
 import NexVault.repository.OrderRepository;
 import NexVault.repository.ProductRepository;
+import NexVault.repository.ReviewRepository;
 import NexVault.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,6 +38,7 @@ public class OrderService {
     private final CouponService        couponService;
     private final CouponRepository     couponRepository;
     private final DigitalKeyRepository digitalKeyRepository;
+    private final ReviewRepository     reviewRepository;
 
     @Transactional
     public OrderResponse createOrder(UUID userId, CreateOrderRequest req) {
@@ -110,12 +112,22 @@ public class OrderService {
     }
 
     private OrderResponse enrichWithKeyRevealStatus(Order order) {
+        UUID userId = order.getUser().getId();
         var enrichedItems = order.getItems().stream().map(item -> {
             OrderItemResponse base = OrderItemResponse.from(item);
-            if (item.getDigitalKeyId() == null) return base;
-            boolean revealed = digitalKeyRepository.findById(item.getDigitalKeyId())
-                    .map(DigitalKey::isRevealed).orElse(false);
-            return base.withRevealStatus(revealed);
+            // Key reveal status
+            if (item.getDigitalKeyId() != null) {
+                boolean revealed = digitalKeyRepository.findById(item.getDigitalKeyId())
+                        .map(DigitalKey::isRevealed).orElse(false);
+                base = base.withRevealStatus(revealed);
+            }
+            // Review status — only relevant for CONFIRMED orders with a product
+            if (item.getProduct() != null) {
+                boolean reviewed = reviewRepository.existsByProduct_IdAndUser_Id(
+                        item.getProduct().getId(), userId);
+                base = base.withReviewStatus(reviewed);
+            }
+            return base;
         }).toList();
 
         return new OrderResponse(
