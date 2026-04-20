@@ -131,7 +131,7 @@
 
 <script src="/js/config.js"></script>
 <script type="module">
-import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
+import { initAuth, isLoggedIn, isAdmin, authFetch } from '../js/auth.js';
 import { showToast } from '../js/components/toast.js';
 import { initAdminSidebar } from './js/adminSidebar.js';
 
@@ -141,13 +141,9 @@ await initAdminSidebar('campaigns');
 
 const API = window.__API_BASE__ || '/api/v1';
 
-function authHeaders() {
-  const token = sessionStorage.getItem('hv_token');
-  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` };
-}
-
 async function apiFetch(path, opts = {}) {
-  const res = await fetch(`${API}${path}`, { headers: authHeaders(), ...opts });
+  const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };
+  const res = await authFetch(`${API}${path}`, { ...opts, headers });
   const text = await res.text();
   const json = text ? JSON.parse(text) : {};
   if (!res.ok) throw new Error(json.message || `Error ${res.status}`);

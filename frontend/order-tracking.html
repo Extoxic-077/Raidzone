@@ -61,7 +61,7 @@
 
 <script src="/js/config.js"></script>
 <script type="module">
-import { isLoggedIn } from './js/auth.js';
+import { isLoggedIn, authFetch } from './js/auth.js';
 import { initNavbar } from './js/components/navbar.js';
 import { initFooter } from './js/components/footer.js';
 import { showToast } from './js/components/toast.js';
@@ -69,11 +69,6 @@ await initNavbar();
 initFooter();
 
 const API = window.__API_BASE__ || '/api/v1';
-
-function authHeaders() {
-  const token = sessionStorage.getItem('hv_token');
-  return token ? { 'Authorization': `Bearer ${token}` } : {};
-}
 
 document.getElementById('track-btn').addEventListener('click', async () => {
   const raw = document.getElementById('order-id-input').value.trim();
@@ -87,7 +82,7 @@ document.getElementById('track-btn').addEventListener('click', async () => {
   result.innerHTML = '<p style="color:var(--text-4);font-size:13px;margin-top:12px">Looking up order…</p>';
 
   try {
-    const res = await fetch(`${API}/orders`, { headers: authHeaders() });
+    const res = await authFetch(`${API}/orders`);
     const json = await res.json();
     if (!res.ok) throw new Error(json.message || 'Could not load orders');
     const orders = json.data || [];

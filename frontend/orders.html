@@ -252,7 +252,7 @@
 <script src="/js/config.js"></script>
 <script type="module">
 import { initNavbar } from './js/components/navbar.js';
-import { initAuth, isLoggedIn } from './js/auth.js';
+import { initAuth, isLoggedIn, authFetch } from './js/auth.js';
 import { getMyOrders, createReview } from './js/api.js';
 import { showToast } from './js/components/toast.js';
 
@@ -521,10 +521,7 @@ root.addEventListener('click', e => {
 // ── Redeem / View Key flow ─────────────────────────────────────────────────────
 
 const API = window.__API_BASE__ || '/api/v1';
-function authHeaders() {
-  const t = sessionStorage.getItem('hv_token');
-  return { 'Content-Type': 'application/json', 'Authorization': `Bearer ${t}` };
-}
+const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 let redeemKeyId = null;
 let redeemOrderId = null;
@@ -570,8 +567,8 @@ document.getElementById('btn-send-otp').addEventListener('click', async () => {
   const btn = document.getElementById('btn-send-otp');
   btn.disabled = true; btn.textContent = 'Sending…';
   try {
-    const res = await fetch(`${API}/purchases/send-reveal-otp`, {
-      method: 'POST', headers: authHeaders(), body: JSON.stringify({})
+    const res = await authFetch(`${API}/purchases/send-reveal-otp`, {
+      method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({})
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json.message || 'Failed to send OTP');
@@ -603,8 +600,8 @@ document.getElementById('btn-verify-otp').addEventListener('click', async () => 
   const btn = document.getElementById('btn-verify-otp');
   btn.disabled = true; btn.textContent = 'Verifying…';
   try {
-    const res = await fetch(`${API}/purchases/reveal-key`, {
-      method: 'POST', headers: authHeaders(),
+    const res = await authFetch(`${API}/purchases/reveal-key`, {
+      method: 'POST', headers: JSON_HEADERS,
       body: JSON.stringify({ keyId: redeemKeyId, otp }),
     });
     const json = await res.json();
@@ -621,8 +618,8 @@ document.getElementById('btn-verify-otp').addEventListener('click', async () => 
 // Resend OTP
 document.getElementById('btn-resend-otp').addEventListener('click', async () => {
   try {
-    await fetch(`${API}/purchases/send-reveal-otp`, {
-      method: 'POST', headers: authHeaders(), body: JSON.stringify({})
+    await authFetch(`${API}/purchases/send-reveal-otp`, {
+      method: 'POST', headers: JSON_HEADERS, body: JSON.stringify({})
     });
     showToast('New OTP sent', 'success');
     document.querySelectorAll('.otp-digit').forEach(i => i.value = '');
@@ -663,7 +660,7 @@ root.addEventListener('click', async e => {
     if (sessionStorage.getItem(sessionKey)) {
       // Already verified in this session — fetch directly
       try {
-        const res = await fetch(`${API}/purchases/my-key/${keyId}`, { headers: authHeaders() });
+        const res = await authFetch(`${API}/purchases/my-key/${keyId}`);
         const json = await res.json();
         if (!res.ok) throw new Error(json.message);
         openKeyModal(json.data?.keyValue);
@@ -678,7 +675,7 @@ root.addEventListener('click', async e => {
   if (viewBtn) {
     const { keyId, orderId, productId } = viewBtn.dataset;
     try {
-      const res = await fetch(`${API}/purchases/my-key/${keyId}`, { headers: authHeaders() });
+      const res = await authFetch(`${API}/purchases/my-key/${keyId}`);
       const json = await res.json();
       if (!res.ok) throw new Error(json.message);
       openKeyModal(json.data?.keyValue);
