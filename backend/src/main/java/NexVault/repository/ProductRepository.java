@@ -87,22 +87,10 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     @Query("""
             SELECT p FROM Product p
             WHERE p.isActive = true
-              AND (:categoryId IS NULL OR p.category.id = :categoryId)
-              AND (
-                LOWER(p.name)        LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%'))
-                OR LOWER(p.brand)    LIKE LOWER(CONCAT('%', :query, '%'))
-              )
-            """)
-    Page<Product> searchProducts(
-            @Param("query")      String query,
-            @Param("categoryId") UUID categoryId,
-            Pageable pageable);
-
-    @Query("""
-            SELECT p FROM Product p
-            WHERE p.isActive = true
-              AND (:categoryId IS NULL OR p.category.id = :categoryId)
+              AND (:categoryId IS NULL
+                   OR p.category.id = :categoryId
+                   OR p.category.parent.id = :categoryId)
+              AND (:companyId  IS NULL OR p.company.id = :companyId)
               AND (:minPrice   IS NULL OR p.price >= :minPrice)
               AND (:maxPrice   IS NULL OR p.price <= :maxPrice)
               AND (:minRating  IS NULL OR p.avgRating >= :minRating)
@@ -110,8 +98,28 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
             """)
     Page<Product> findByFilters(
             @Param("categoryId") UUID categoryId,
+            @Param("companyId")  UUID companyId,
             @Param("minPrice")   BigDecimal minPrice,
             @Param("maxPrice")   BigDecimal maxPrice,
             @Param("minRating")  BigDecimal minRating,
+            Pageable pageable);
+
+    @Query("""
+            SELECT p FROM Product p
+            WHERE p.isActive = true
+              AND (:categoryId IS NULL
+                   OR p.category.id = :categoryId
+                   OR p.category.parent.id = :categoryId)
+              AND (:companyId  IS NULL OR p.company.id = :companyId)
+              AND (
+                LOWER(p.name)        LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(p.brand)    LIKE LOWER(CONCAT('%', :query, '%'))
+              )
+            """)
+    Page<Product> searchProductsWithFilters(
+            @Param("query")      String query,
+            @Param("categoryId") UUID categoryId,
+            @Param("companyId")  UUID companyId,
             Pageable pageable);
 }

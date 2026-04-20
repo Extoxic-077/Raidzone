@@ -1,4 +1,4 @@
-import { getFeaturedProducts, getFlashDeals, getCategories } from '../api.js';
+import { getFeaturedProducts, getFlashDeals, getCategories, getCompanies } from '../api.js';
 import { createProductCard } from '../components/productCard.js';
 import { createProductSkeleton } from '../components/skeleton.js';
 import { showToast } from '../components/toast.js';
@@ -336,13 +336,41 @@ function renderNews() {
 
 // ─── BRANDS SECTION ───────────────────────────────────────────────────────────
 
-function renderBrands() {
+async function renderBrands() {
   const row = document.getElementById('brands-row');
   if (!row) return;
-  BRANDS.forEach(brand => {
+
+  let companies = [];
+  try {
+    const data = await getCompanies();
+    companies = Array.isArray(data) ? data : [];
+  } catch { /* fallback to static */ }
+
+  if (companies.length === 0) {
+    BRANDS.forEach(brand => {
+      const chip = document.createElement('button');
+      chip.className = 'brand-chip';
+      chip.textContent = brand;
+      chip.addEventListener('click', () => {
+        const q = encodeURIComponent(brand);
+        window.location.href = `catalog.html?search=${q}`;
+      });
+      row.appendChild(chip);
+    });
+    return;
+  }
+
+  companies.forEach(company => {
     const chip = document.createElement('button');
     chip.className = 'brand-chip';
-    chip.textContent = brand;
+    if (company.logoUrl) {
+      chip.innerHTML = `<img src="${company.logoUrl}" alt="${company.name}" style="width:20px;height:20px;object-fit:contain;border-radius:3px;margin-right:6px;"> ${company.name}`;
+    } else {
+      chip.textContent = company.name;
+    }
+    chip.addEventListener('click', () => {
+      window.location.href = `catalog.html?companyId=${company.id}`;
+    });
     row.appendChild(chip);
   });
 }
@@ -354,7 +382,7 @@ export async function renderHome() {
   initFlashTimer();
   renderCategoryChips();
   renderNews();
-  renderBrands();
+  // renderBrands is called async in Promise.all below
 
   // Enable drag-scroll on all horizontal scroll strips
   makeDraggable(document.querySelector('.trust-bar-inner'));
@@ -367,5 +395,6 @@ export async function renderHome() {
   await Promise.all([
     renderFeatured(),
     renderFlashDeals(),
+    renderBrands(),
   ]);
 }

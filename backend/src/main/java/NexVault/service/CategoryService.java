@@ -35,14 +35,28 @@ public class CategoryService {
      *         but may be empty if no active categories exist
      */
     public List<CategoryResponse> getAllCategories() {
-        List<CategoryResponse> categories = categoryRepository
-                .findByIsActiveTrueOrderBySortOrderAsc()
+        List<CategoryResponse> tree = categoryRepository.findActiveRoots().stream()
+                .map(root -> {
+                    List<CategoryResponse> children = categoryRepository
+                            .findByParentIdAndIsActiveTrueOrderBySortOrderAsc(root.getId())
+                            .stream()
+                            .map(CategoryResponse::from)
+                            .toList();
+                    return CategoryResponse.fromWithChildren(root, children);
+                })
+                .toList();
+
+        // Also include standalone active categories (no parent, not a root with children)
+        // They appear in tree already. Log total roots.
+        log.info("Fetched {} root categories for tree", tree.size());
+        return tree;
+    }
+
+    public List<CategoryResponse> getAllCategoriesFlat() {
+        return categoryRepository.findByIsActiveTrueOrderBySortOrderAsc()
                 .stream()
                 .map(CategoryResponse::from)
                 .toList();
-
-        log.info("Fetched {} active categories", categories.size());
-        return categories;
     }
 
     /**

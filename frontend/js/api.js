@@ -55,11 +55,20 @@ export async function getCategories() {
   return apiFetch('/categories');
 }
 
+export async function getCategoriesFlat() {
+  return apiFetch('/categories/flat');
+}
+
+export async function getCompanies() {
+  return apiFetch('/companies');
+}
+
 export async function getProducts(params = {}) {
   const qs = new URLSearchParams();
   if (params.page     != null) qs.set('page',       params.page);
   if (params.size     != null) qs.set('size',       params.size);
   if (params.categoryId)       qs.set('categoryId', params.categoryId);
+  if (params.companyId)        qs.set('companyId',  params.companyId);
   if (params.minPrice != null) qs.set('minPrice',   params.minPrice);
   if (params.maxPrice != null) qs.set('maxPrice',   params.maxPrice);
   if (params.search)           qs.set('search',     params.search);
@@ -563,6 +572,30 @@ export async function adminGetSystemMetrics() {
 
 export async function adminGetDbStats() {
   return authApiFetch('/admin/system/db-stats', { method: 'GET' });
+}
+
+// ─── Admin — Companies ────────────────────────────────────────────────────────
+
+export async function adminGetCompanies() {
+  return authApiFetch('/admin/companies', { method: 'GET' });
+}
+
+export async function adminCreateCompany(data) {
+  return authApiFetch('/admin/companies', {
+    method: 'POST',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function adminUpdateCompany(id, data) {
+  return authApiFetch(`/admin/companies/${id}`, {
+    method: 'PUT',
+    body: JSON.stringify(data),
+  });
+}
+
+export async function adminDeleteCompany(id) {
+  return authApiFetch(`/admin/companies/${id}`, { method: 'DELETE' });
 }
 
 export async function adminGetRealtime() {

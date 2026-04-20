@@ -5,8 +5,10 @@ import NexVault.dto.request.UpdateProductRequest;
 import NexVault.dto.response.ProductResponse;
 import NexVault.exception.ResourceNotFoundException;
 import NexVault.model.Category;
+import NexVault.model.Company;
 import NexVault.model.Product;
 import NexVault.repository.CategoryRepository;
+import NexVault.repository.CompanyRepository;
 import NexVault.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,6 +31,7 @@ public class AdminProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final CompanyRepository companyRepository;
 
     @Transactional(readOnly = true)
     public Page<ProductResponse> listAll(int page, int size) {
@@ -54,6 +57,9 @@ public class AdminProductService {
         p.setOriginalPrice(req.originalPrice());
         p.setDescription(req.description());
         p.setHowToRedeem(req.howToRedeem());
+        if (req.companyId() != null) {
+            companyRepository.findById(req.companyId()).ifPresent(p::setCompany);
+        }
         p.setBrand(req.brand());
         p.setProductType(req.productType());
         p.setRegion(req.region() != null ? req.region() : "Global");
@@ -83,6 +89,9 @@ public class AdminProductService {
         if (req.originalPrice() != null) p.setOriginalPrice(req.originalPrice());
         if (req.description() != null)  p.setDescription(req.description());
         if (req.howToRedeem() != null)  p.setHowToRedeem(req.howToRedeem());
+        if (req.companyId() != null) {
+            companyRepository.findById(req.companyId()).ifPresent(p::setCompany);
+        }
         if (req.brand() != null)        p.setBrand(req.brand());
         if (req.productType() != null)  p.setProductType(req.productType());
         if (req.region() != null)       p.setRegion(req.region());

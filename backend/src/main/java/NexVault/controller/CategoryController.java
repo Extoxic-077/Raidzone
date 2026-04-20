@@ -36,12 +36,20 @@ public class CategoryController {
      */
     @GetMapping
     @Operation(
-            summary     = "List all categories",
-            description = "Returns all active product categories sorted by their display order."
+            summary     = "List all categories as tree",
+            description = "Returns active root categories with children nested. Desktop mega-menu uses this."
     )
     public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategories() {
-        List<CategoryResponse> categories = categoryService.getAllCategories();
-        return ResponseEntity.ok(ApiResponse.ok(categories));
+        return ResponseEntity.ok(ApiResponse.ok(categoryService.getAllCategories()));
+    }
+
+    @GetMapping("/flat")
+    @Operation(
+            summary     = "List all categories flat",
+            description = "Returns every active category as a flat list — used in the catalog sidebar."
+    )
+    public ResponseEntity<ApiResponse<List<CategoryResponse>>> getAllCategoriesFlat() {
+        return ResponseEntity.ok(ApiResponse.ok(categoryService.getAllCategoriesFlat()));
     }
 
     /**

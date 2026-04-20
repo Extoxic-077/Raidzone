@@ -77,6 +77,7 @@ public class SecurityConfig {
                     // ── Public read-only product catalogue ───────────────────────
                     .requestMatchers(HttpMethod.GET, "/api/v1/products/**").permitAll()
                     .requestMatchers(HttpMethod.GET, "/api/v1/categories/**").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/v1/companies/**").permitAll()
                     // ── Static uploaded files ────────────────────────────────────
                     .requestMatchers("/uploads/**").permitAll()
                     // ── OpenAPI / Swagger ────────────────────────────────────────

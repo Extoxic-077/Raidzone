@@ -2,6 +2,36 @@ import { showToast } from './toast.js';
 import { initAuth, isLoggedIn, getUser, isAdmin, clearAuth } from '../auth.js';
 import { logout, getCartCount, getCategories, getNotificationCount, getNotifications, markAllNotificationsRead, markNotificationRead } from '../api.js';
 
+// ── Mega-menu builder ─────────────────────────────────────────────────────────
+
+function buildMegaMenuHTML(categories) {
+  // categories is tree: root items with .children arrays
+  return categories.map(cat => {
+    const hasChildren = cat.children && cat.children.length > 0;
+    if (!hasChildren) {
+      return `<button class="nav-cat-btn" data-id="${cat.id}" data-slug="${cat.slug}">${cat.emoji ? cat.emoji + ' ' : ''}${cat.name}</button>`;
+    }
+    const childLinks = cat.children.map(sub =>
+      `<a class="mega-sub-link" href="catalog.html?categoryId=${sub.id}" data-id="${sub.id}">${sub.emoji ? sub.emoji + ' ' : ''}${sub.name}</a>`
+    ).join('');
+    return `
+      <div class="mega-group" data-group-id="${cat.id}">
+        <button class="nav-cat-btn has-mega" data-id="${cat.id}" data-slug="${cat.slug}" aria-haspopup="true" aria-expanded="false">
+          ${cat.emoji ? cat.emoji + ' ' : ''}${cat.name}
+          <svg class="mega-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="mega-dropdown">
+          <div class="mega-dropdown-inner">
+            <a class="mega-sub-link mega-sub-all" href="catalog.html?categoryId=${cat.id}" data-id="${cat.id}">
+              <span style="font-weight:700">All ${cat.name}</span>
+            </a>
+            ${childLinks}
+          </div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
 function hexagonSVG() {
   return `<svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
     <defs>
@@ -92,11 +122,7 @@ function renderDesktopNavbar(el, categories, activeCatId) {
 
       <div class="navbar-cats">
         <button class="nav-cat-btn${!activeCatId ? ' active' : ''}" data-id="">All</button>
-        ${categories.map(c => `
-          <button class="nav-cat-btn${activeCatId === c.id ? ' active' : ''}" data-id="${c.id}">
-            ${c.emoji ? c.emoji + ' ' : ''}${c.name}
-          </button>
-        `).join('')}
+        ${buildMegaMenuHTML(categories)}
       </div>
 
       <div class="navbar-spacer"></div>
@@ -243,6 +269,41 @@ function injectDropdownStyles() {
   const style = document.createElement('style');
   style.id = 'dropdown-styles';
   style.textContent = `
+    /* ── Mega menu ────────────────────────────────────────────────────────── */
+    .mega-group { position: relative; display: inline-flex; }
+    .has-mega { display: flex; align-items: center; gap: 4px; }
+    .mega-chevron { transition: transform 0.2s ease; flex-shrink: 0; }
+    .has-mega[aria-expanded="true"] .mega-chevron { transform: rotate(180deg); }
+
+    .mega-dropdown {
+      display: none; position: absolute; top: calc(100% + 6px); left: 50%;
+      transform: translateX(-50%); min-width: 220px;
+      background: var(--bg2); border: 1px solid var(--glass-border);
+      border-radius: var(--r-lg); padding: 6px; z-index: 300;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+      pointer-events: none;
+    }
+    .mega-dropdown.open {
+      display: block;
+      pointer-events: all;
+      animation: megaFadeIn 0.15s ease forwards;
+    }
+    @keyframes megaFadeIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    }
+    .mega-dropdown-inner { display: flex; flex-direction: column; gap: 1px; }
+    .mega-sub-link {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 12px; border-radius: var(--r-md);
+      font-size: 13px; font-weight: 500; color: var(--text-2);
+      text-decoration: none; white-space: nowrap;
+      transition: background var(--ease-fast), color var(--ease-fast);
+    }
+    .mega-sub-link:hover { background: var(--glass); color: var(--text-1); }
+    .mega-sub-all { border-bottom: 1px solid var(--glass-border); margin-bottom: 4px; color: var(--text-1); }
+    .mega-sub-all:hover { background: rgba(124,58,237,0.1); color: var(--violet-light); }
+
     /* Desktop dropdown */
     .user-btn-wrap { position: relative; }
     .user-btn { display: flex; align-items: center; gap: 8px; cursor: pointer; }
@@ -363,11 +424,48 @@ function bindDesktopEvents(el) {
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
 
-  el.querySelectorAll('.nav-cat-btn').forEach(btn => {
+  // Plain category buttons (no children)
+  el.querySelectorAll('.nav-cat-btn:not(.has-mega)').forEach(btn => {
     btn.addEventListener('click', () => {
       const id = btn.dataset.id;
       window.location.href = id ? `catalog.html?categoryId=${id}` : 'catalog.html';
     });
+  });
+
+  // Mega menu groups
+  el.querySelectorAll('.mega-group').forEach(group => {
+    const btn      = group.querySelector('.nav-cat-btn.has-mega');
+    const dropdown = group.querySelector('.mega-dropdown');
+    let closeTimer;
+
+    const open = () => {
+      clearTimeout(closeTimer);
+      el.querySelectorAll('.mega-dropdown.open').forEach(d => d.classList.remove('open'));
+      el.querySelectorAll('.nav-cat-btn.has-mega[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded','false'));
+      dropdown.classList.add('open');
+      btn.setAttribute('aria-expanded', 'true');
+    };
+    const close = () => {
+      closeTimer = setTimeout(() => {
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }, 120);
+    };
+
+    group.addEventListener('mouseenter', open);
+    group.addEventListener('mouseleave', close);
+    dropdown.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+    dropdown.addEventListener('mouseleave', close);
+
+    btn.addEventListener('click', () => {
+      const id = btn.dataset.id;
+      window.location.href = id ? `catalog.html?categoryId=${id}` : 'catalog.html';
+    });
+  });
+
+  // Close mega on outside click
+  document.addEventListener('click', () => {
+    el.querySelectorAll('.mega-dropdown.open').forEach(d => d.classList.remove('open'));
   });
 
   bindNotifDropdown();

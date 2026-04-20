@@ -9,5 +9,6 @@ public record CreateCategoryRequest(
         String description,
         @Size(max = 10) String emoji,
         Integer sortOrder,
-        Boolean isActive
+        Boolean isActive,
+        java.util.UUID parentId
 ) {}

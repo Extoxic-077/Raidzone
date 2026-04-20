@@ -981,6 +981,39 @@
 #footer li { margin-bottom: 0; }
 #footer ul { padding-left: 0; list-style: none; margin-bottom: 0; }
 
+.footer-signature {
+  border-top: 1px solid rgba(255,255,255,0.04);
+  padding: 14px 24px;
+  text-align: center;
+}
+.footer-sig-inner {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72rem;
+  color: var(--text-4);
+  font-family: var(--font-body);
+  letter-spacing: 0.03em;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.footer-sig-inner strong {
+  color: var(--text-3);
+  font-weight: 600;
+}
+.footer-sig-heart {
+  background: var(--gradient-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 0.85rem;
+  line-height: 1;
+}
+.footer-sig-flag {
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
 /* ─── STATIC PAGES MOBILE ───────────────────────── */
 @media (max-width: 767px) {
   .static-page {

@@ -79,7 +79,13 @@
           <input class="admin-form-input" name="originalPrice" type="number" step="0.01" min="0" placeholder="599"/>
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label">Brand</label>
+          <label class="admin-form-label">Company / Brand</label>
+          <select class="admin-form-select" name="companyId" id="company-select">
+            <option value="">— None —</option>
+          </select>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Brand (text)</label>
           <input class="admin-form-input" name="brand" placeholder="Valve / Steam"/>
         </div>
         <div class="admin-form-group">
@@ -98,8 +104,8 @@
           </select>
         </div>
         <div class="admin-form-group full">
-          <label class="admin-form-label">Description</label>
-          <textarea class="admin-form-textarea" name="description" rows="3" placeholder="Full marketing description…"></textarea>
+          <label class="admin-form-label">Description <span style="color:var(--text-4);font-weight:400">(max 2000 chars)</span></label>
+          <textarea class="admin-form-textarea" name="description" rows="6" maxlength="2000" placeholder="Full marketing description…"></textarea>
         </div>
         <div class="admin-form-group full">
           <label class="admin-form-label">How to Redeem</label>
@@ -173,7 +179,7 @@ import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
 import { initAdminSidebar } from './js/adminSidebar.js';
 import {
   adminGetProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct,
-  adminUploadImage, getCategories,
+  adminUploadImage, getCategories, getCategoriesFlat, adminGetCompanies,
   adminToggleProductActive, adminToggleFlashDeal, adminSetBadge, adminBulkToggleActive
 } from '../js/api.js';
 
@@ -184,6 +190,7 @@ await initAdminSidebar('products');
 let currentPage = 0;
 let editingId = null;
 let categories = [];
+let companies = [];
 let productsCache = {};   // id → product object, for edit pre-population
 
 const tbody      = document.getElementById('products-tbody');
@@ -194,9 +201,23 @@ const countEl    = document.getElementById('products-count');
 
 async function loadCategories() {
   try {
-    categories = await getCategories();
+    categories = await getCategoriesFlat();
     const sel = document.getElementById('cat-select');
     categories.forEach(c => {
+      const o = document.createElement('option');
+      o.value = c.id;
+      o.textContent = (c.parentId ? '  └ ' : '') + c.name;
+      sel.appendChild(o);
+    });
+  } catch (e) { /* ignore */ }
+}
+
+async function loadCompanies() {
+  try {
+    companies = await adminGetCompanies();
+    const sel = document.getElementById('company-select');
+    if (!sel) return;
+    companies.forEach(c => {
       const o = document.createElement('option');
       o.value = c.id;
       o.textContent = c.name;
@@ -391,8 +412,10 @@ window.openEdit = function(id) {
     form.elements['howToRedeem'].value   = p.howToRedeem || '';
     form.elements['sortOrder'].value     = p.sortOrder != null ? p.sortOrder : 0;
     form.elements['isFlashDeal'].checked = !!p.isFlashDeal;
-    // Set category select — wait for next tick so options are ready
-    setTimeout(() => { form.elements['categoryId'].value = p.categoryId || ''; }, 0);
+    setTimeout(() => {
+      form.elements['categoryId'].value = p.categoryId || '';
+      if (form.elements['companyId']) form.elements['companyId'].value = p.companyId || '';
+    }, 0);
     // Show current image in preview
     if (p.imageUrl) {
       document.getElementById('image-preview').innerHTML =
@@ -490,6 +513,7 @@ form.addEventListener('submit', async e => {
   const data = {
     name:          fd.get('name'),
     categoryId,
+    companyId:     fd.get('companyId') || null,
     price:         parseFloat(fd.get('price')),
     originalPrice: fd.get('originalPrice') ? parseFloat(fd.get('originalPrice')) : null,
     description:   fd.get('description') || null,
@@ -533,6 +557,7 @@ form.addEventListener('submit', async e => {
 });
 
 loadCategories();
+loadCompanies();
 loadProducts(0);
 </script>
 

@@ -100,6 +100,15 @@ export function initFooter() {
         ).join('')}
       </div>
     </div>
+
+    <div class="footer-signature">
+      <span class="footer-sig-inner">
+        <span class="footer-sig-flag">🇹🇲</span>
+        Coded with <span class="footer-sig-heart">♥</span> somewhere between the Karakum Desert and the cosmos
+        &nbsp;·&nbsp; crafted by <strong>Hemra Ashyrov</strong>
+        <span class="footer-sig-flag">🇹🇲</span>
+      </span>
+    </div>
   `;
 
   // Mobile accordion for footer columns

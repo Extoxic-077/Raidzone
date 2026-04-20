@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Categories — Admin — NexVault</title>
+  <title>Companies — Admin — NexVault</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -18,29 +18,27 @@
 <body>
 
 <div class="admin-layout">
-
   <aside class="admin-sidebar"></aside>
 
-  <!-- Main -->
   <main class="admin-main">
-    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Categories</span></div>
-    <h1 class="admin-page-title" style="margin-top:28px">Categories</h1>
-    <p class="admin-page-subtitle">Create and manage product categories</p>
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Companies</span></div>
+    <h1 class="admin-page-title" style="margin-top:28px">Companies / Brands</h1>
+    <p class="admin-page-subtitle">Manage brands shown in Featured Brands and product filters</p>
 
     <div class="admin-table-card">
       <div class="admin-table-header">
-        <div class="admin-table-title" id="cat-count">Categories</div>
-        <button class="btn-admin-primary" id="add-cat-btn">
+        <div class="admin-table-title" id="company-count">Companies</div>
+        <button class="btn-admin-primary" id="add-company-btn">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-          Add Category
+          Add Company
         </button>
       </div>
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
-            <tr><th>Emoji</th><th>Name</th><th>Slug</th><th>Order</th><th>Status</th><th>Actions</th></tr>
+            <tr><th>Name</th><th>Slug</th><th>Website</th><th>Order</th><th>Status</th><th>Actions</th></tr>
           </thead>
-          <tbody id="cat-tbody">
+          <tbody id="company-tbody">
             <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
           </tbody>
         </table>
@@ -49,33 +47,31 @@
   </main>
 </div>
 
-<!-- Category Modal -->
-<div class="admin-modal-overlay" id="cat-modal">
-  <div class="admin-modal" style="max-width:480px">
-    <h2 class="admin-modal-title" id="modal-title">Add Category</h2>
-    <form id="cat-form">
+<!-- Company Modal -->
+<div class="admin-modal-overlay" id="company-modal">
+  <div class="admin-modal" style="max-width:500px">
+    <h2 class="admin-modal-title" id="modal-title">Add Company</h2>
+    <form id="company-form">
       <div class="admin-form-grid">
         <div class="admin-form-group">
           <label class="admin-form-label">Name *</label>
-          <input class="admin-form-input" name="name" required placeholder="e.g. Gift Cards"/>
+          <input class="admin-form-input" name="name" required placeholder="e.g. Riot Games"/>
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Slug *</label>
-          <input class="admin-form-input" name="slug" required placeholder="e.g. gift-cards"/>
+          <input class="admin-form-input" name="slug" required placeholder="e.g. riot-games"/>
+        </div>
+        <div class="admin-form-group full">
+          <label class="admin-form-label">Logo URL</label>
+          <input class="admin-form-input" name="logoUrl" placeholder="https://…/logo.png"/>
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label">Emoji</label>
-          <input class="admin-form-input" name="emoji" placeholder="🎁" maxlength="10"/>
+          <label class="admin-form-label">Website URL</label>
+          <input class="admin-form-input" name="websiteUrl" placeholder="https://riotgames.com"/>
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Sort Order</label>
           <input class="admin-form-input" name="sortOrder" type="number" value="0" min="0"/>
-        </div>
-        <div class="admin-form-group full">
-          <label class="admin-form-label">Parent Category</label>
-          <select class="admin-form-select" name="parentId" id="parent-cat-select">
-            <option value="">— Root (no parent) —</option>
-          </select>
         </div>
         <div class="admin-form-group full">
           <label class="admin-form-label">Description</label>
@@ -106,7 +102,7 @@
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/></svg>
     Products
   </a>
-  <a href="categories.html" class="admin-bottom-tab active">
+  <a href="categories.html" class="admin-bottom-tab">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
     Categories
   </a>
@@ -123,85 +119,69 @@
 import { showToast } from '../js/components/toast.js';
 import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
 import { initAdminSidebar } from './js/adminSidebar.js';
-import { adminGetCategories, adminCreateCategory, adminUpdateCategory, adminDeleteCategory } from '../js/api.js';
+import { adminGetCompanies, adminCreateCompany, adminUpdateCompany, adminDeleteCompany } from '../js/api.js';
 
 await initAuth();
 if (!isLoggedIn() || !isAdmin()) window.location.href = '../login.html';
-await initAdminSidebar('categories');
+await initAdminSidebar('companies');
 
-// ── State ───────────────────────────────────────────────────────────────────
-let editingId   = null;
-let catCache    = {};
-const tbody     = document.getElementById('cat-tbody');
-const modal     = document.getElementById('cat-modal');
-const form      = document.getElementById('cat-form');
+let editingId = null;
+let cache = {};
+const tbody = document.getElementById('company-tbody');
+const modal = document.getElementById('company-modal');
+const form  = document.getElementById('company-form');
 
-// ── Auto-slug from name ─────────────────────────────────────────────────────
 form.elements['name'].addEventListener('input', () => {
-  if (editingId) return; // don't auto-fill when editing
+  if (editingId) return;
   form.elements['slug'].value = form.elements['name'].value
     .toLowerCase().trim().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
 });
 
-// ── Load categories ─────────────────────────────────────────────────────────
-async function loadCategories() {
+async function loadCompanies() {
   tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
   try {
-    const cats = await adminGetCategories();
-    document.getElementById('cat-count').textContent = `Categories (${cats.length})`;
-    catCache = {};
-    cats.forEach(c => { catCache[c.id] = c; });
-    // Populate parent select with root categories
-    const parentSel = document.getElementById('parent-cat-select');
-    if (parentSel) {
-      parentSel.innerHTML = '<option value="">— Root (no parent) —</option>';
-      cats.filter(c => !c.parentId).forEach(c => {
-        const o = document.createElement('option');
-        o.value = c.id;
-        o.textContent = `${c.emoji || ''} ${c.name}`.trim();
-        parentSel.appendChild(o);
-      });
-    }
-    renderTable(cats);
+    const companies = await adminGetCompanies();
+    document.getElementById('company-count').textContent = `Companies (${companies.length})`;
+    cache = {};
+    companies.forEach(c => { cache[c.id] = c; });
+    renderTable(companies);
   } catch (err) {
     tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
   }
 }
 
-function renderTable(cats) {
-  if (!cats.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">No categories yet</td></tr>`;
+function renderTable(companies) {
+  if (!companies.length) {
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">No companies yet</td></tr>`;
     return;
   }
-  tbody.innerHTML = cats.map(c => {
+  tbody.innerHTML = companies.map(c => {
     const status = c.isActive !== false
       ? `<span class="admin-badge badge-active">Active</span>`
       : `<span class="admin-badge badge-inactive">Inactive</span>`;
-    const parent = c.parentId && catCache[c.parentId] ? catCache[c.parentId].name : '';
-    const nameCell = parent
-      ? `<span style="color:var(--text-4);font-size:0.75rem">└ ${parent} /</span> <span style="color:var(--text-1);font-weight:500">${c.name}</span>`
-      : `<span style="color:var(--text-1);font-weight:600">${c.name}</span>`;
     return `
       <tr>
-        <td style="font-size:1.4rem;text-align:center">${c.emoji || '—'}</td>
-        <td>${nameCell}</td>
+        <td>
+          ${c.logoUrl ? `<img src="${c.logoUrl}" style="width:24px;height:24px;object-fit:contain;border-radius:4px;margin-right:8px;vertical-align:middle;" onerror="this.style.display='none'"/>` : ''}
+          <span style="color:var(--text-1);font-weight:500">${c.name}</span>
+        </td>
         <td style="font-size:0.8rem;color:var(--text-4)">${c.slug}</td>
+        <td style="font-size:0.8rem;color:var(--violet-light)">${c.websiteUrl ? `<a href="${c.websiteUrl}" target="_blank" style="color:inherit;text-decoration:none;">↗</a>` : '—'}</td>
         <td style="color:var(--text-3)">${c.sortOrder ?? 0}</td>
         <td>${status}</td>
         <td>
           <div class="admin-actions-cell">
             <button class="btn-table-action" onclick="openEdit('${c.id}')">Edit</button>
-            <button class="btn-table-action danger" onclick="deleteCategory('${c.id}','${c.name.replace(/'/g,'')}')">Deactivate</button>
+            <button class="btn-table-action danger" onclick="deleteCompany('${c.id}','${c.name.replace(/'/g,'')}')">Deactivate</button>
           </div>
         </td>
       </tr>`;
   }).join('');
 }
 
-// ── Modal helpers ───────────────────────────────────────────────────────────
 function openAdd() {
   editingId = null;
-  document.getElementById('modal-title').textContent = 'Add Category';
+  document.getElementById('modal-title').textContent = 'Add Company';
   form.reset();
   form.elements['isActive'].checked = true;
   modal.classList.add('open');
@@ -209,37 +189,33 @@ function openAdd() {
 
 window.openEdit = function(id) {
   editingId = id;
-  document.getElementById('modal-title').textContent = 'Edit Category';
-  const c = catCache[id];
+  document.getElementById('modal-title').textContent = 'Edit Company';
+  const c = cache[id];
   if (c) {
     form.elements['name'].value        = c.name || '';
     form.elements['slug'].value        = c.slug || '';
-    form.elements['emoji'].value       = c.emoji || '';
+    form.elements['logoUrl'].value     = c.logoUrl || '';
+    form.elements['websiteUrl'].value  = c.websiteUrl || '';
     form.elements['sortOrder'].value   = c.sortOrder ?? 0;
     form.elements['description'].value = c.description || '';
     form.elements['isActive'].checked  = c.isActive !== false;
-    setTimeout(() => {
-      const pSel = document.getElementById('parent-cat-select');
-      if (pSel) pSel.value = c.parentId || '';
-    }, 0);
   }
   modal.classList.add('open');
 };
 
-window.deleteCategory = async function(id, name) {
-  if (!confirm(`Deactivate category "${name}"?`)) return;
+window.deleteCompany = async function(id, name) {
+  if (!confirm(`Deactivate company "${name}"?`)) return;
   try {
-    await adminDeleteCategory(id);
+    await adminDeleteCompany(id);
     showToast(`"${name}" deactivated`, 'info');
-    loadCategories();
+    loadCompanies();
   } catch (err) { showToast(err.message, 'error'); }
 };
 
-document.getElementById('add-cat-btn').addEventListener('click', openAdd);
-document.getElementById('modal-cancel').addEventListener('click', () => { modal.classList.remove('open'); });
+document.getElementById('add-company-btn').addEventListener('click', openAdd);
+document.getElementById('modal-cancel').addEventListener('click', () => modal.classList.remove('open'));
 modal.addEventListener('click', e => { if (e.target === modal) modal.classList.remove('open'); });
 
-// ── Form submit ─────────────────────────────────────────────────────────────
 form.addEventListener('submit', async e => {
   e.preventDefault();
   const fd  = new FormData(form);
@@ -250,23 +226,23 @@ form.addEventListener('submit', async e => {
   const data = {
     name:        fd.get('name'),
     slug:        fd.get('slug'),
-    emoji:       fd.get('emoji') || null,
-    sortOrder:   parseInt(fd.get('sortOrder')) || 0,
+    logoUrl:     fd.get('logoUrl') || null,
+    websiteUrl:  fd.get('websiteUrl') || null,
     description: fd.get('description') || null,
+    sortOrder:   parseInt(fd.get('sortOrder')) || 0,
     isActive:    form.elements['isActive'].checked,
-    parentId:    fd.get('parentId') || null,
   };
 
   try {
     if (editingId) {
-      await adminUpdateCategory(editingId, data);
-      showToast('Category updated', 'success');
+      await adminUpdateCompany(editingId, data);
+      showToast('Company updated', 'success');
     } else {
-      await adminCreateCategory(data);
-      showToast('Category created', 'success');
+      await adminCreateCompany(data);
+      showToast('Company created', 'success');
     }
     modal.classList.remove('open');
-    loadCategories();
+    loadCompanies();
   } catch (err) {
     showToast(err.message, 'error');
   } finally {
@@ -275,8 +251,7 @@ form.addEventListener('submit', async e => {
   }
 });
 
-loadCategories();
+loadCompanies();
 </script>
-
 </body>
 </html>

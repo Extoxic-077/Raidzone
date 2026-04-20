@@ -7,6 +7,7 @@ export function getCurrentFilters() {
   const params = new URLSearchParams(window.location.search);
   return {
     categoryId: params.get('categoryId') || '',
+    companyId:  params.get('companyId')  || '',
     minPrice:   params.get('minPrice')   || '',
     maxPrice:   params.get('maxPrice')   || '',
     minRating:  params.get('minRating')  || '',

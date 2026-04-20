@@ -66,6 +66,10 @@ public class Product {
     @Column(name = "brand", length = 100)
     private String brand;
 
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "company_id")
+    private Company company;
+
     /** Product sub-type label (e.g. "Wallet Card", "In-Game Currency", "Subscription"). */
     @Column(name = "product_type", length = 100)
     private String productType;

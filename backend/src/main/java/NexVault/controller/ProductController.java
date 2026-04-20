@@ -56,6 +56,9 @@ public class ProductController {
             @Parameter(description = "Filter by category UUID")
             @RequestParam(required = false) UUID categoryId,
 
+            @Parameter(description = "Filter by company UUID")
+            @RequestParam(required = false) UUID companyId,
+
             @Parameter(description = "Minimum price in INR (inclusive)", example = "100")
             @RequestParam(required = false) BigDecimal minPrice,
 
@@ -72,7 +75,7 @@ public class ProductController {
             @RequestParam(required = false) String sort) {
 
         Page<ProductResponse> products =
-                productService.getAllProducts(page, size, categoryId, minPrice, maxPrice, minRating, search, sort);
+                productService.getAllProducts(page, size, categoryId, companyId, minPrice, maxPrice, minRating, search, sort);
         return ResponseEntity.ok(ApiResponse.ok(products));
     }
 

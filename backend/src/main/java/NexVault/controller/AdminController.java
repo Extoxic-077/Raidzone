@@ -6,11 +6,13 @@ import NexVault.dto.request.UpdateProductRequest;
 import NexVault.dto.response.*;
 import NexVault.exception.ResourceNotFoundException;
 import NexVault.model.Category;
+import NexVault.model.Company;
 import NexVault.model.Product;
 import NexVault.model.User;
 import NexVault.repository.*;
 import NexVault.dto.request.CampaignRequest;
 import NexVault.service.AdminProductService;
+import NexVault.service.CompanyService;
 import NexVault.service.DigitalKeyService;
 import NexVault.service.EmailCampaignService;
 import NexVault.service.FileStorageService;
@@ -57,6 +59,8 @@ public class AdminController {
     private final RazorpayService razorpayService;
     private final DigitalKeyService digitalKeyService;
     private final EmailCampaignService emailCampaignService;
+    private final CompanyService companyService;
+    private final CompanyRepository companyRepository;
 
     // ── Dashboard stats ───────────────────────────────────────────────────────
 
@@ -266,6 +270,9 @@ public class AdminController {
         cat.setEmoji(req.emoji());
         cat.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
         cat.setIsActive(req.isActive() != null ? req.isActive() : true);
+        if (req.parentId() != null) {
+            categoryRepository.findById(req.parentId()).ifPresent(cat::setParent);
+        }
         categoryRepository.save(cat);
         return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(CategoryResponse.from(cat), "Category created"));
     }
@@ -284,6 +291,11 @@ public class AdminController {
         cat.setEmoji(req.emoji());
         if (req.sortOrder() != null) cat.setSortOrder(req.sortOrder());
         if (req.isActive() != null)  cat.setIsActive(req.isActive());
+        if (req.parentId() != null) {
+            categoryRepository.findById(req.parentId()).ifPresent(cat::setParent);
+        } else {
+            cat.setParent(null);
+        }
         categoryRepository.save(cat);
         return ResponseEntity.ok(ApiResponse.ok(CategoryResponse.from(cat)));
     }
@@ -297,6 +309,51 @@ public class AdminController {
         cat.setIsActive(false);
         categoryRepository.save(cat);
         return ResponseEntity.ok(ApiResponse.ok(null, "Category deactivated"));
+    }
+
+    // ── Company management ────────────────────────────────────────────────────
+
+    @GetMapping("/companies")
+    @Operation(summary = "List all companies (ADMIN)")
+    public ResponseEntity<ApiResponse<List<CompanyResponse>>> listCompanies() {
+        return ResponseEntity.ok(ApiResponse.ok(companyService.getAllCompanies()));
+    }
+
+    @PostMapping("/companies")
+    @Operation(summary = "Create a company (ADMIN)")
+    public ResponseEntity<ApiResponse<CompanyResponse>> createCompany(@RequestBody java.util.Map<String,Object> body) {
+        CompanyResponse resp = companyService.create(
+                (String) body.get("name"),
+                (String) body.get("slug"),
+                (String) body.get("description"),
+                (String) body.get("logoUrl"),
+                (String) body.get("websiteUrl"),
+                body.get("sortOrder") instanceof Number n ? n.intValue() : 0
+        );
+        return ResponseEntity.status(HttpStatus.CREATED).body(ApiResponse.ok(resp, "Company created"));
+    }
+
+    @PutMapping("/companies/{id}")
+    @Operation(summary = "Update a company (ADMIN)")
+    public ResponseEntity<ApiResponse<CompanyResponse>> updateCompany(
+            @PathVariable UUID id, @RequestBody java.util.Map<String,Object> body) {
+        CompanyResponse resp = companyService.update(id,
+                (String) body.get("name"),
+                (String) body.get("slug"),
+                (String) body.get("description"),
+                (String) body.get("logoUrl"),
+                (String) body.get("websiteUrl"),
+                body.get("sortOrder") instanceof Number n ? n.intValue() : null,
+                body.get("isActive") instanceof Boolean b ? b : null
+        );
+        return ResponseEntity.ok(ApiResponse.ok(resp));
+    }
+
+    @DeleteMapping("/companies/{id}")
+    @Operation(summary = "Deactivate a company (ADMIN)")
+    public ResponseEntity<ApiResponse<Void>> deleteCompany(@PathVariable UUID id) {
+        companyService.deactivate(id);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Company deactivated"));
     }
 
     // ── User management ───────────────────────────────────────────────────────

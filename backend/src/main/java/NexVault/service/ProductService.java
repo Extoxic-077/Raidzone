@@ -54,37 +54,35 @@ public class ProductService {
      */
     public Page<ProductResponse> getAllProducts(
             int page, int size,
-            UUID categoryId, BigDecimal minPrice, BigDecimal maxPrice, BigDecimal minRating,
+            UUID categoryId, UUID companyId, BigDecimal minPrice, BigDecimal maxPrice, BigDecimal minRating,
             String search, String sort) {
 
         int cappedSize = Math.min(size, MAX_PAGE_SIZE);
         Sort sorting = buildSort(sort);
         Pageable pageable = PageRequest.of(page, cappedSize, sorting);
 
-        log.info("getAllProducts page={} size={} categoryId={} minPrice={} maxPrice={} minRating={} search={} sort={}",
-                page, cappedSize, categoryId, minPrice, maxPrice, minRating, search, sort);
+        log.info("getAllProducts page={} size={} categoryId={} companyId={} minPrice={} maxPrice={} minRating={} search={} sort={}",
+                page, cappedSize, categoryId, companyId, minPrice, maxPrice, minRating, search, sort);
 
         Page<ProductResponse> result;
 
         if (search != null && !search.isBlank()) {
             result = productRepository
-                    .searchProducts(search.trim(), categoryId, pageable)
+                    .searchProductsWithFilters(search.trim(), categoryId, companyId, pageable)
                     .map(ProductResponse::from);
-        } else if (categoryId == null && minPrice == null && maxPrice == null && minRating == null) {
-            // Use the fast sorted query when there are no filters
+        } else if (categoryId == null && companyId == null && minPrice == null && maxPrice == null && minRating == null) {
             if (sorting.equals(Sort.by(Sort.Direction.ASC, "sortOrder"))) {
-                // default order — use dedicated method (no pageable sort clash)
                 result = productRepository
                         .findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc(PageRequest.of(page, cappedSize))
                         .map(ProductResponse::from);
             } else {
                 result = productRepository
-                        .findByFilters(null, null, null, null, pageable)
+                        .findByFilters(null, null, null, null, null, pageable)
                         .map(ProductResponse::from);
             }
         } else {
             result = productRepository
-                    .findByFilters(categoryId, minPrice, maxPrice, minRating, pageable)
+                    .findByFilters(categoryId, companyId, minPrice, maxPrice, minRating, pageable)
                     .map(ProductResponse::from);
         }
 

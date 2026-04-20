@@ -1,4 +1,4 @@
-import { getProducts, getCategories } from '../api.js';
+import { getProducts, getCategoriesFlat, getCompanies } from '../api.js';
 import { createProductCard } from '../components/productCard.js';
 import { createProductSkeleton } from '../components/skeleton.js';
 import { showToast } from '../components/toast.js';
@@ -16,6 +16,7 @@ function readFiltersFromURL() {
   const f = getCurrentFilters();
   filters = {
     categoryId: f.categoryId,
+    companyId:  f.companyId,
     minPrice:   f.minPrice,
     maxPrice:   f.maxPrice,
     minRating:  f.minRating,
@@ -29,6 +30,7 @@ function readFiltersFromURL() {
 function getFilterParams() {
   const p = { page: currentPage, size: 16 };
   if (filters.categoryId) p.categoryId = filters.categoryId;
+  if (filters.companyId)  p.companyId  = filters.companyId;
   if (filters.minPrice)   p.minPrice   = filters.minPrice;
   if (filters.maxPrice)   p.maxPrice   = filters.maxPrice;
   if (filters.minRating)  p.minRating  = filters.minRating;
@@ -39,30 +41,24 @@ function getFilterParams() {
 
 // ─── SIDEBAR ────────────────────────────────────────────────────────────────
 
-async function renderSidebar(catList) {
+async function renderSidebar(catList, companyList) {
   const catFilter = document.getElementById('cat-filter-list');
   if (!catFilter) return;
 
   catFilter.innerHTML = '';
 
-  // All option
   const allItem = document.createElement('label');
   allItem.className = `filter-cat-item${!filters.categoryId ? ' active' : ''}`;
   allItem.innerHTML = `<input type="radio" name="cat" value=""> <span>All Categories</span>`;
-  allItem.addEventListener('click', () => {
-    filters.categoryId = '';
-    applyAndFetch();
-  });
+  allItem.addEventListener('click', () => { filters.categoryId = ''; applyAndFetch(); });
   catFilter.appendChild(allItem);
 
   catList.forEach(cat => {
     const item = document.createElement('label');
     item.className = `filter-cat-item${filters.categoryId === String(cat.id) ? ' active' : ''}`;
-    item.innerHTML = `<input type="radio" name="cat" value="${cat.id}"> <span>${cat.name}</span>`;
-    item.addEventListener('click', () => {
-      filters.categoryId = String(cat.id);
-      applyAndFetch();
-    });
+    const indent = cat.parentId ? ' style="padding-left:20px;font-size:0.82rem"' : '';
+    item.innerHTML = `<input type="radio" name="cat" value="${cat.id}"> <span${indent}>${cat.emoji ? cat.emoji + ' ' : ''}${cat.name}</span>`;
+    item.addEventListener('click', () => { filters.categoryId = String(cat.id); applyAndFetch(); });
     catFilter.appendChild(item);
   });
 
@@ -77,6 +73,25 @@ async function renderSidebar(catList) {
   document.querySelectorAll('.rating-star-btn').forEach(btn => {
     btn.classList.toggle('active', parseInt(btn.dataset.value, 10) <= ratingVal && ratingVal > 0);
   });
+
+  // Company filter
+  const companySection = document.getElementById('company-filter-list');
+  if (companySection && companyList && companyList.length > 0) {
+    companySection.innerHTML = '';
+    const allComp = document.createElement('label');
+    allComp.className = `filter-cat-item${!filters.companyId ? ' active' : ''}`;
+    allComp.innerHTML = `<input type="radio" name="comp" value=""> <span>All Brands</span>`;
+    allComp.addEventListener('click', () => { filters.companyId = ''; applyAndFetch(); });
+    companySection.appendChild(allComp);
+
+    companyList.forEach(c => {
+      const item = document.createElement('label');
+      item.className = `filter-cat-item${filters.companyId === String(c.id) ? ' active' : ''}`;
+      item.innerHTML = `<input type="radio" name="comp" value="${c.id}"> <span>${c.name}</span>`;
+      item.addEventListener('click', () => { filters.companyId = String(c.id); applyAndFetch(); });
+      companySection.appendChild(item);
+    });
+  }
 }
 
 function setupSidebarEvents() {
@@ -108,7 +123,7 @@ function setupSidebarEvents() {
     document.getElementById('filter-max-price') && (document.getElementById('filter-max-price').value = '');
     document.querySelectorAll('.rating-star-btn').forEach(b => b.classList.remove('active'));
     document.querySelectorAll('.filter-cat-item').forEach(i => i.classList.remove('active'));
-    document.querySelector('.filter-cat-item')?.classList.add('active');
+    document.querySelectorAll('.filter-cat-item:first-child').forEach(i => i.classList.add('active'));
     applyAndFetch();
     closeMobileSheet();
   });
@@ -351,16 +366,16 @@ function applyAndFetch() {
 export async function renderCatalog() {
   readFiltersFromURL();
 
-  // Load categories and build sidebar
-  let catList = [];
+  let catList = [], companyList = [];
   try {
-    const data = await getCategories();
-    catList = Array.isArray(data) ? data : (data.content || data.items || []);
+    const [catData, compData] = await Promise.all([getCategoriesFlat(), getCompanies()]);
+    catList     = Array.isArray(catData)  ? catData  : (catData.content  || []);
+    companyList = Array.isArray(compData) ? compData : (compData.content || []);
   } catch (err) {
-    console.error('Failed to load categories:', err);
+    console.error('Failed to load sidebar data:', err);
   }
 
-  await renderSidebar(catList);
+  await renderSidebar(catList, companyList);
   setupSidebarEvents();
 
   // Mobile filter button
