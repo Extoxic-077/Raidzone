@@ -7,8 +7,8 @@ import NexVault.exception.ResourceNotFoundException;
 import NexVault.model.Product;
 import NexVault.model.Review;
 import NexVault.model.User;
+import NexVault.repository.OrderRepository;
 import NexVault.repository.ProductRepository;
-import NexVault.repository.PurchaseRepository;
 import NexVault.repository.ReviewRepository;
 import NexVault.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +33,10 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class ReviewService {
 
-    private final ReviewRepository   reviewRepository;
-    private final ProductRepository  productRepository;
-    private final UserRepository     userRepository;
-    private final PurchaseRepository purchaseRepository;
+    private final ReviewRepository  reviewRepository;
+    private final ProductRepository productRepository;
+    private final UserRepository    userRepository;
+    private final OrderRepository   orderRepository;
 
     @Transactional(readOnly = true)
     public List<ReviewResponse> getReviews(UUID productId) {
@@ -58,7 +58,7 @@ public class ReviewService {
     @Transactional
     public ReviewResponse createOrUpdate(UUID productId, UUID userId, CreateReviewRequest req) {
         // Only verified buyers may review
-        if (!purchaseRepository.existsByUser_IdAndProduct_Id(userId, productId)) {
+        if (!orderRepository.existsConfirmedOrderWithProduct(userId, productId)) {
             throw new PurchaseRequiredException();
         }
 

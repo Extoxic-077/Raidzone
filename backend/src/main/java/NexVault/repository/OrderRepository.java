@@ -66,6 +66,18 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     @Query("SELECT o FROM Order o ORDER BY o.createdAt DESC")
     List<Order> findRecentOrders(Pageable pageable);
 
+    /** Returns true if the user has a CONFIRMED order containing the given product. */
+    @Query("""
+        SELECT COUNT(oi) > 0 FROM OrderItem oi
+        JOIN oi.order o
+        WHERE o.user.id = :userId
+          AND o.status = 'CONFIRMED'
+          AND oi.product.id = :productId
+        """)
+    boolean existsConfirmedOrderWithProduct(
+            @Param("userId") UUID userId,
+            @Param("productId") UUID productId);
+
     /** Count orders created since a given timestamp. */
     @Query("SELECT COUNT(o) FROM Order o WHERE o.createdAt >= :since")
     long countSince(@Param("since") LocalDateTime since);
