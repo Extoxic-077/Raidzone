@@ -394,4 +394,4 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 ## Author
 
-Built by [Your Name] as a final year project for the BSc Computer Science programme at Kerala University.
+Built by Hemra Ashyrov as a final year project for the BSc Computer Science programme at Kerala University.
