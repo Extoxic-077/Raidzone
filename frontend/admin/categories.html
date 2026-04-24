@@ -187,7 +187,7 @@ function renderTable(cats) {
   function rowActions(c) {
     return `<div class="admin-actions-cell">
       <button class="btn-table-action" onclick="openEdit('${c.id}')">Edit</button>
-      <button class="btn-table-action danger" onclick="deleteCategory('${c.id}','${c.name.replace(/'/g,'')}')">Deactivate</button>
+      <button class="btn-table-action danger" onclick="deleteCategory('${c.id}','${c.name.replace(/'/g,'')}')">Delete</button>
     </div>`;
   }
 

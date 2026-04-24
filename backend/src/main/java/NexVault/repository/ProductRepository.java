@@ -101,7 +101,6 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
               AND (:minPrice   IS NULL OR p.price >= :minPrice)
               AND (:maxPrice   IS NULL OR p.price <= :maxPrice)
               AND (:minRating  IS NULL OR p.avgRating >= :minRating)
-            ORDER BY p.sortOrder ASC, p.createdAt DESC
             """)
     Page<Product> findByFilters(
             @Param("categoryId") UUID categoryId,
