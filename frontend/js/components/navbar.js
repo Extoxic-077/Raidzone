@@ -433,6 +433,7 @@ function bindDesktopEvents(el) {
   const onScroll = () => el.classList.toggle('scrolled', window.scrollY > 20);
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+  const supportsHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   // Plain category buttons (no children)
   el.querySelectorAll('.nav-cat-btn:not(.has-mega)').forEach(btn => {
@@ -467,8 +468,10 @@ function bindDesktopEvents(el) {
       }, 150);
     };
 
-    group.addEventListener('mouseenter', open);
-    group.addEventListener('mouseleave', close);
+    if (supportsHover) {
+      group.addEventListener('mouseenter', open);
+      group.addEventListener('mouseleave', close);
+    }
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -484,6 +487,8 @@ function bindDesktopEvents(el) {
         open();
       }
     });
+
+    dropdown.addEventListener('click', e => e.stopPropagation());
   });
 
   // Close mega on outside click
