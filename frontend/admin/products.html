@@ -438,11 +438,14 @@ window.openEdit = function(id) {
 };
 
 window.deleteProduct = async function(id, name) {
-  if (!confirm(`Deactivate "${name}"?`)) return;
+  if (!confirm(`Delete "${name}"?\n\nThis will remove it from the storefront.`)) return;
   try {
     await adminDeleteProduct(id);
-    showToast(`"${name}" deactivated`, 'info');
-    loadProducts(currentPage);
+    const row = tbody.querySelector(`tr[data-id="${id}"]`);
+    if (row) row.remove();
+    const match = countEl.textContent.match(/\d+/);
+    if (match) countEl.textContent = `Products (${Math.max(0, parseInt(match[0]) - 1)})`;
+    showToast(`"${name}" deleted`, 'success');
   } catch (err) { showToast(err.message, 'error'); }
 };
 

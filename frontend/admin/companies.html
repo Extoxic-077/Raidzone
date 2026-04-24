@@ -160,7 +160,7 @@ function renderTable(companies) {
       ? `<span class="admin-badge badge-active">Active</span>`
       : `<span class="admin-badge badge-inactive">Inactive</span>`;
     return `
-      <tr>
+      <tr data-id="${c.id}">
         <td>
           ${c.logoUrl ? `<img src="${c.logoUrl}" style="width:24px;height:24px;object-fit:contain;border-radius:4px;margin-right:8px;vertical-align:middle;" onerror="this.style.display='none'"/>` : ''}
           <span style="color:var(--text-1);font-weight:500">${c.name}</span>
@@ -204,11 +204,13 @@ window.openEdit = function(id) {
 };
 
 window.deleteCompany = async function(id, name) {
-  if (!confirm(`Deactivate company "${name}"?`)) return;
+  if (!confirm(`Delete company "${name}"?\n\nProducts linked to this company will remain but lose the brand link.`)) return;
   try {
     await adminDeleteCompany(id);
-    showToast(`"${name}" deactivated`, 'info');
-    loadCompanies();
+    tbody.querySelector(`tr[data-id="${id}"]`)?.remove();
+    const match = document.getElementById('company-count').textContent.match(/\d+/);
+    if (match) document.getElementById('company-count').textContent = `Companies (${Math.max(0, parseInt(match[0]) - 1)})`;
+    showToast(`"${name}" deleted`, 'success');
   } catch (err) { showToast(err.message, 'error'); }
 };
 

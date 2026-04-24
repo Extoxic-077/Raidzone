@@ -169,6 +169,7 @@ async function renderSidebar(catList, companyList) {
   // "All" button
   const allBtn = document.createElement('button');
   allBtn.className = `filter-all-btn${!filters.categoryId ? ' active' : ''}`;
+  allBtn.dataset.catId = 'all';
   allBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> All Categories`;
   allBtn.addEventListener('click', () => {
     filters.categoryId = '';
@@ -195,6 +196,7 @@ async function renderSidebar(catList, companyList) {
     if (subs.length === 0) {
       const btn = document.createElement('button');
       btn.className = `filter-all-btn${isRootActive ? ' active' : ''}`;
+      btn.dataset.catId = String(root.id);
       btn.innerHTML = `${getSubIcon(root.name, root.slug)} ${root.name}`;
       btn.addEventListener('click', () => {
         filters.categoryId = String(root.id);
@@ -211,6 +213,7 @@ async function renderSidebar(catList, companyList) {
 
     const header = document.createElement('button');
     header.className = `cat-accordion-header${isRootActive ? ' active' : ''}`;
+    header.dataset.rootId = String(root.id);
     header.innerHTML = `
       <span>${root.name}</span>
       <svg class="cat-accordion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M6 9l6 6 6-6"/></svg>
@@ -277,6 +280,7 @@ async function renderSidebar(catList, companyList) {
     companySection.innerHTML = '';
     const allComp = document.createElement('button');
     allComp.className = `filter-all-btn${!filters.companyId ? ' active' : ''}`;
+    allComp.dataset.companyId = 'all';
     allComp.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg> All Brands`;
     allComp.addEventListener('click', () => { filters.companyId = ''; applyAndFetch(); });
     companySection.appendChild(allComp);
@@ -284,6 +288,7 @@ async function renderSidebar(catList, companyList) {
     companyList.forEach(c => {
       const item = document.createElement('button');
       item.className = `filter-all-btn${filters.companyId === String(c.id) ? ' active' : ''}`;
+      item.dataset.companyId = String(c.id);
       item.textContent = c.name;
       item.addEventListener('click', () => { filters.companyId = String(c.id); applyAndFetch(); });
       companySection.appendChild(item);
@@ -611,14 +616,74 @@ export async function renderCatalog() {
     const desktopSidebar = document.querySelector('.catalog-sidebar');
     if (desktopSidebar) {
       mobileSheet.innerHTML = desktopSidebar.innerHTML;
-      // Re-attach events for mobile cloned elements
-      mobileSheet.querySelectorAll('.filter-cat-item').forEach(item => {
-        item.addEventListener('click', () => {
-          const radio = item.querySelector('input[type="radio"]');
-          filters.categoryId = radio?.value || '';
+      // Remove duplicated sidebar header — the sheet already has its own
+      mobileSheet.querySelector('.sidebar-header')?.remove();
+
+      // Accordion headers: toggle open/close + select root category
+      mobileSheet.querySelectorAll('.cat-accordion-header[data-root-id]').forEach(header => {
+        const acc = header.closest('.cat-accordion-root');
+        header.addEventListener('click', (e) => {
+          e.stopPropagation();
+          acc?.classList.toggle('open');
+          filters.categoryId = header.dataset.rootId;
           applyAndFetch();
           closeMobileSheet();
         });
+      });
+
+      // Sub-items (subcategory buttons and "All [parent]")
+      mobileSheet.querySelectorAll('.cat-sub-item[data-cat-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          filters.categoryId = btn.dataset.catId;
+          applyAndFetch();
+          closeMobileSheet();
+        });
+      });
+
+      // Standalone category buttons and "All Categories"
+      mobileSheet.querySelectorAll('.filter-all-btn[data-cat-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          filters.categoryId = btn.dataset.catId === 'all' ? '' : btn.dataset.catId;
+          applyAndFetch();
+          closeMobileSheet();
+        });
+      });
+
+      // Company filter buttons
+      mobileSheet.querySelectorAll('.filter-all-btn[data-company-id]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          filters.companyId = btn.dataset.companyId === 'all' ? '' : btn.dataset.companyId;
+          applyAndFetch();
+          closeMobileSheet();
+        });
+      });
+
+      // Rating stars
+      mobileSheet.querySelectorAll('.rating-star-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const v = parseInt(btn.dataset.value, 10);
+          filters.minRating = filters.minRating === String(v) ? '' : String(v);
+          mobileSheet.querySelectorAll('.rating-star-btn').forEach(b => {
+            b.classList.toggle('active',
+              parseInt(b.dataset.value, 10) <= parseInt(filters.minRating || '0', 10) && !!filters.minRating);
+          });
+        });
+      });
+
+      // Apply Filters button reads price inputs from the mobile sheet
+      mobileSheet.querySelector('.apply-filters-btn')?.addEventListener('click', () => {
+        const inputs = mobileSheet.querySelectorAll('input[type="number"]');
+        filters.minPrice = inputs[0]?.value?.trim() || '';
+        filters.maxPrice = inputs[1]?.value?.trim() || '';
+        applyAndFetch();
+        closeMobileSheet();
+      });
+
+      // Clear All button
+      mobileSheet.querySelector('.clear-all-btn')?.addEventListener('click', () => {
+        filters = {};
+        applyAndFetch();
+        closeMobileSheet();
       });
     }
   }

@@ -20,4 +20,6 @@ public interface CategoryRepository extends JpaRepository<Category, UUID> {
 
     /** Returns active children of a given parent. */
     List<Category> findByParentIdAndIsActiveTrueOrderBySortOrderAsc(UUID parentId);
+
+    long countByParentId(UUID parentId);
 }

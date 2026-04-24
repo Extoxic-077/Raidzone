@@ -202,7 +202,7 @@ function renderTable(cats) {
     const subs = childMap[root.id] || [];
     const groupId = `acc-${root.id}`;
     if (subs.length === 0) {
-      html += `<tr>
+      html += `<tr data-id="${root.id}">
         <td><span style="color:var(--text-1);font-weight:600">${root.name}</span></td>
         <td style="font-size:0.8rem;color:var(--text-4)">${root.slug}</td>
         <td style="color:var(--text-3)">${root.sortOrder ?? 0}</td>
@@ -210,7 +210,7 @@ function renderTable(cats) {
         <td>${rowActions(root)}</td>
       </tr>`;
     } else {
-      html += `<tr class="cat-group-header" onclick="toggleCatGroup('${groupId}')" style="cursor:pointer;">
+      html += `<tr class="cat-group-header" data-id="${root.id}" onclick="toggleCatGroup('${groupId}')" style="cursor:pointer;">
         <td>
           <span style="display:inline-flex;align-items:center;gap:6px;color:var(--text-1);font-weight:700;">
             <span id="${groupId}-chevron" style="display:inline-flex;transition:transform .2s">${chevron}</span>
@@ -224,7 +224,7 @@ function renderTable(cats) {
         <td>${rowActions(root)}</td>
       </tr>`;
       subs.forEach(sub => {
-        html += `<tr class="cat-sub-row" data-group="${groupId}" style="display:none;">
+        html += `<tr class="cat-sub-row" data-id="${sub.id}" data-group="${groupId}" style="display:none;">
           <td style="padding-left:28px;">
             <span style="color:var(--text-4);font-size:0.78rem;margin-right:4px;">└</span>
             <span style="color:var(--text-2);font-weight:500">${sub.name}</span>
@@ -277,11 +277,15 @@ window.openEdit = function(id) {
 };
 
 window.deleteCategory = async function(id, name) {
-  if (!confirm(`Deactivate category "${name}"?`)) return;
+  if (!confirm(`Delete category "${name}"?\n\nIf it has products or subcategories, it cannot be deleted — reassign them first.`)) return;
   try {
     await adminDeleteCategory(id);
-    showToast(`"${name}" deactivated`, 'info');
-    loadCategories();
+    // Remove the category row and any child rows from DOM
+    tbody.querySelector(`tr[data-id="${id}"]`)?.remove();
+    tbody.querySelectorAll(`tr[data-group="acc-${id}"]`).forEach(r => r.remove());
+    const match = document.getElementById('cat-count').textContent.match(/\d+/);
+    if (match) document.getElementById('cat-count').textContent = `Categories (${Math.max(0, parseInt(match[0]) - 1)})`;
+    showToast(`"${name}" deleted`, 'success');
   } catch (err) { showToast(err.message, 'error'); }
 };
 

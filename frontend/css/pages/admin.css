@@ -271,7 +271,8 @@
 }
 
 .btn-table-action:hover         { border-color: var(--violet); color: var(--violet-light); }
-.btn-table-action.danger:hover  { border-color: var(--danger); color: var(--danger); }
+.btn-table-action.danger        { color: var(--danger); border-color: rgba(239,68,68,0.25); }
+.btn-table-action.danger:hover  { border-color: var(--danger); background: rgba(239,68,68,0.08); }
 
 .admin-actions-cell { display: flex; gap: 5px; align-items: center; flex-wrap: wrap; }
 

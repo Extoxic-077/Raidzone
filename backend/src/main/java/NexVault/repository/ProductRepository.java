@@ -4,6 +4,7 @@ import NexVault.model.Product;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -79,6 +80,12 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
      * @return a {@link Page} of products matching all supplied filters
      */
     long countByIsActiveTrue();
+
+    long countByCategoryId(UUID categoryId);
+
+    @Modifying
+    @Query("UPDATE Product p SET p.company = null WHERE p.company.id = :companyId")
+    void clearCompanyId(@Param("companyId") UUID companyId);
 
     /**
      * Full-text search across product name, description, brand, and category name.

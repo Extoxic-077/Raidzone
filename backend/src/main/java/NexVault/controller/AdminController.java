@@ -300,13 +300,23 @@ public class AdminController {
 
     @DeleteMapping("/categories/{id}")
     @Transactional
-    @Operation(summary = "Deactivate a category (ADMIN)")
+    @Operation(summary = "Delete a category (ADMIN)")
     public ResponseEntity<ApiResponse<Void>> deleteCategory(@PathVariable UUID id) {
-        Category cat = categoryRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Category", id));
-        cat.setIsActive(false);
-        categoryRepository.save(cat);
-        return ResponseEntity.ok(ApiResponse.ok(null, "Category deactivated"));
+        if (!categoryRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Category", id);
+        }
+        long productCount = productRepository.countByCategoryId(id);
+        if (productCount > 0) {
+            return ResponseEntity.badRequest().body(
+                ApiResponse.error("Cannot delete: " + productCount + " product(s) use this category. Reassign them first."));
+        }
+        long childCount = categoryRepository.countByParentId(id);
+        if (childCount > 0) {
+            return ResponseEntity.badRequest().body(
+                ApiResponse.error("Cannot delete: this category has " + childCount + " subcategory(s). Delete them first."));
+        }
+        categoryRepository.deleteById(id);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Category deleted"));
     }
 
     // ── Company management ────────────────────────────────────────────────────
@@ -348,10 +358,15 @@ public class AdminController {
     }
 
     @DeleteMapping("/companies/{id}")
-    @Operation(summary = "Deactivate a company (ADMIN)")
+    @Transactional
+    @Operation(summary = "Delete a company (ADMIN)")
     public ResponseEntity<ApiResponse<Void>> deleteCompany(@PathVariable UUID id) {
-        companyService.deactivate(id);
-        return ResponseEntity.ok(ApiResponse.ok(null, "Company deactivated"));
+        if (!companyRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Company", id);
+        }
+        productRepository.clearCompanyId(id);
+        companyRepository.deleteById(id);
+        return ResponseEntity.ok(ApiResponse.ok(null, "Company deleted"));
     }
 
     // ── User management ───────────────────────────────────────────────────────
