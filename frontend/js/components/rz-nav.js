@@ -269,6 +269,8 @@ function injectDropdownStyles() {
   const style = document.createElement('style');
   style.id = 'dropdown-styles';
   style.textContent = `
+    #navbar, .navbar-inner, .navbar-cats { overflow: visible !important; }
+
     /* ── Mega menu ────────────────────────────────────────────────────────── */
     .mega-group { position: relative; display: inline-flex; height: 100%; align-items: center; }
     .has-mega { display: flex; align-items: center; gap: 6px; cursor: pointer; }
@@ -313,6 +315,8 @@ function injectDropdownStyles() {
     }
     .mega-sub-link:hover { background: rgba(255,255,255,0.06); color: #fff; transform: translateX(4px); }
     .mega-sub-all { border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; color: #7c3aed; font-weight: 700; }
+    .nav-cat-btn, .icon-btn, .user-btn { will-change: transform, filter; transform: translateZ(0); }
+    .nav-cat-btn:hover, .icon-btn:hover, .user-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
 
     /* Desktop dropdown */
     .user-btn-wrap { position: relative; }
@@ -423,6 +427,24 @@ function injectDropdownStyles() {
       color: var(--violet-light); text-decoration: none; border-top: 1px solid var(--glass-border);
     }
     .notif-view-all:hover { background: var(--glass); }
+
+    @keyframes dropdownIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .mega-dropdown.open,
+    .user-dropdown.open,
+    .notif-dropdown[aria-hidden="false"] {
+      animation: dropdownIn 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform-origin: top center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .nav-cat-btn, .icon-btn, .user-btn, .mega-dropdown, .user-dropdown, .notif-dropdown {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
   `;
   document.head.appendChild(style);
 }
@@ -433,6 +455,7 @@ function bindDesktopEvents(el) {
   const onScroll = () => el.classList.toggle('scrolled', window.scrollY > 20);
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+  const supportsHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   // Plain category buttons (no children)
   el.querySelectorAll('.nav-cat-btn:not(.has-mega)').forEach(btn => {
@@ -467,8 +490,12 @@ function bindDesktopEvents(el) {
       }, 150);
     };
 
-    group.addEventListener('mouseenter', open);
-    group.addEventListener('mouseleave', close);
+    if (supportsHover) {
+      group.addEventListener('mouseenter', open);
+      group.addEventListener('mouseleave', close);
+      dropdown.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+      dropdown.addEventListener('mouseleave', close);
+    }
 
     btn.addEventListener('click', (e) => {
       e.preventDefault();
@@ -484,6 +511,8 @@ function bindDesktopEvents(el) {
         open();
       }
     });
+
+    dropdown.addEventListener('click', e => e.stopPropagation());
   });
 
   // Close mega on outside click

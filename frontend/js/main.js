@@ -1,5 +1,5 @@
-import { initNavbar } from './components/navbar.js';
-import { initFooter } from './components/footer.js';
+import { initNavbar } from './components/rz-nav.js';
+import { initFooter } from './components/rz-foot.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
   await initNavbar();

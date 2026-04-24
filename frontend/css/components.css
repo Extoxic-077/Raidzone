@@ -10,12 +10,14 @@
   backdrop-filter: blur(20px) saturate(180%);
   -webkit-backdrop-filter: blur(20px) saturate(180%);
   border-bottom: 1px solid var(--glass-border);
-  transition: background var(--ease-base), box-shadow var(--ease-base);
+  transition: background var(--ease-base), box-shadow var(--ease-base), border-color var(--ease-base);
+  box-shadow: var(--shadow-sm);
 }
 
 #navbar.scrolled {
   background: rgba(7, 7, 15, 0.95);
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.4);
+  border-bottom-color: rgba(167, 139, 250, 0.22);
+  box-shadow: var(--shadow-md);
 }
 
 .navbar-inner {
@@ -364,7 +366,7 @@
   cursor: pointer;
   color: var(--text-2);
   position: relative;
-  transition: background var(--ease-fast), border-color var(--ease-fast), color var(--ease-fast);
+  transition: background var(--ease-fast), border-color var(--ease-fast), color var(--ease-fast), transform var(--ease-fast), box-shadow var(--ease-fast);
   flex-shrink: 0;
 }
 
@@ -372,6 +374,8 @@
   background: var(--glass-hover);
   border-color: var(--glass-border-accent);
   color: var(--violet-light);
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(0,0,0,0.32);
 }
 
 .icon-btn svg { width: 18px; height: 18px; }
@@ -519,13 +523,14 @@
   border-radius: var(--r-lg);
   overflow: hidden;
   cursor: pointer;
+  box-shadow: var(--shadow-sm);
   transition: transform var(--ease-base), border-color var(--ease-base), box-shadow var(--ease-base);
 }
 
 .product-card:hover {
   transform: translateY(-5px);
   border-color: var(--glass-border-accent);
-  box-shadow: 0 24px 48px rgba(0,0,0,0.5), 0 0 0 1px rgba(124,58,237,0.1);
+  box-shadow: var(--shadow-lg), 0 0 0 1px rgba(124,58,237,0.1);
 }
 
 .card-image {
@@ -689,6 +694,7 @@
   border: 1px solid var(--glass-border);
   border-radius: var(--r-lg);
   overflow: hidden;
+  box-shadow: var(--shadow-sm);
 }
 
 .skeleton-img {
