@@ -267,7 +267,6 @@ public class AdminController {
         cat.setName(req.name());
         cat.setSlug(req.slug());
         cat.setDescription(req.description());
-        cat.setEmoji(req.emoji());
         cat.setSortOrder(req.sortOrder() != null ? req.sortOrder() : 0);
         cat.setIsActive(req.isActive() != null ? req.isActive() : true);
         if (req.parentId() != null) {
@@ -288,7 +287,6 @@ public class AdminController {
         cat.setName(req.name());
         cat.setSlug(req.slug());
         cat.setDescription(req.description());
-        cat.setEmoji(req.emoji());
         if (req.sortOrder() != null) cat.setSortOrder(req.sortOrder());
         if (req.isActive() != null)  cat.setIsActive(req.isActive());
         if (req.parentId() != null) {

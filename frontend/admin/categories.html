@@ -14,6 +14,11 @@
   <link rel="stylesheet" href="../css/base.css"/>
   <link rel="stylesheet" href="../css/components.css"/>
   <link rel="stylesheet" href="../css/pages/admin.css"/>
+  <style>
+    .cat-group-header:hover td { background: rgba(124,58,237,0.04); }
+    .cat-group-header td { border-top: 1px solid var(--glass-border); }
+    .cat-sub-row td { background: rgba(255,255,255,0.015); }
+  </style>
 </head>
 <body>
 
@@ -38,10 +43,10 @@
       <div class="admin-table-wrap">
         <table class="admin-table">
           <thead>
-            <tr><th>Emoji</th><th>Name</th><th>Slug</th><th>Order</th><th>Status</th><th>Actions</th></tr>
+            <tr><th>Name</th><th>Slug</th><th>Order</th><th>Status</th><th>Actions</th></tr>
           </thead>
           <tbody id="cat-tbody">
-            <tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
+            <tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>
           </tbody>
         </table>
       </div>
@@ -62,10 +67,6 @@
         <div class="admin-form-group">
           <label class="admin-form-label">Slug *</label>
           <input class="admin-form-input" name="slug" required placeholder="e.g. gift-cards"/>
-        </div>
-        <div class="admin-form-group">
-          <label class="admin-form-label">Emoji</label>
-          <input class="admin-form-input" name="emoji" placeholder="🎁" maxlength="10"/>
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Sort Order</label>
@@ -145,7 +146,7 @@ form.elements['name'].addEventListener('input', () => {
 
 // ── Load categories ─────────────────────────────────────────────────────────
 async function loadCategories() {
-  tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
+  tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
   try {
     const cats = await adminGetCategories();
     document.getElementById('cat-count').textContent = `Categories (${cats.length})`;
@@ -158,45 +159,95 @@ async function loadCategories() {
       cats.filter(c => !c.parentId).forEach(c => {
         const o = document.createElement('option');
         o.value = c.id;
-        o.textContent = `${c.emoji || ''} ${c.name}`.trim();
+        o.textContent = c.name;
         parentSel.appendChild(o);
       });
     }
     renderTable(cats);
   } catch (err) {
-    tbody.innerHTML = `<tr><td colspan="6" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="color:var(--danger);padding:24px;text-align:center">${err.message}</td></tr>`;
   }
 }
 
 function renderTable(cats) {
   if (!cats.length) {
-    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-3)">No categories yet</td></tr>`;
+    tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:40px;color:var(--text-3)">No categories yet</td></tr>`;
     return;
   }
-  tbody.innerHTML = cats.map(c => {
-    const status = c.isActive !== false
+
+  const roots    = cats.filter(c => !c.parentId);
+  const childMap = {};
+  cats.filter(c => c.parentId).forEach(c => {
+    if (!childMap[c.parentId]) childMap[c.parentId] = [];
+    childMap[c.parentId].push(c);
+  });
+
+  const chevron = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12" style="transition:transform .2s"><path d="M6 9l6 6 6-6"/></svg>`;
+
+  function rowActions(c) {
+    return `<div class="admin-actions-cell">
+      <button class="btn-table-action" onclick="openEdit('${c.id}')">Edit</button>
+      <button class="btn-table-action danger" onclick="deleteCategory('${c.id}','${c.name.replace(/'/g,'')}')">Deactivate</button>
+    </div>`;
+  }
+
+  function statusBadge(c) {
+    return c.isActive !== false
       ? `<span class="admin-badge badge-active">Active</span>`
       : `<span class="admin-badge badge-inactive">Inactive</span>`;
-    const parent = c.parentId && catCache[c.parentId] ? catCache[c.parentId].name : '';
-    const nameCell = parent
-      ? `<span style="color:var(--text-4);font-size:0.75rem">└ ${parent} /</span> <span style="color:var(--text-1);font-weight:500">${c.name}</span>`
-      : `<span style="color:var(--text-1);font-weight:600">${c.name}</span>`;
-    return `
-      <tr>
-        <td style="font-size:1.4rem;text-align:center">${c.emoji || '—'}</td>
-        <td>${nameCell}</td>
-        <td style="font-size:0.8rem;color:var(--text-4)">${c.slug}</td>
-        <td style="color:var(--text-3)">${c.sortOrder ?? 0}</td>
-        <td>${status}</td>
-        <td>
-          <div class="admin-actions-cell">
-            <button class="btn-table-action" onclick="openEdit('${c.id}')">Edit</button>
-            <button class="btn-table-action danger" onclick="deleteCategory('${c.id}','${c.name.replace(/'/g,'')}')">Deactivate</button>
-          </div>
-        </td>
+  }
+
+  let html = '';
+  roots.forEach(root => {
+    const subs = childMap[root.id] || [];
+    const groupId = `acc-${root.id}`;
+    if (subs.length === 0) {
+      html += `<tr>
+        <td><span style="color:var(--text-1);font-weight:600">${root.name}</span></td>
+        <td style="font-size:0.8rem;color:var(--text-4)">${root.slug}</td>
+        <td style="color:var(--text-3)">${root.sortOrder ?? 0}</td>
+        <td>${statusBadge(root)}</td>
+        <td>${rowActions(root)}</td>
       </tr>`;
-  }).join('');
+    } else {
+      html += `<tr class="cat-group-header" onclick="toggleCatGroup('${groupId}')" style="cursor:pointer;">
+        <td>
+          <span style="display:inline-flex;align-items:center;gap:6px;color:var(--text-1);font-weight:700;">
+            <span id="${groupId}-chevron" style="display:inline-flex;transition:transform .2s">${chevron}</span>
+            ${root.name}
+            <span style="font-size:11px;color:var(--text-4);font-weight:500;margin-left:4px;">(${subs.length} sub)</span>
+          </span>
+        </td>
+        <td style="font-size:0.8rem;color:var(--text-4)">${root.slug}</td>
+        <td style="color:var(--text-3)">${root.sortOrder ?? 0}</td>
+        <td>${statusBadge(root)}</td>
+        <td>${rowActions(root)}</td>
+      </tr>`;
+      subs.forEach(sub => {
+        html += `<tr class="cat-sub-row" data-group="${groupId}" style="display:none;">
+          <td style="padding-left:28px;">
+            <span style="color:var(--text-4);font-size:0.78rem;margin-right:4px;">└</span>
+            <span style="color:var(--text-2);font-weight:500">${sub.name}</span>
+          </td>
+          <td style="font-size:0.78rem;color:var(--text-4)">${sub.slug}</td>
+          <td style="color:var(--text-3)">${sub.sortOrder ?? 0}</td>
+          <td>${statusBadge(sub)}</td>
+          <td>${rowActions(sub)}</td>
+        </tr>`;
+      });
+    }
+  });
+
+  tbody.innerHTML = html;
 }
+
+window.toggleCatGroup = function(groupId) {
+  const rows = tbody.querySelectorAll(`.cat-sub-row[data-group="${groupId}"]`);
+  const chevronEl = document.getElementById(`${groupId}-chevron`);
+  const isOpen = rows.length > 0 && rows[0].style.display !== 'none';
+  rows.forEach(r => { r.style.display = isOpen ? 'none' : ''; });
+  if (chevronEl) chevronEl.style.transform = isOpen ? '' : 'rotate(180deg)';
+};
 
 // ── Modal helpers ───────────────────────────────────────────────────────────
 function openAdd() {
@@ -214,7 +265,6 @@ window.openEdit = function(id) {
   if (c) {
     form.elements['name'].value        = c.name || '';
     form.elements['slug'].value        = c.slug || '';
-    form.elements['emoji'].value       = c.emoji || '';
     form.elements['sortOrder'].value   = c.sortOrder ?? 0;
     form.elements['description'].value = c.description || '';
     form.elements['isActive'].checked  = c.isActive !== false;
@@ -250,7 +300,6 @@ form.addEventListener('submit', async e => {
   const data = {
     name:        fd.get('name'),
     slug:        fd.get('slug'),
-    emoji:       fd.get('emoji') || null,
     sortOrder:   parseInt(fd.get('sortOrder')) || 0,
     description: fd.get('description') || null,
     isActive:    form.elements['isActive'].checked,

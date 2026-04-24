@@ -64,7 +64,6 @@ public class OrderService {
             OrderItem item = new OrderItem();
             item.setOrder(order);
             item.setProductName(ci.name());
-            item.setProductEmoji(ci.imageEmoji());
             item.setImageUrl(ci.imageUrl());
             item.setPrice(ci.price());
             item.setQuantity(ci.quantity());

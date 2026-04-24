@@ -9,15 +9,15 @@ function buildMegaMenuHTML(categories) {
   return categories.map(cat => {
     const hasChildren = cat.children && cat.children.length > 0;
     if (!hasChildren) {
-      return `<button class="nav-cat-btn" data-id="${cat.id}" data-slug="${cat.slug}">${cat.emoji ? cat.emoji + ' ' : ''}${cat.name}</button>`;
+      return `<button class="nav-cat-btn" data-id="${cat.id}" data-slug="${cat.slug}">${cat.name}</button>`;
     }
     const childLinks = cat.children.map(sub =>
-      `<a class="mega-sub-link" href="catalog.html?categoryId=${sub.id}" data-id="${sub.id}">${sub.emoji ? sub.emoji + ' ' : ''}${sub.name}</a>`
+      `<a class="mega-sub-link" href="catalog.html?categoryId=${sub.id}" data-id="${sub.id}">${sub.name}</a>`
     ).join('');
     return `
       <div class="mega-group" data-group-id="${cat.id}">
         <button class="nav-cat-btn has-mega" data-id="${cat.id}" data-slug="${cat.slug}" aria-haspopup="true" aria-expanded="false">
-          ${cat.emoji ? cat.emoji + ' ' : ''}${cat.name}
+          ${cat.name}
           <svg class="mega-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="10" height="10"><path d="M6 9l6 6 6-6"/></svg>
         </button>
         <div class="mega-dropdown">

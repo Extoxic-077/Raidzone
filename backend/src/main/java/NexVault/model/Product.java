@@ -81,10 +81,6 @@ public class Product {
     @Column(name = "region", nullable = false, length = 50)
     private String region = "Global";
 
-    /** Unicode emoji representing the product on the UI (e.g. {@code 🎮}). */
-    @Column(name = "emoji", length = 10)
-    private String emoji;
-
     /** URL of the product thumbnail image.  May be null if no image is set. */
     @Column(name = "image_url", columnDefinition = "TEXT")
     private String imageUrl;

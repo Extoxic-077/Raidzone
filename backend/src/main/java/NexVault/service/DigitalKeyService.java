@@ -115,7 +115,6 @@ public class DigitalKeyService {
                         k.getId(),
                         k.getProduct().getId(),
                         k.getProduct().getName(),
-                        k.getProduct().getEmoji(),
                         k.getProduct().getImageUrl(),
                         decrypt(k.getKeyValue()),
                         k.getAssignedAt()
@@ -149,7 +148,7 @@ public class DigitalKeyService {
                     long available = digitalKeyRepository.countByProductIdAndStatus(p.getId(), "AVAILABLE");
                     long sold      = digitalKeyRepository.countByProductIdAndStatus(p.getId(), "SOLD");
                     return new WarehouseProductView(
-                            p.getId(), p.getName(), p.getEmoji(), p.getImageUrl(),
+                            p.getId(), p.getName(), p.getImageUrl(),
                             p.getCategory() != null ? p.getCategory().getName() : null,
                             (int) available, (int) sold, (int)(available + sold),
                             Boolean.TRUE.equals(p.getIsActive()),
@@ -233,7 +232,7 @@ public class DigitalKeyService {
     // ── DTOs ──────────────────────────────────────────────────────────────────
 
     public record UserKeyView(
-            UUID id, UUID productId, String productName, String emoji,
+            UUID id, UUID productId, String productName,
             String imageUrl, String keyValue, LocalDateTime assignedAt) {}
 
     public record AdminKeyView(
@@ -241,7 +240,7 @@ public class DigitalKeyService {
             LocalDateTime assignedAt, LocalDateTime addedAt) {}
 
     public record WarehouseProductView(
-            UUID productId, String productName, String emoji, String imageUrl,
+            UUID productId, String productName, String imageUrl,
             String categoryName, int availableKeys, int usedKeys, int totalKeys,
             boolean isActive, boolean isOutOfStock) {}
 

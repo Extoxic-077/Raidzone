@@ -5,6 +5,7 @@ import NexVault.dto.response.*;
 import NexVault.exception.ResourceNotFoundException;
 import NexVault.model.Coupon;
 import NexVault.model.CouponType;
+import NexVault.model.Payment;
 import NexVault.repository.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -14,6 +15,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -182,20 +184,24 @@ public class AdminOrderController {
     // ── Payments ──────────────────────────────────────────────────────────────
 
     @GetMapping("/payments")
+    @Transactional(readOnly = true)
     @Operation(summary = "List all payments with optional provider/status filter (ADMIN)")
     public ResponseEntity<ApiResponse<Page<AdminPaymentResponse>>> listPayments(
             @RequestParam(required = false) String provider,
             @RequestParam(required = false) String status,
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
-        // Sort is embedded in the native SQL query (ORDER BY created_at DESC)
-        var pageable = PageRequest.of(page, Math.min(size, 100));
-        Page<AdminPaymentResponse> result = paymentRepository
-                .findAllAdmin(
-                    provider != null ? provider.toUpperCase() : null,
-                    status   != null ? status.toUpperCase()   : null,
-                    pageable)
-                .map(AdminPaymentResponse::from);
+        String p = provider != null ? provider.toUpperCase() : null;
+        String s = status   != null ? status.toUpperCase()   : null;
+        int sz = Math.min(size, 100);
+
+        List<Payment> all = paymentRepository.findAllAdminEager(p, s);
+        int total = all.size();
+        int from  = Math.min(page * sz, total);
+        int to    = Math.min(from + sz, total);
+        List<AdminPaymentResponse> pageContent = all.subList(from, to)
+                .stream().map(AdminPaymentResponse::from).toList();
+        Page<AdminPaymentResponse> result = new PageImpl<>(pageContent, PageRequest.of(page, sz), total);
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 

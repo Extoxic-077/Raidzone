@@ -1049,10 +1049,12 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 12px;
+  padding: 6px;        /* room for card lift shadow */
+  overflow: visible;
 }
 
 @media (min-width: 480px) {
-  .products-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; }
+  .products-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 14px; padding: 8px; }
 }
 
 .stagger-in {

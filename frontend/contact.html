@@ -87,17 +87,35 @@ import { showToast } from './js/components/toast.js';
 await initNavbar();
 initFooter();
 
-document.getElementById('c-submit').addEventListener('click', () => {
+const submitBtn = document.getElementById('c-submit');
+submitBtn.addEventListener('click', async () => {
   const name  = document.getElementById('c-name').value.trim();
   const email = document.getElementById('c-email').value.trim();
   const topic = document.getElementById('c-topic').value;
   const msg   = document.getElementById('c-msg').value.trim();
   if (!name || !email || !topic || !msg) { showToast('Please fill all fields', 'error'); return; }
-  showToast('Message sent! We\'ll reply to ' + email + ' shortly.', 'success');
-  document.getElementById('c-name').value = '';
-  document.getElementById('c-email').value = '';
-  document.getElementById('c-topic').value = '';
-  document.getElementById('c-msg').value = '';
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+  try {
+    const API = window.__API_BASE__ || '/api/v1';
+    const res = await fetch(`${API}/contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, topic, message: msg }),
+    });
+    if (!res.ok) throw new Error('Request failed');
+    showToast('Message sent! We\'ll reply to ' + email + ' shortly.', 'success');
+    document.getElementById('c-name').value  = '';
+    document.getElementById('c-email').value = '';
+    document.getElementById('c-topic').value = '';
+    document.getElementById('c-msg').value   = '';
+  } catch {
+    showToast('Could not send message. Please try again later.', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Send Message';
+  }
 });
 </script>
 </body>

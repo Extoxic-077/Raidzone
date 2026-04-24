@@ -90,6 +90,8 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/payments/coinbase/webhook").permitAll()
                     // ── Newsletter subscribe/unsubscribe (public) ────────────────
                     .requestMatchers("/api/v1/subscribe").permitAll()
+                    // ── Contact / Partnership forms (public) ─────────────────────
+                    .requestMatchers("/api/v1/contact", "/api/v1/partnerships").permitAll()
                     // ── Notifications (requires authentication) ──────────────────
                     .requestMatchers("/api/v1/notifications/**").authenticated()
                     // ── My Keys (requires authentication) ────────────────────────

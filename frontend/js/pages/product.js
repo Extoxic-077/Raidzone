@@ -393,7 +393,7 @@ function renderProductUI(product) {
         class="product-detail-img"
         loading="eager"
       />`
-    : `<div class="product-img-emoji">${product.imageEmoji || product.emoji || '🎮'}</div>`;
+    : `<div class="product-img-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="56" height="56"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h1m4 0h1"/><path d="M8 7v2"/></svg></div>`;
 
   container.innerHTML = `
     <div class="product-page">

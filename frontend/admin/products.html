@@ -93,10 +93,6 @@
           <input class="admin-form-input" name="region" placeholder="Global" value="Global"/>
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label">Emoji</label>
-          <input class="admin-form-input" name="emoji" placeholder="🎮" maxlength="4"/>
-        </div>
-        <div class="admin-form-group">
           <label class="admin-form-label">Badge</label>
           <select class="admin-form-select" name="badge">
             <option value="">None</option>
@@ -251,7 +247,7 @@ function renderTable(products) {
   tbody.innerHTML = products.map(p => {
     const imgHtml = p.imageUrl
       ? `<div class="table-thumb"><img src="${p.imageUrl}" alt=""/></div>`
-      : `<div class="table-thumb">${p.emoji || '🎮'}</div>`;
+      : `<div class="table-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20" style="opacity:.4"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>`;
     const price   = p.price != null ? `₹${Number(p.price).toLocaleString('en-IN')}` : '—';
     const active  = p.isActive !== false;
     const flash   = !!p.isFlashDeal;
@@ -406,7 +402,6 @@ window.openEdit = function(id) {
     form.elements['originalPrice'].value = p.originalPrice != null ? p.originalPrice : '';
     form.elements['brand'].value         = p.brand || '';
     form.elements['region'].value        = p.region || 'Global';
-    form.elements['emoji'].value         = p.emoji || '';
     form.elements['badge'].value         = p.badge || '';
     form.elements['description'].value   = p.description || '';
     form.elements['howToRedeem'].value   = p.howToRedeem || '';
@@ -520,7 +515,6 @@ form.addEventListener('submit', async e => {
     howToRedeem:   fd.get('howToRedeem') || null,
     brand:         fd.get('brand') || null,
     region:        fd.get('region') || 'Global',
-    emoji:         fd.get('emoji') || null,
     badge:         fd.get('badge') || null,
     isFlashDeal:   fd.get('isFlashDeal') === 'on',
     sortOrder:     parseInt(fd.get('sortOrder')) || 0,

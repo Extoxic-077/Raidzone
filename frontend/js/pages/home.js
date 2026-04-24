@@ -142,7 +142,7 @@ async function renderCategoryChips(activeId = null) {
   if (!container) return;
 
   // Add "All" chip
-  const allChip = createChip({ id: '', name: 'All', emoji: '🌐' }, !activeId);
+  const allChip = createChip({ id: '', name: 'All' }, !activeId);
   allChip.addEventListener('click', () => {
     window.location.href = 'catalog.html';
   });
@@ -216,7 +216,7 @@ async function renderFeatured() {
     showToast('Failed to load featured products', 'error');
     const empty = document.createElement('div');
     empty.className = 'empty-state';
-    empty.innerHTML = `<div class="empty-state-icon">😕</div><h3>Couldn't load products</h3><p>${err.message}</p>`;
+    empty.innerHTML = `<div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></div><h3>Couldn't load products</h3><p>${err.message}</p>`;
     grid.appendChild(empty);
   }
 }
@@ -276,7 +276,7 @@ async function renderFlashDeals() {
 
       const dealIconHTML = p.imageUrl
         ? `<div class="deal-icon" style="background:${grad};overflow:hidden;"><img src="${p.imageUrl}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;"/></div>`
-        : `<div class="deal-icon" style="background:${grad}"><span style="font-size:28px">${p.imageEmoji || p.emoji || '🎮'}</span></div>`;
+        : `<div class="deal-icon" style="background:${grad};display:flex;align-items:center;justify-content:center;"><svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.35)" stroke-width="1.5" width="28" height="28"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>`;
 
       card.innerHTML = `
         ${dealIconHTML}

@@ -63,7 +63,6 @@ public class AdminProductService {
         p.setBrand(req.brand());
         p.setProductType(req.productType());
         p.setRegion(req.region() != null ? req.region() : "Global");
-        p.setEmoji(req.emoji());
         p.setBadge(req.badge());
         p.setIsFlashDeal(req.isFlashDeal());
         p.setSortOrder(req.sortOrder());
@@ -95,7 +94,6 @@ public class AdminProductService {
         if (req.brand() != null)        p.setBrand(req.brand());
         if (req.productType() != null)  p.setProductType(req.productType());
         if (req.region() != null)       p.setRegion(req.region());
-        if (req.emoji() != null)        p.setEmoji(req.emoji());
         if (req.badge() != null)        p.setBadge(req.badge());
         if (req.isFlashDeal() != null)  p.setIsFlashDeal(req.isFlashDeal());
         if (req.isActive() != null)     p.setIsActive(req.isActive());

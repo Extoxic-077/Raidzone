@@ -86,16 +86,35 @@ import { showToast } from './js/components/toast.js';
 await initNavbar();
 initFooter();
 
-document.getElementById('p-submit').addEventListener('click', () => {
-  const name = document.getElementById('p-name').value.trim();
-  const email = document.getElementById('p-email').value.trim();
-  const type = document.getElementById('p-type').value;
+const submitBtn = document.getElementById('p-submit');
+submitBtn.addEventListener('click', async () => {
+  const name    = document.getElementById('p-name').value.trim();
+  const email   = document.getElementById('p-email').value.trim();
+  const type    = document.getElementById('p-type').value;
+  const message = document.getElementById('p-msg').value.trim();
   if (!name || !email || !type) { showToast('Please fill all required fields', 'error'); return; }
-  showToast('Enquiry sent! We\'ll be in touch within 2 business days.', 'success');
-  document.getElementById('p-name').value = '';
-  document.getElementById('p-email').value = '';
-  document.getElementById('p-type').value = '';
-  document.getElementById('p-msg').value = '';
+
+  submitBtn.disabled = true;
+  submitBtn.textContent = 'Sending…';
+  try {
+    const API = window.__API_BASE__ || '/api/v1';
+    const res = await fetch(`${API}/partnerships`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, type, message }),
+    });
+    if (!res.ok) throw new Error('Request failed');
+    showToast('Enquiry sent! We\'ll be in touch within 2 business days.', 'success');
+    document.getElementById('p-name').value  = '';
+    document.getElementById('p-email').value = '';
+    document.getElementById('p-type').value  = '';
+    document.getElementById('p-msg').value   = '';
+  } catch {
+    showToast('Could not send enquiry. Please try again later.', 'error');
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Submit Enquiry';
+  }
 });
 </script>
 </body>

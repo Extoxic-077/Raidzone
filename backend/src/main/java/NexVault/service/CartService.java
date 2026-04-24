@@ -128,7 +128,6 @@ public class CartService {
                     product.getId(),
                     product.getName(),
                     product.getImageUrl(),
-                    product.getEmoji(),
                     product.getPrice(),
                     product.getOriginalPrice(),
                     qty,

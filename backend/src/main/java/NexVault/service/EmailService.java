@@ -155,6 +155,148 @@ public class EmailService {
             """.formatted(name, orderId, itemsHtml, paymentMethod, total);
     }
 
+    public void sendContactFormEmail(String fromName, String fromEmail, String topic, String message) {
+        if (fromAddress.contains("placeholder")) {
+            log.warn("Mail not configured — contact form from {} ({}): {}", fromName, fromEmail, topic);
+            return;
+        }
+        try {
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper h = new MimeMessageHelper(msg, true, "UTF-8");
+            h.setFrom(fromAddress, "NexVault Contact Form");
+            h.setTo("hashiflame@gmail.com");
+            h.setReplyTo(fromEmail, fromName);
+            h.setSubject("[NexVault Contact] " + topic + " — from " + fromName);
+            h.setText(buildContactHtml(fromName, fromEmail, topic, message, "Contact Us", "contact.html"), true);
+            mailSender.send(msg);
+            log.info("Contact form email sent from {}", fromEmail);
+        } catch (Exception e) {
+            log.error("Failed to send contact form email: {}", e.getMessage());
+        }
+    }
+
+    public void sendPartnershipFormEmail(String fromName, String fromEmail, String type, String message) {
+        if (fromAddress.contains("placeholder")) {
+            log.warn("Mail not configured — partnership form from {} ({}): {}", fromName, fromEmail, type);
+            return;
+        }
+        try {
+            MimeMessage msg = mailSender.createMimeMessage();
+            MimeMessageHelper h = new MimeMessageHelper(msg, true, "UTF-8");
+            h.setFrom(fromAddress, "NexVault Partnerships");
+            h.setTo("hashiflame@gmail.com");
+            h.setReplyTo(fromEmail, fromName);
+            h.setSubject("[NexVault Partnership] " + type + " — from " + fromName);
+            h.setText(buildContactHtml(fromName, fromEmail, type, message, "Partnerships", "partnerships.html"), true);
+            mailSender.send(msg);
+            log.info("Partnership form email sent from {}", fromEmail);
+        } catch (Exception e) {
+            log.error("Failed to send partnership form email: {}", e.getMessage());
+        }
+    }
+
+    private String buildContactHtml(String name, String email, String topic,
+                                    String message, String pageTitle, String pageFile) {
+        String safeMsg = message == null ? "" : message
+            .replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+            .replace("\n", "<br/>");
+        return """
+            <!DOCTYPE html>
+            <html lang="en">
+            <head>
+              <meta charset="UTF-8"/>
+              <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+              <title>NexVault Form Submission</title>
+            </head>
+            <body style="margin:0;padding:0;background:#07070F;font-family:'Segoe UI',Arial,sans-serif;">
+              <table width="100%%" cellpadding="0" cellspacing="0" style="background:#07070F;min-height:100vh;">
+                <tr>
+                  <td align="center" style="padding:40px 20px;">
+                    <table width="560" cellpadding="0" cellspacing="0"
+                           style="background:#0F0F1A;border-radius:16px;border:1px solid #1E1E2E;overflow:hidden;">
+
+                      <!-- Header -->
+                      <tr>
+                        <td style="background:linear-gradient(135deg,#7C3AED,#22D3EE);padding:24px 32px;">
+                          <table width="100%%" cellpadding="0" cellspacing="0">
+                            <tr>
+                              <td style="font-size:22px;font-weight:800;color:#fff;">&#9670; NexVault</td>
+                              <td align="right" style="font-size:12px;color:rgba(255,255,255,.8);padding-top:4px;">
+                                Form: <strong>%s</strong>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- Source page badge -->
+                      <tr>
+                        <td style="padding:20px 32px 0;">
+                          <div style="display:inline-block;background:#1E1E2E;border:1px solid #7C3AED;
+                                      border-radius:20px;padding:5px 14px;font-size:12px;color:#C084FC;
+                                      font-weight:600;letter-spacing:.05em;">
+                            Submitted from: nexvault.digital/%s
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Sender info -->
+                      <tr>
+                        <td style="padding:20px 32px 0;">
+                          <table width="100%%" cellpadding="0" cellspacing="0"
+                                 style="background:#07070F;border-radius:10px;border:1px solid #1E1E2E;">
+                            <tr>
+                              <td style="padding:14px 18px;border-bottom:1px solid #1E1E2E;">
+                                <span style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:.07em;">Name</span><br/>
+                                <span style="font-size:15px;color:#F1F0F7;font-weight:600;">%s</span>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:14px 18px;border-bottom:1px solid #1E1E2E;">
+                                <span style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:.07em;">Email</span><br/>
+                                <a href="mailto:%s" style="font-size:15px;color:#22D3EE;text-decoration:none;">%s</a>
+                              </td>
+                            </tr>
+                            <tr>
+                              <td style="padding:14px 18px;">
+                                <span style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:.07em;">Topic / Type</span><br/>
+                                <span style="font-size:15px;color:#C084FC;font-weight:600;">%s</span>
+                              </td>
+                            </tr>
+                          </table>
+                        </td>
+                      </tr>
+
+                      <!-- Message -->
+                      <tr>
+                        <td style="padding:20px 32px 32px;">
+                          <div style="font-size:11px;color:#6B7280;text-transform:uppercase;letter-spacing:.07em;margin-bottom:10px;">Message</div>
+                          <div style="background:#07070F;border-radius:10px;border:1px solid #1E1E2E;
+                                      padding:16px 18px;font-size:14px;color:#D1D5DB;line-height:1.7;">
+                            %s
+                          </div>
+                        </td>
+                      </tr>
+
+                      <!-- Footer -->
+                      <tr>
+                        <td style="padding:16px 32px;border-top:1px solid #1E1E2E;text-align:center;">
+                          <p style="margin:0;font-size:11px;color:#4B5563;">
+                            This message was sent via the NexVault website contact form.<br/>
+                            Reply directly to this email to respond to the sender.
+                          </p>
+                        </td>
+                      </tr>
+
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </body>
+            </html>
+            """.formatted(pageTitle, pageFile, name, email, email, topic, safeMsg);
+    }
+
     private String buildSubject(String purpose, String otpCode) {
         if ("REGISTER".equals(purpose))    return "NexVault — Verify your email: " + otpCode;
         if ("KEY_REVEAL".equals(purpose))  return "NexVault — Key Access Code: " + otpCode;
