@@ -269,6 +269,8 @@ function injectDropdownStyles() {
   const style = document.createElement('style');
   style.id = 'dropdown-styles';
   style.textContent = `
+    #navbar, .navbar-inner, .navbar-cats { overflow: visible !important; }
+
     /* ── Mega menu ────────────────────────────────────────────────────────── */
     .mega-group { position: relative; display: inline-flex; height: 100%; align-items: center; }
     .has-mega { display: flex; align-items: center; gap: 6px; cursor: pointer; }
@@ -471,6 +473,8 @@ function bindDesktopEvents(el) {
     if (supportsHover) {
       group.addEventListener('mouseenter', open);
       group.addEventListener('mouseleave', close);
+      dropdown.addEventListener('mouseenter', () => clearTimeout(closeTimer));
+      dropdown.addEventListener('mouseleave', close);
     }
 
     btn.addEventListener('click', (e) => {
