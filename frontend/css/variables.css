@@ -18,6 +18,7 @@
   --cyan: #22D3EE;
   --gradient: linear-gradient(135deg, #7C3AED, #22D3EE);
   --gradient-text: linear-gradient(135deg, #C084FC, #22D3EE);
+  --gradient-soft: linear-gradient(135deg, rgba(124,58,237,0.22), rgba(34,211,238,0.16));
 
   /* Status colours */
   --hot: #F97316;
@@ -37,6 +38,12 @@
   --r-lg: 16px;
   --r-xl: 24px;
   --r-full: 9999px;
+
+  /* Shadows / depth */
+  --shadow-sm: 0 6px 16px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 12px 30px rgba(0, 0, 0, 0.35);
+  --shadow-lg: 0 24px 56px rgba(0, 0, 0, 0.5);
+  --focus-ring: 0 0 0 3px rgba(124, 58, 237, 0.26);
 
   /* Fonts */
   --font-display: 'Syne', sans-serif;

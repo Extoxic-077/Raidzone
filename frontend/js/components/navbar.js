@@ -59,54 +59,38 @@ function currentPage() {
 // ── Desktop user button ───────────────────────────────────────────────────────
 
 function userButtonHTML() {
-  if (isLoggedIn()) {
-    const user    = getUser();
-    const initial = (user?.name || 'U')[0].toUpperCase();
-    const name    = user?.name?.split(' ')[0] || 'Account';
+  if (!isLoggedIn()) {
     return `
-      <button class="user-btn" id="user-btn" aria-label="Profile" aria-expanded="false">
-        <div class="user-avatar" style="background:linear-gradient(135deg,#7C3AED,#22D3EE)">${initial}</div>
-        <span class="user-name">${name}</span>
-        <svg class="user-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12">
-          <path d="M6 9l6 6 6-6"/>
-        </svg>
-      </button>
-      <div class="user-dropdown" id="user-dropdown" role="menu" aria-hidden="true">
-        <div class="dropdown-header">
-          <div class="dropdown-name">${user?.name || 'User'}</div>
-          <div class="dropdown-email">${user?.email || ''}</div>
-        </div>
-        <div class="dropdown-divider"></div>
-        <a href="profile.html" class="dropdown-item" role="menuitem">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          My Profile
-        </a>
-        <a href="orders.html" class="dropdown-item" role="menuitem">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><line x1="3" y1="6" x2="21" y2="6"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
-          My Orders
-        </a>
-        <a href="wishlist.html" class="dropdown-item" role="menuitem">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
-          My Wishlist
-        </a>
-        ${isAdmin() ? `
-        <div class="dropdown-divider"></div>
-        <a href="admin/index.html" class="dropdown-item dropdown-item-admin" role="menuitem">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
-          Admin Panel
-        </a>` : ''}
-        <div class="dropdown-divider"></div>
-        <button class="dropdown-item dropdown-item-danger" id="logout-btn" role="menuitem">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Logout
-        </button>
-      </div>
+      <a href="login.html" class="btn btn-primary" style="text-decoration:none;padding:8px 18px;font-size:14px;font-weight:600;border-radius:var(--r-md)">
+        Sign In
+      </a>
     `;
   }
+  const user = getUser();
+  const initial = (user?.name || 'U')[0].toUpperCase();
+  
   return `
-    <a href="login.html" class="btn btn-primary btn-signin" id="user-btn" style="text-decoration:none;padding:8px 18px;font-size:14px;font-weight:600;border-radius:var(--r-md)">
-      Sign In
-    </a>
+    <button class="user-btn" id="user-btn" aria-haspopup="true" aria-expanded="false">
+      <div class="user-avatar" style="background:linear-gradient(135deg,#7C3AED,#22D3EE);width:32px;height:32px;font-size:13px">${initial}</div>
+      <span class="user-name-span" style="font-weight:600;font-size:14px;color:var(--text-1)">${user?.name || 'User'}</span>
+      <svg class="user-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" width="12" height="12"><path d="M6 9l6 6 6-6"/></svg>
+    </button>
+    <div class="user-dropdown" id="user-dropdown" role="menu" aria-hidden="true">
+      <div class="dropdown-header">
+        <div class="dropdown-name">${user?.name || 'User'}</div>
+        <div class="dropdown-email">${user?.email || ''}</div>
+      </div>
+      <div class="dropdown-divider"></div>
+      <a href="orders.html"   class="dropdown-item">My Orders</a>
+      <a href="profile.html" class="dropdown-item">Profile</a>
+      <a href="wishlist.html" class="dropdown-item">Wishlist</a>
+      ${isAdmin() ? `<a href="admin/index.html" class="dropdown-item dropdown-item-admin">Admin Panel</a>` : ''}
+      <div class="dropdown-divider"></div>
+      <button class="dropdown-item dropdown-item-danger" id="logout-btn">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+        Logout
+      </button>
+    </div>
   `;
 }
 
@@ -315,6 +299,8 @@ function injectDropdownStyles() {
     }
     .mega-sub-link:hover { background: rgba(255,255,255,0.06); color: #fff; transform: translateX(4px); }
     .mega-sub-all { border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; color: #7c3aed; font-weight: 700; }
+    .nav-cat-btn, .icon-btn, .user-btn { will-change: transform, filter; transform: translateZ(0); }
+    .nav-cat-btn:hover, .icon-btn:hover, .user-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
 
     /* Desktop dropdown */
     .user-btn-wrap { position: relative; }
@@ -425,6 +411,24 @@ function injectDropdownStyles() {
       color: var(--violet-light); text-decoration: none; border-top: 1px solid var(--glass-border);
     }
     .notif-view-all:hover { background: var(--glass); }
+
+    @keyframes dropdownIn {
+      from { opacity: 0; transform: translateY(8px) scale(0.98); }
+      to   { opacity: 1; transform: translateY(0) scale(1); }
+    }
+    .mega-dropdown.open,
+    .user-dropdown.open,
+    .notif-dropdown[aria-hidden="false"] {
+      animation: dropdownIn 180ms cubic-bezier(0.2, 0.8, 0.2, 1);
+      transform-origin: top center;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .nav-cat-btn, .icon-btn, .user-btn, .mega-dropdown, .user-dropdown, .notif-dropdown {
+        animation: none !important;
+        transition: none !important;
+      }
+    }
   `;
   document.head.appendChild(style);
 }
@@ -524,292 +528,188 @@ function bindDesktopEvents(el) {
     window.location.href = 'cart.html';
   });
 
-  bindDropdown('user-btn', 'user-dropdown', 'logout-btn');
-}
-
-// ── Bind mobile events ────────────────────────────────────────────────────────
-
-function bindMobileEvents() {
-  bindDropdown('user-btn-mobile', 'user-dropdown-mobile', 'logout-btn-mobile');
-}
-
-// ── Shared dropdown logic ─────────────────────────────────────────────────────
-
-function bindDropdown(btnId, dropdownId, logoutId) {
-  const userBtn      = document.getElementById(btnId);
-  const userDropdown = document.getElementById(dropdownId);
-  if (!userBtn || !userDropdown) return;
-
-  let dropdownOpen = false;
-
-  function openDropdown() {
-    dropdownOpen = true;
-    userDropdown.classList.add('open');
-    userDropdown.setAttribute('aria-hidden', 'false');
-    userBtn.setAttribute('aria-expanded', 'true');
-  }
-  function closeDropdown() {
-    dropdownOpen = false;
-    userDropdown.classList.remove('open');
-    userDropdown.setAttribute('aria-hidden', 'true');
-    userBtn.setAttribute('aria-expanded', 'false');
-  }
-
-  userBtn.addEventListener('click', (e) => {
-    e.stopPropagation();
-    dropdownOpen ? closeDropdown() : openDropdown();
+  el.querySelectorAll('#logout-btn, #logout-btn-mobile').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      await logout();
+      clearAuth();
+      window.location.href = 'login.html';
+    });
   });
-  document.addEventListener('click', () => { if (dropdownOpen) closeDropdown(); });
-  userDropdown.addEventListener('click', (e) => e.stopPropagation());
 
-  document.getElementById(logoutId)?.addEventListener('click', async () => {
-    try { await logout(); } catch { /* ignore */ }
-    clearAuth();
-    showToast('Logged out successfully', 'info');
-    setTimeout(() => { window.location.href = 'index.html'; }, 600);
+  // Handle outside click for user and notif dropdowns
+  document.addEventListener('click', (e) => {
+    if (!e.target.closest('.user-btn-wrap')) {
+      document.getElementById('user-dropdown')?.classList.remove('open');
+      document.getElementById('user-dropdown-mobile')?.classList.remove('open');
+      document.getElementById('user-btn')?.setAttribute('aria-expanded', 'false');
+      document.getElementById('user-btn-mobile')?.setAttribute('aria-expanded', 'false');
+    }
+    if (!e.target.closest('.notif-wrap')) {
+      const drop = document.getElementById('notif-dropdown');
+      if (drop) {
+        drop.style.display = 'none';
+        drop.setAttribute('aria-hidden', 'true');
+      }
+    }
+  });
+
+  // User dropdown toggle
+  el.querySelectorAll('#user-btn, #user-btn-mobile').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const targetId = btn.id === 'user-btn' ? 'user-dropdown' : 'user-dropdown-mobile';
+      const dropdown = document.getElementById(targetId);
+      const isOpen = dropdown.classList.contains('open');
+      
+      // Close others
+      document.querySelectorAll('.user-dropdown.open').forEach(d => d.classList.remove('open'));
+      
+      if (!isOpen) {
+        dropdown.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
+      } else {
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      }
+    });
   });
 }
 
-// ── Notification helpers ──────────────────────────────────────────────────────
-
-const NOTIF_ICONS = {
-  LOGIN_NEW_DEVICE: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>`,
-  ORDER_CONFIRMED:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`,
-  ORDER_DELIVERED:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M16.5 9.4l-9-5.19M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`,
-  PAYMENT_SUCCESS:  `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>`,
-  PAYMENT_FAILED:   `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`,
-  WELCOME:          `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>`,
-};
-
-function timeAgoNotif(iso) {
-  if (!iso) return '';
-  const diff = Date.now() - new Date(iso).getTime();
-  const m = Math.floor(diff / 60000);
-  if (m < 1)    return 'Just now';
-  if (m < 60)   return `${m}m ago`;
-  if (m < 1440) return `${Math.floor(m / 60)}h ago`;
-  return `${Math.floor(m / 1440)}d ago`;
-}
-
-function renderNotifList(notifications) {
-  const el = document.getElementById('notif-dropdown-list');
-  if (!el) return;
-  if (!notifications.length) {
-    el.innerHTML = '<div class="notif-empty">No notifications yet</div>';
-    return;
-  }
-  el.innerHTML = notifications.slice(0, 5).map(n => `
-    <div class="notif-item ${n.isRead ? '' : 'notif-item--unread'}" data-id="${n.id}"
-         onclick="window.__notifMarkRead && window.__notifMarkRead('${n.id}', this)">
-      <span class="notif-icon">${NOTIF_ICONS[n.type] || `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="18" height="18"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>`}</span>
-      <div class="notif-content">
-        <div class="notif-title">${n.title}</div>
-        <div class="notif-msg">${n.message}</div>
-        <div class="notif-time">${timeAgoNotif(n.createdAt)}</div>
-      </div>
-    </div>`).join('');
-}
-
-function updateNotifBadge(count) {
-  const badge = document.getElementById('notif-badge');
-  if (!badge) return;
-  if (count > 0) {
-    badge.textContent = count > 99 ? '99+' : count;
-    badge.style.display = '';
-  } else {
-    badge.style.display = 'none';
-  }
-}
-
-function bindNotifDropdown() {
-  if (!isLoggedIn()) return;
-  const btn      = document.getElementById('notif-btn');
+async function bindNotifDropdown() {
+  const btn = document.getElementById('notif-btn');
   const dropdown = document.getElementById('notif-dropdown');
+  const badge = document.getElementById('notif-badge');
+  const list = document.getElementById('notif-dropdown-list');
+  const markAll = document.getElementById('notif-mark-all');
+
   if (!btn || !dropdown) return;
 
-  let open = false;
-  let notifications = [];
-
-  async function loadAndShow() {
-    dropdown.style.display = '';
-    dropdown.setAttribute('aria-hidden', 'false');
-    open = true;
+  const updateBadge = async () => {
+    if (!isLoggedIn()) return;
     try {
-      notifications = await getNotifications();
-      renderNotifList(notifications);
-    } catch { /* silent */ }
-  }
-
-  function close() {
-    dropdown.style.display = 'none';
-    dropdown.setAttribute('aria-hidden', 'true');
-    open = false;
-  }
-
-  btn.addEventListener('click', e => {
-    e.stopPropagation();
-    open ? close() : loadAndShow();
-  });
-
-  document.addEventListener('click', () => { if (open) close(); });
-  dropdown.addEventListener('click', e => e.stopPropagation());
-
-  document.getElementById('notif-mark-all')?.addEventListener('click', async () => {
-    try {
-      await markAllNotificationsRead();
-      updateNotifBadge(0);
-      notifications = notifications.map(n => ({ ...n, isRead: true }));
-      renderNotifList(notifications);
-    } catch { /* silent */ }
-  });
-
-  window.__notifMarkRead = async (id, el) => {
-    try {
-      await markNotificationRead(id);
-      el.classList.remove('notif-item--unread');
-      notifications = notifications.map(n => n.id === id ? { ...n, isRead: true } : n);
-      const unread = notifications.filter(n => !n.isRead).length;
-      updateNotifBadge(unread);
-    } catch { /* silent */ }
-  };
-}
-
-async function loadNotifCount() {
-  if (!isLoggedIn()) return;
-  try {
-    const data = await getNotificationCount();
-    updateNotifBadge(data?.count ?? 0);
-  } catch { /* silent */ }
-}
-
-// ── Load cart count ───────────────────────────────────────────────────────────
-
-function loadCartCount() {
-  if (!isLoggedIn()) return;
-  getCartCount()
-    .then(data => {
-      const count = data?.count ?? 0;
-      document.querySelectorAll('#cart-badge, #cart-badge-mobile').forEach(b => {
-        if (b) b.textContent = count;
-      });
-    })
-    .catch(() => {});
-}
-
-// ── Browser push notifications ────────────────────────────────────────────────
-
-function initBrowserNotifications() {
-  if (!('Notification' in window)) return;
-  if (Notification.permission === 'default') {
-    // Ask on first login — slight delay so it doesn't feel intrusive
-    setTimeout(() => {
-      Notification.requestPermission().then(perm => {
-        if (perm === 'granted') localStorage.setItem('notifPermission', 'granted');
-      });
-    }, 3000);
-  }
-}
-
-function playBeep() {
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.value = 800;
-    osc.type = 'sine';
-    gain.gain.setValueAtTime(0.3, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.25);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.25);
-  } catch { /* ignore if AudioContext blocked */ }
-}
-
-function showBrowserNotification(title, body, url) {
-  if (Notification.permission !== 'granted') return;
-  try {
-    const n = new Notification(title, { body, icon: '/favicon.ico', tag: title });
-    n.onclick = () => { window.focus(); if (url) window.location.href = url; n.close(); };
-    playBeep();
-  } catch { /* ignore */ }
-}
-
-let lastNotifCount = -1;
-
-async function startNotificationPolling() {
-  const poll = async () => {
-    try {
-      const data = await getNotificationCount();
-      const count = data?.count ?? data ?? 0;
-      if (lastNotifCount >= 0 && count > lastNotifCount) {
-        // Fetch new notifications to get their titles
-        const notifs = await getNotifications();
-        const newOnes = Array.isArray(notifs) ? notifs.filter(n => !n.read) : [];
-        for (const n of newOnes.slice(0, count - lastNotifCount)) {
-          showBrowserNotification(n.title || 'New notification', n.message || '', 'notifications.html');
-        }
+      const count = await getNotificationCount();
+      if (count > 0) {
+        badge.textContent = count > 9 ? '9+' : count;
+        badge.style.display = 'flex';
+      } else {
+        badge.style.display = 'none';
       }
-      lastNotifCount = count;
-    } catch { /* silent — don't break UI */ }
+    } catch {}
   };
-  await poll();
-  setInterval(poll, 30000);
+
+  const loadNotifs = async () => {
+    if (!isLoggedIn()) {
+      list.innerHTML = '<div class="notif-empty">Please sign in to view notifications</div>';
+      return;
+    }
+    try {
+      const notifs = await getNotifications(0, 5); // top 5
+      if (!notifs || notifs.length === 0) {
+        list.innerHTML = '<div class="notif-empty">No new notifications</div>';
+        return;
+      }
+      list.innerHTML = notifs.map(n => `
+        <div class="notif-item ${!n.isRead ? 'notif-item--unread' : ''}" data-id="${n.id}">
+          <div class="notif-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
+            </svg>
+          </div>
+          <div class="notif-content">
+            <div class="notif-title">${n.title}</div>
+            <div class="notif-msg">${n.message}</div>
+            <div class="notif-time">${formatTime(n.createdAt)}</div>
+          </div>
+        </div>
+      `).join('');
+
+      // Bind individual clicks
+      list.querySelectorAll('.notif-item').forEach(item => {
+        item.addEventListener('click', async (e) => {
+          e.stopPropagation();
+          const id = item.dataset.id;
+          await markNotificationRead(id);
+          item.classList.remove('notif-item--unread');
+          updateBadge();
+        });
+      });
+    } catch {
+      list.innerHTML = '<div class="notif-empty">Failed to load</div>';
+    }
+  };
+
+  btn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const isHidden = dropdown.getAttribute('aria-hidden') === 'true';
+    if (isHidden) {
+      dropdown.style.display = 'block';
+      dropdown.setAttribute('aria-hidden', 'false');
+      loadNotifs();
+    } else {
+      dropdown.style.display = 'none';
+      dropdown.setAttribute('aria-hidden', 'true');
+    }
+  });
+
+  markAll?.addEventListener('click', async (e) => {
+    e.stopPropagation();
+    await markAllNotificationsRead();
+    list.querySelectorAll('.notif-item--unread').forEach(item => item.classList.remove('notif-item--unread'));
+    updateBadge();
+  });
+
+  // Initial
+  if (isLoggedIn()) {
+    updateBadge();
+    setInterval(updateBadge, 60000); // every min
+  }
 }
 
-// ── Main export ───────────────────────────────────────────────────────────────
+function formatTime(iso) {
+  const date = new Date(iso);
+  const now = new Date();
+  const diff = Math.floor((now - date) / 1000);
+  if (diff < 60) return 'Just now';
+  if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+  if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+  return date.toLocaleDateString();
+}
 
+/**
+ * Initializes the global navbar and bottom nav.
+ * Call this once on each page.
+ */
 export async function initNavbar() {
-  await initAuth();
+  initAuth();
   const el = document.getElementById('navbar');
   if (!el) return;
 
-  const params      = new URLSearchParams(window.location.search);
-  const activeCatId = params.get('categoryId') || '';
+  const isMobile = window.innerWidth < 768;
+  const path = window.location.pathname;
+  
+  // Extract categoryId from query params if on catalog page
+  let activeCatId = null;
+  if (path.includes('catalog')) {
+    const params = new URLSearchParams(window.location.search);
+    activeCatId = params.get('categoryId');
+  }
 
+  // Fetch categories for mega-menu
   let categories = [];
-  try { categories = await getCategories(); } catch { /* silent */ }
+  try {
+    categories = await getCategories();
+  } catch (err) {
+    console.warn('Failed to load categories for navbar:', err);
+  }
 
   injectDropdownStyles();
 
-  const isMobile = window.matchMedia('(max-width: 767px)').matches;
-
   if (isMobile) {
     renderMobileNavbar(el);
-    bindMobileEvents();
     renderBottomNav();
   } else {
     renderDesktopNavbar(el, categories, activeCatId);
-    bindDesktopEvents(el);
   }
 
-  loadCartCount();
-  loadNotifCount();
-  setInterval(loadNotifCount, 60000);
-
-  // Browser push notifications + 30s polling for new notifications
-  if (isLoggedIn()) {
-    initBrowserNotifications();
-    startNotificationPolling();
-  }
-
-  // Re-render on resize crossing the 768px breakpoint
-  let wasMobile = isMobile;
-  window.addEventListener('resize', () => {
-    const nowMobile = window.matchMedia('(max-width: 767px)').matches;
-    if (nowMobile !== wasMobile) {
-      wasMobile = nowMobile;
-      if (nowMobile) {
-        renderMobileNavbar(el);
-        bindMobileEvents();
-        renderBottomNav();
-      } else {
-        renderDesktopNavbar(el, categories, activeCatId);
-        bindDesktopEvents(el);
-        document.getElementById('bottom-nav')?.remove();
-        document.body.style.paddingBottom = '';
-      }
-      loadCartCount();
-    }
-  });
+  bindDesktopEvents(el);
 }
