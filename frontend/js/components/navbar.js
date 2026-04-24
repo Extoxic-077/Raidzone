@@ -270,39 +270,49 @@ function injectDropdownStyles() {
   style.id = 'dropdown-styles';
   style.textContent = `
     /* ── Mega menu ────────────────────────────────────────────────────────── */
-    .mega-group { position: relative; display: inline-flex; }
-    .has-mega { display: flex; align-items: center; gap: 4px; }
-    .mega-chevron { transition: transform 0.2s ease; flex-shrink: 0; }
+    .mega-group { position: relative; display: inline-flex; height: 100%; align-items: center; }
+    .has-mega { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+    .mega-chevron { transition: transform 0.25s ease; flex-shrink: 0; pointer-events: none; }
     .has-mega[aria-expanded="true"] .mega-chevron { transform: rotate(180deg); }
 
     .mega-dropdown {
-      display: none; position: absolute; top: calc(100% + 6px); left: 50%;
-      transform: translateX(-50%); min-width: 220px;
-      background: var(--bg2); border: 1px solid var(--glass-border);
-      border-radius: var(--r-lg); padding: 6px; z-index: 300;
-      box-shadow: 0 12px 40px rgba(0,0,0,0.55);
+      position: absolute;
+      top: calc(100% - 10px);
+      left: 50%;
+      transform: translateX(-50%) translateY(10px);
+      min-width: 200px;
+      background: #121220;
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 12px;
+      padding: 10px;
+      z-index: 99999;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+      opacity: 0;
+      visibility: hidden;
       pointer-events: none;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     }
     .mega-dropdown.open {
-      display: block;
+      opacity: 1;
+      visibility: visible;
+      transform: translateX(-50%) translateY(0);
       pointer-events: all;
-      animation: megaFadeIn 0.15s ease forwards;
     }
-    @keyframes megaFadeIn {
-      from { opacity: 0; transform: translateX(-50%) translateY(-6px); }
-      to   { opacity: 1; transform: translateX(-50%) translateY(0); }
-    }
-    .mega-dropdown-inner { display: flex; flex-direction: column; gap: 1px; }
+    .mega-dropdown-inner { display: flex; flex-direction: column; gap: 4px; }
     .mega-sub-link {
-      display: flex; align-items: center; gap: 8px;
-      padding: 8px 12px; border-radius: var(--r-md);
-      font-size: 13px; font-weight: 500; color: var(--text-2);
-      text-decoration: none; white-space: nowrap;
-      transition: background var(--ease-fast), color var(--ease-fast);
+      display: flex;
+      align-items: center;
+      padding: 10px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      color: #b0b0c0;
+      text-decoration: none;
+      white-space: nowrap;
+      transition: all 0.2s ease;
     }
-    .mega-sub-link:hover { background: var(--glass); color: var(--text-1); }
-    .mega-sub-all { border-bottom: 1px solid var(--glass-border); margin-bottom: 4px; color: var(--text-1); }
-    .mega-sub-all:hover { background: rgba(124,58,237,0.1); color: var(--violet-light); }
+    .mega-sub-link:hover { background: rgba(255,255,255,0.06); color: #fff; transform: translateX(4px); }
+    .mega-sub-all { border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; color: #7c3aed; font-weight: 700; }
 
     /* Desktop dropdown */
     .user-btn-wrap { position: relative; }
@@ -440,32 +450,49 @@ function bindDesktopEvents(el) {
 
     const open = () => {
       clearTimeout(closeTimer);
-      el.querySelectorAll('.mega-dropdown.open').forEach(d => d.classList.remove('open'));
-      el.querySelectorAll('.nav-cat-btn.has-mega[aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded','false'));
+      el.querySelectorAll('.mega-dropdown.open').forEach(d => {
+        if (d !== dropdown) d.classList.remove('open');
+      });
+      el.querySelectorAll('.nav-cat-btn.has-mega[aria-expanded="true"]').forEach(b => {
+        if (b !== btn) b.setAttribute('aria-expanded','false');
+      });
       dropdown.classList.add('open');
       btn.setAttribute('aria-expanded', 'true');
     };
+
     const close = () => {
       closeTimer = setTimeout(() => {
         dropdown.classList.remove('open');
         btn.setAttribute('aria-expanded', 'false');
-      }, 120);
+      }, 150);
     };
 
     group.addEventListener('mouseenter', open);
     group.addEventListener('mouseleave', close);
-    dropdown.addEventListener('mouseenter', () => clearTimeout(closeTimer));
-    dropdown.addEventListener('mouseleave', close);
 
-    btn.addEventListener('click', () => {
-      const id = btn.dataset.id;
-      window.location.href = id ? `catalog.html?categoryId=${id}` : 'catalog.html';
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      const isOpen = dropdown.classList.contains('open');
+      if (isOpen) {
+        // If it's already open (likely from hover), we keep it open or toggle it
+        // based on whether it was a "fresh" click or a hover-click.
+        // User wants TOGGLE, so we force close.
+        dropdown.classList.remove('open');
+        btn.setAttribute('aria-expanded', 'false');
+      } else {
+        open();
+      }
     });
   });
 
   // Close mega on outside click
   document.addEventListener('click', () => {
-    el.querySelectorAll('.mega-dropdown.open').forEach(d => d.classList.remove('open'));
+    el.querySelectorAll('.mega-dropdown.open').forEach(d => {
+      d.classList.remove('open');
+      const parentBtn = d.closest('.mega-group')?.querySelector('.nav-cat-btn');
+      if (parentBtn) parentBtn.setAttribute('aria-expanded', 'false');
+    });
   });
 
   bindNotifDropdown();

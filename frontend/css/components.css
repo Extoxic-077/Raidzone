@@ -61,7 +61,7 @@
   gap: 4px;
   flex-shrink: 0;
   max-width: 600px;
-  overflow: hidden;
+  overflow: visible;
   transition: opacity 0.2s ease, max-width 0.25s cubic-bezier(0.4, 0, 0.2, 1), gap 0.25s ease;
 }
 
@@ -75,6 +75,7 @@
   max-width: 0;
   gap: 0;
   pointer-events: none;
+  overflow: hidden;
 }
 
 .nav-cat-btn {

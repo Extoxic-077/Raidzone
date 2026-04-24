@@ -96,7 +96,6 @@ export async function initAdminSidebar(activePage = 'dashboard') {
       <div class="admin-nav-group" id="section-catalogue">
         ${link('products',   activePage, icons.products,   'Products')}
         ${link('categories', activePage, icons.categories, 'Categories')}
-        ${link('companies',  activePage, icons.companies,  'Companies')}
         ${link('coupons',    activePage, icons.coupons,    'Coupons')}
         ${link('warehouse',  activePage, icons.warehouse,  'Key Warehouse')}
       </div>

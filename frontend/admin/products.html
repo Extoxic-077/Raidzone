@@ -197,13 +197,28 @@ const countEl    = document.getElementById('products-count');
 
 async function loadCategories() {
   try {
-    categories = await getCategoriesFlat();
+    const tree = await getCategories();
     const sel = document.getElementById('cat-select');
-    categories.forEach(c => {
-      const o = document.createElement('option');
-      o.value = c.id;
-      o.textContent = (c.parentId ? '  └ ' : '') + c.name;
-      sel.appendChild(o);
+    // Build flat list from hierarchy so children are grouped under parents
+    categories = [];
+    tree.forEach(parent => {
+      // Add parent as a disabled label
+      const po = document.createElement('option');
+      po.value = parent.id;
+      po.textContent = parent.name;
+      po.style.fontWeight = 'bold';
+      sel.appendChild(po);
+      categories.push(parent);
+      // Add children indented
+      if (parent.children && parent.children.length) {
+        parent.children.forEach(child => {
+          const co = document.createElement('option');
+          co.value = child.id;
+          co.textContent = '  └ ' + child.name;
+          sel.appendChild(co);
+          categories.push(child);
+        });
+      }
     });
   } catch (e) { /* ignore */ }
 }
