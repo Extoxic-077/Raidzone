@@ -47,10 +47,10 @@ const SLIDES = [
 
 const NEWS_CARDS = [
   { type: 'PROMO',  icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`, title: 'Steam Sale starts this Friday — up to 80% off',           date: 'Mar 25, 2026' },
-  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`, title: 'NexVault now accepts USDT crypto payments',               date: 'Mar 20, 2026' },
+  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`, title: 'Raidzone now accepts USDT crypto payments',               date: 'Mar 20, 2026' },
   { type: 'UPDATE', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`, title: 'Valorant Episode 10 — new exclusive skins',               date: 'Mar 15, 2026' },
   { type: 'PROMO',  icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`, title: 'Republic Day Sale — extra 10% with code INDIA26',        date: 'Jan 26, 2026' },
-  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="8" r="6"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>`, title: 'NexVault reaches 2 million orders delivered',            date: 'Jan 10, 2026' },
+  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="8" r="6"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>`, title: 'Raidzone reaches 2 million orders delivered',            date: 'Jan 10, 2026' },
 ];
 
 const BRANDS = ['Steam', 'Xbox', 'PlayStation', 'Riot Games', 'Epic Games', 'Blizzard', 'Netflix', 'Spotify', 'NordVPN'];

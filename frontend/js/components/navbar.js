@@ -117,7 +117,7 @@ function renderDesktopNavbar(el, categories, activeCatId) {
     <nav class="navbar-inner">
       <a href="index.html" class="navbar-logo">
         ${hexagonSVG()}
-        NexVault
+        Raidzone
       </a>
 
       <div class="navbar-cats">
@@ -180,7 +180,7 @@ function renderMobileNavbar(el) {
     <nav class="navbar-inner navbar-mobile-top">
       <a href="index.html" class="navbar-logo">
         ${hexagonSVG()}
-        NexVault
+        Raidzone
       </a>
       <div class="navbar-spacer"></div>
       <div class="navbar-actions" style="gap:8px">

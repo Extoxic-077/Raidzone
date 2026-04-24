@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Checkout — NexVault</title>
+  <title>Checkout — Raidzone</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -32,7 +32,7 @@
         <path d="M14 2L25.26 8.5V21.5L14 28L2.74 21.5V8.5L14 2Z" fill="url(#hg-tb)"/>
         <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(7,7,15,0.6)"/>
       </svg>
-      NexVault <span>Pay</span>
+      Raidzone <span>Pay</span>
     </a>
   </header>
 
@@ -531,7 +531,7 @@ async function handleRazorpayPay() {
       key:         rzpData.keyId,
       amount:      rzpData.amountInPaise,
       currency:    rzpData.currency,
-      name:        'NexVault',
+      name:        'Raidzone',
       description: 'Digital Goods',
       order_id:    rzpData.razorpayOrderId,
       prefill: {

@@ -645,7 +645,7 @@ export async function renderProduct() {
   try {
     const product = await getProduct(id);
     renderProductUI(product);
-    document.title = `${product.name} — NexVault`;
+    document.title = `${product.name} — Raidzone`;
   } catch (err) {
     container.innerHTML = `
       <div class="product-inner" style="padding-top:80px">

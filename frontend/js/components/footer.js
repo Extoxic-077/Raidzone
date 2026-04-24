@@ -28,7 +28,7 @@ export function initFooter() {
     <div class="footer-main">
       <div class="footer-brand">
         <a href="/" style="display:flex;align-items:center;gap:8px;font-family:var(--font-display);font-weight:800;font-size:18px;background:var(--gradient-text);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;text-decoration:none;margin-bottom:4px;">
-          ${hexagonSVG()} NexVault
+          ${hexagonSVG()} Raidzone
         </a>
         <p class="footer-brand-desc">
           Your one-stop marketplace for digital goods — instant delivery of games, gift cards, subscriptions and top-ups worldwide.
@@ -93,7 +93,7 @@ export function initFooter() {
     </div>
 
     <div class="footer-bottom">
-      <span class="footer-copy">© ${new Date().getFullYear()} NexVault. All rights reserved.</span>
+      <span class="footer-copy">© ${new Date().getFullYear()} Raidzone. All rights reserved.</span>
       <div class="payment-badges">
         ${['Visa', 'Mastercard', 'UPI', 'Crypto', 'PayTM', 'Google Pay'].map(p =>
           `<span class="payment-badge">${p}</span>`

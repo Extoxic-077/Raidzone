@@ -61,7 +61,7 @@ export async function initAdminSidebar(activePage = 'dashboard') {
             <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(7,7,15,0.6)"/>
           </svg>
         </div>
-        <div class="admin-logo-text">NexVault<span>Admin</span></div>
+        <div class="admin-logo-text">Raidzone<span>Admin</span></div>
       </div>
       <!-- Desktop: collapse toggle -->
       <button class="sidebar-collapse-btn" id="sidebar-toggle" title="Toggle sidebar">
