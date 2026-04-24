@@ -1,14 +1,13 @@
-# NexVault — Digital Game Marketplace
+# Raidzone — Digital Game Marketplace
 
 > A production-grade digital goods marketplace built with Spring Boot, PostgreSQL, and vanilla JavaScript. Buy Steam wallet cards, game top-ups, gift cards, and streaming subscriptions — instantly delivered after payment.
 
-**Kerala University · BSc Computer Science · Final Year Project**
 
 ---
 
-## What is NexVault?
+## What is Raidzone?
 
-NexVault is a full-stack e-commerce platform for digital products. Users can browse a catalog of game keys, gift cards, mobile top-ups, and streaming subscriptions, pay via cards or UPI, and receive their digital codes instantly by email after OTP-verified redemption.
+Raidzone is a full-stack e-commerce platform for digital products. Users can browse a catalog of game keys, gift cards, mobile top-ups, and streaming subscriptions, pay via cards or UPI, and receive their digital codes instantly by email after OTP-verified redemption.
 
 The project is built without any frontend framework — pure HTML, CSS, and modern JavaScript on the frontend, and Java 21 with Spring Boot 3 on the backend. The goal is to demonstrate a complete, production-ready architecture that can scale from a university project to a real product.
 
@@ -16,7 +15,7 @@ The project is built without any frontend framework — pure HTML, CSS, and mode
 
 ## Live Demo
 
-> **[nexvault.digital](https://nexvault.digital)** — live and running on a Google Cloud VM (Nginx + Spring Boot + PostgreSQL)
+> **[raidzonemarket.com](https://raidzonemarket.com)** — live and running on a Google Cloud VM (Nginx + Spring Boot + PostgreSQL)
 
 ---
 
@@ -125,11 +124,11 @@ The project is built without any frontend framework — pure HTML, CSS, and mode
 ## Project Structure
 
 ```
-NexVault/
+Raidzone/
 ├── backend/
 │   ├── pom.xml
 │   └── src/
-│       ├── main/java/NexVault/
+│       ├── main/java/Raidzone/
 │       │   ├── config/          # CORS, OpenAPI, Redis, Security
 │       │   ├── controller/      # REST endpoints
 │       │   ├── service/         # Business logic
@@ -166,8 +165,8 @@ NexVault/
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/YOUR_USERNAME/NexVault.git
-cd NexVault
+git clone https://github.com/YOUR_USERNAME/Raidzone.git
+cd Raidzone
 ```
 
 ### 2. Start PostgreSQL and Redis
@@ -310,8 +309,8 @@ DISCORD_CLIENT_ID=...
 DISCORD_CLIENT_SECRET=...
 
 # CORS
-CORS_ALLOWED_ORIGINS=https://nexvault.digital
-OAUTH_REDIRECT_BASE_URL=https://nexvault.digital
+CORS_ALLOWED_ORIGINS=https://raidzonemarket.com
+OAUTH_REDIRECT_BASE_URL=https://raidzonemarket.com
 ```
 
 ---
