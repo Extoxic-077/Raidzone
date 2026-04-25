@@ -1,10 +1,11 @@
-import { getProduct, getProducts, addToCart, toggleWishlist, getWishlistStatus, getProductReviews, createReview, recordPurchase, hasPurchased } from '../api.js';
-import { createProductCard } from '../components/productCard.js';
-import { createDetailSkeleton } from '../components/skeleton.js';
-import { showToast } from '../components/toast.js';
-import { getCurrentProductId } from '../router.js';
-import { isLoggedIn, getUser } from '../auth.js';
-import { makeDraggable } from '../utils/dragScroll.js';
+import { getProduct, getProductBySlug, getProducts, addToCart, toggleWishlist, getWishlistStatus, getProductReviews, createReview, recordPurchase, hasPurchased } from '../api.js?v=1.1.0';
+import { createProductCard } from '../components/productCard.js?v=1.1.0';
+import { createDetailSkeleton } from '../components/skeleton.js?v=1.1.0';
+import { showToast } from '../components/toast.js?v=1.1.0';
+import { getCurrentProductId, getCurrentProductSlug } from '../router.js?v=1.1.0';
+import { isLoggedIn, getUser } from '../auth.js?v=1.1.0';
+import { makeDraggable } from '../utils/dragScroll.js?v=1.1.0';
+import { SEO } from '../seo.js';
 
 // ── Sign-in prompt modal ──────────────────────────────────────────────────────
 
@@ -152,7 +153,7 @@ function timeAgo(dateStr) {
   if (mins < 60)  return `${mins}m ago`;
   if (hours < 24) return `${hours}h ago`;
   if (days < 30)  return `${days}d ago`;
-  return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(dateStr).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
 async function loadAndRenderReviews(productId) {
@@ -169,6 +170,46 @@ async function loadAndRenderReviews(productId) {
     getProductReviews(productId).catch(() => []),
     loggedIn ? hasPurchased(productId).then(r => r?.purchased ?? false).catch(() => false) : Promise.resolve(false),
   ]);
+
+  function injectJsonLd(product) {
+  // Remove existing JSON-LD if any
+  const existing = document.querySelector('#product-json-ld');
+  if (existing) existing.remove();
+
+  const schema = {
+    "@context": "https://schema.org/",
+    "@type": "Product",
+    "name": product.name,
+    "image": product.imageUrl || "",
+    "description": product.description || "",
+    "sku": product.id,
+    "brand": {
+      "@type": "Brand",
+      "name": "RAIDZONE"
+    },
+    "offers": {
+      "@type": "Offer",
+      "url": window.location.href,
+      "priceCurrency": "USD",
+      "price": product.price,
+      "availability": product.stockCount > 0 ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+      "itemCondition": "https://schema.org/NewCondition"
+    },
+    "aggregateRating": {
+      "@type": "AggregateRating",
+      "ratingValue": product.rating || 5,
+      "reviewCount": product.reviewCount || 1,
+      "bestRating": 5,
+      "worstRating": 1
+    }
+  };
+
+  const script = document.createElement('script');
+  script.type = 'application/ld+json';
+  script.id = 'product-json-ld';
+  script.text = JSON.stringify(schema);
+  document.head.appendChild(script);
+}
 
   // Check if user already reviewed
   const myReview = loggedIn && currentUser
@@ -253,7 +294,7 @@ function renderWriteReviewSection(existingReview, openByDefault) {
 function memberSinceText(iso) {
   if (!iso) return '';
   try {
-    return 'Member since ' + new Date(iso).toLocaleDateString('en-IN', { year: 'numeric', month: 'short' });
+    return 'Member since ' + new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short' });
   } catch { return ''; }
 }
 
@@ -392,6 +433,8 @@ function renderProductUI(product) {
         alt="${product.name}"
         class="product-detail-img"
         loading="eager"
+        width="380"
+        height="380"
       />`
     : `<div class="product-img-emoji"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="56" height="56"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 8h1m4 0h1"/><path d="M8 7v2"/></svg></div>`;
 
@@ -432,21 +475,20 @@ function renderProductUI(product) {
 
             <div class="price-block">
               <div class="price-row">
-                <div class="price-main">₹${(product.price || 0).toLocaleString('en-IN')}</div>
-                ${product.originalPrice ? `<div class="price-orig">₹${product.originalPrice.toLocaleString('en-IN')}</div>` : ''}
+                <div class="price-main">$${(product.price || 0).toLocaleString('en-US')}</div>
+                ${product.originalPrice ? `<div class="price-orig">$${product.originalPrice.toLocaleString('en-US')}</div>` : ''}
               </div>
-              ${saving ? `<div class="price-saving">You save ₹${Number(saving).toLocaleString('en-IN')} (${pct}%)</div>` : ''}
+              ${saving ? `<div class="price-saving">You save $${Number(saving).toLocaleString('en-US')} (${pct}%)</div>` : ''}
             </div>
 
-            <div class="delivery-badges">
+            <div class="delivery-badges" style="user-select: none;">
               <span class="delivery-badge instant"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Instant Delivery</span>
               <span class="delivery-badge region"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="13" height="13"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg> ${product.region || 'Global'}</span>
             </div>
 
             <div class="product-actions">
               ${product.isActive === false || product.stockCount === 0
-                ? `<button class="btn-add-to-cart btn-oos" disabled>Out of Stock</button>
-                   <button class="btn-buy-now btn-oos" disabled>Out of Stock</button>`
+                ? `<button class="btn-add-to-cart btn-oos" style="flex:1" disabled>Out of Stock</button>`
                 : `<button class="btn-add-to-cart" id="add-to-cart-btn">Add to Cart</button>
                    <button class="btn-buy-now" id="buy-now-btn">Buy Now</button>`
               }
@@ -457,8 +499,50 @@ function renderProductUI(product) {
               </button>
             </div>
 
+            <div class="product-trust-grid">
+              <div class="trust-item">
+                <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg></div>
+                <div class="trust-text">Delivered in minutes</div>
+              </div>
+              <div class="trust-item">
+                <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+                <div class="trust-text">Safe & trusted</div>
+              </div>
+              <div class="trust-item">
+                <div class="trust-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+                <div class="trust-text">Active support</div>
+              </div>
+            </div>
+
             <div class="payment-strip">Pay with: Visa · Mastercard · UPI · GPay · Apple Pay · PayTM · Bitcoin</div>
-            <div class="security-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>256-bit SSL · Digital key delivered to email instantly</div>
+            <div class="security-note" style="margin-top:12px;opacity:0.7;font-size:11px;text-align:center">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Secure 256-bit SSL encrypted checkout
+            </div>
+
+            <div class="seo-content-block" style="margin-top:24px; padding-top:20px; border-top:1px solid rgba(255,255,255,0.06);">
+              <h2 style="font-family:'Syne', sans-serif; font-size:18px; font-weight:700; color:#fff; margin:0 0 8px 0;">Buy ${product.name} Safely</h2>
+              <p style="color:#9CA3AF; font-size:13px; line-height:1.6; margin:0;">
+                Get ${product.name} delivered instantly to your account. Perfect for upgrading gear, accelerating your progress, and dominating in-game. Rely on RAIDZONE for the fastest and safest digital delivery.
+              </p>
+            </div>
+
+            <!-- Verified Community Feedback -->
+            <div class="trust-proof-card" style="margin-top:24px; padding:20px; background:rgba(124,58,237,0.05); border:1px solid rgba(124,58,237,0.15); border-radius:16px;">
+              <div style="display:flex; align-items:center; gap:10px; margin-bottom:12px;">
+                <div style="width:32px; height:32px; background:#5865F2; border-radius:8px; display:flex; align-items:center; justify-content:center;">
+                  <svg width="20" height="20" viewBox="0 0 24 24" fill="white"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037 19.736 19.736 0 0 0-4.885 1.515.069.069 0 0 0-.032.027C.533 9.048-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.462-.63.862-1.307 1.196-2.019a.074.074 0 0 0-.041-.103 13.11 13.11 0 0 1-1.857-.888.076.076 0 0 1-.008-.126c.124-.094.248-.192.364-.292a.074.074 0 0 1 .078-.01c3.927 1.793 8.18 1.793 12.061 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.078.078 0 0 1-.006.126 12.303 12.303 0 0 1-1.861.889.074.074 0 0 0-.041.103c.343.714.75 1.39 1.212 2.022a.076.076 0 0 0 .084.027 19.856 19.856 0 0 0 6.002-3.03.076.076 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.419 0 1.334-.956 2.419-2.157 2.419zm7.974 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.946-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.419 0 1.334-.946 2.419-2.157 2.419z"/></svg>
+                </div>
+                <div>
+                  <div style="font-size:14px; font-weight:700; color:#fff;">Discord Feedback</div>
+                  <div style="font-size:12px; color:#9CA3AF;">Real proof from our #reviews channel</div>
+                </div>
+              </div>
+              <div class="trust-gif-container" style="position:relative; width:100%; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.06);">
+                <img src="/img/discord-proof.gif" alt="Discord Reviews Proof" style="width:100%; display:block; filter:contrast(1.05);">
+                <div style="position:absolute; inset:0; background:linear-gradient(to top, rgba(15,15,26,0.4), transparent); pointer-events:none;"></div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -485,6 +569,41 @@ function renderProductUI(product) {
               <p>Click the Reviews tab to load reviews.</p>
             </div>
           </div>
+        </div>
+
+        <!-- FAQ Section -->
+        <div class="faq-section" style="margin-top: 40px; margin-bottom: 40px; padding: 24px; background: rgba(255,255,255,0.02); border-radius: 12px; border: 1px solid rgba(255,255,255,0.05);">
+            <h2 style="font-family:'Syne', sans-serif; font-size: 20px; font-weight: 700; margin-bottom: 20px; color: #fff;">Frequently Asked Questions</h2>
+            <div id="product-faq-container">
+              ${[
+                {
+                  question: `Is buying ${product.name} safe?`,
+                  answer: `Yes. RAIDZONE uses secure delivery methods and never requires your account password. All transactions are encrypted and our delivery team follows safe, ban-free transfer practices.`
+                },
+                {
+                  question: `How fast is delivery for ${product.name}?`,
+                  answer: `Most orders are delivered within minutes of purchase. In rare cases during high-demand periods, delivery may take up to 30 minutes. You will receive a notification as soon as your order is fulfilled.`
+                },
+                {
+                  question: `What payment methods do you accept?`,
+                  answer: `RAIDZONE accepts all major credit and debit cards, PayPal, and various regional payment options like GPay, Apple Pay, and Bitcoin.`
+                },
+                {
+                  question: `What if I don't receive my ${product.name}?`,
+                  answer: `If your order is not delivered within the expected timeframe, contact our 24/7 support team immediately. We offer a full refund guarantee on all unfulfilled orders.`
+                }
+              ].map(f => `
+                <details style="margin-bottom: 12px; cursor: pointer;">
+                    <summary style="font-family:'Syne', sans-serif; font-size: 15px; font-weight: 700; color: #fff; padding: 12px 18px; background: rgba(255,255,255,0.04); border-radius: 8px; list-style: none; display: flex; align-items: center; justify-content: space-between;">
+                        ${f.question}
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" style="transition: transform 0.2s"><path d="M6 9l6 6 6-6"/></svg>
+                    </summary>
+                    <div style="padding: 16px 20px; font-size: 14px; line-height: 1.6; color: #9CA3AF;">
+                        ${f.answer}
+                    </div>
+                </details>
+              `).join('')}
+            </div>
         </div>
 
         <!-- Related products -->
@@ -613,7 +732,7 @@ async function loadRelated(categoryId, currentId) {
     }
 
     filtered.forEach(p => {
-      const card = createProductCard(p);
+      const card = createProductCard(p, i);
       scroll.appendChild(card);
     });
 
@@ -623,9 +742,22 @@ async function loadRelated(categoryId, currentId) {
   }
 }
 
+function setCanonicalProductUrl(slug) {
+  if (!slug) return;
+  const canonicalHref = `${window.location.origin}/product.html?slug=${encodeURIComponent(slug)}`;
+  let el = document.querySelector('link[rel="canonical"]');
+  if (!el) {
+    el = document.createElement('link');
+    el.setAttribute('rel', 'canonical');
+    document.head.appendChild(el);
+  }
+  el.setAttribute('href', canonicalHref);
+}
+
 export async function renderProduct() {
+  const slug = getCurrentProductSlug();
   const id = getCurrentProductId();
-  if (!id) {
+  if (!slug && !id) {
     window.location.href = 'catalog.html';
     return;
   }
@@ -643,9 +775,47 @@ export async function renderProduct() {
   container.appendChild(skelWrap);
 
   try {
-    const product = await getProduct(id);
+    const product = slug ? await getProductBySlug(slug) : await getProduct(id);
     renderProductUI(product);
-    document.title = `${product.name} — Raidzone`;
+    
+    // Call Contextual SEO Manager
+    SEO.update({
+      type: 'product',
+      name: product.name,
+      slug: product.slug || product.id,
+      price: product.price || 0,
+      categoryName: product.categoryName || product.category || 'Catalog',
+      categorySlug: product.categoryId || '', // Using ID fallback if no slug exists in this context
+      description: product.description,
+      image: product.imageUrl,
+      inStock: product.stockCount > 0,
+      rating: product.avgRating,
+      reviewCount: product.reviewCount,
+      faq: [
+        {
+          question: `Is buying ${product.name} safe?`,
+          answer: `Yes. RAIDZONE uses secure delivery methods and never requires your account password. All transactions are encrypted and our delivery team follows safe, ban-free transfer practices.`
+        },
+        {
+          question: `How fast is delivery for ${product.name}?`,
+          answer: `Most orders are delivered within minutes of purchase. In rare cases during high-demand periods, delivery may take up to 30 minutes. You will receive a notification as soon as your order is fulfilled.`
+        },
+        {
+          question: `What payment methods do you accept?`,
+          answer: `RAIDZONE accepts all major credit and debit cards, PayPal, and various regional payment options like GPay, Apple Pay, and Bitcoin.`
+        },
+        {
+          question: `What if I don't receive my ${product.name}?`,
+          answer: `If your order is not delivered within the expected timeframe, contact our 24/7 support team immediately. We offer a full refund guarantee on all unfulfilled orders.`
+        }
+      ]
+    });
+
+    // If a legacy ID-based URL is used, rewrite to SEO-friendly slug URL.
+    if (!slug && product?.slug) {
+      const next = `/buy/${encodeURIComponent(product.slug)}`;
+      window.history.replaceState({}, '', next);
+    }
   } catch (err) {
     container.innerHTML = `
       <div class="product-inner" style="padding-top:80px">

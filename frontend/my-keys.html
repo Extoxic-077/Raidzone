@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>My Keys — Raidzone</title>
+  <title>My Keys — RAIDZONE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
@@ -106,7 +106,7 @@
 <script src="/js/config.js"></script>
 <script type="module">
 import { initAuth, isLoggedIn } from './js/auth.js';
-import { initNavbar } from './js/components/navbar.js';
+import { initNavbar } from './js/components/rz-nav.js?v=1.1.0';
 import { showToast } from './js/components/toast.js';
 
 await initAuth();
@@ -146,7 +146,7 @@ async function loadKeys() {
         ? `<img class="key-card-img" src="${k.imageUrl}" alt="${escHtml(k.productName)}" loading="lazy"/>`
         : `<div class="key-card-emoji">${k.emoji || '🔑'}</div>`;
       const date = k.assignedAt
-        ? new Date(k.assignedAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })
+        ? new Date(k.assignedAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
         : '';
       return `
         <div class="key-card">

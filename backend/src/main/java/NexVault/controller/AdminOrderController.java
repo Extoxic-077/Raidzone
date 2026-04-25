@@ -43,6 +43,7 @@ public class AdminOrderController {
     private final ProductRepository productRepository;
     private final EntityManager entityManager;
     private final DataSource dataSource;
+    private final NexVault.service.NotificationService notificationService;
 
     // ── Orders ────────────────────────────────────────────────────────────────
 
@@ -84,6 +85,7 @@ public class AdminOrderController {
         if (newStatus != null && !newStatus.isBlank()) {
             order.setStatus(newStatus.toUpperCase());
             orderRepository.save(order);
+            notificationService.broadcastOrderStatusUpdate(order);
         }
         return ResponseEntity.ok(ApiResponse.ok(AdminOrderResponse.from(order)));
     }
@@ -408,8 +410,8 @@ public class AdminOrderController {
         // DB name + version
         try {
             Object dbName = entityManager.createNativeQuery("SELECT current_database()").getSingleResult();
-            result.put("dbName", dbName != null ? dbName.toString() : "nexvault");
-        } catch (Exception e) { result.put("dbName", "nexvault"); }
+            result.put("dbName", dbName != null ? dbName.toString() : "raidzone");
+        } catch (Exception e) { result.put("dbName", "raidzone"); }
 
         try {
             Object ver = entityManager.createNativeQuery("SELECT version()").getSingleResult();

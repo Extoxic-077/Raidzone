@@ -62,7 +62,7 @@ public class StripeService {
     }
 
     @Transactional
-    public StripeIntentResponse createPaymentIntent(UUID orderId, BigDecimal amountINR, UUID userId) {
+    public StripeIntentResponse createPaymentIntent(UUID orderId, BigDecimal amountUSD, UUID userId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
@@ -73,7 +73,7 @@ public class StripeService {
             throw new IllegalStateException("Order is not awaiting payment (status: " + order.getStatus() + ")");
         }
 
-        long amountInPaise = amountINR.multiply(BigDecimal.valueOf(100)).longValue();
+        long amountInCents = amountUSD.multiply(BigDecimal.valueOf(100)).longValue();
 
         try {
             Stripe.apiKey = secretKey;
@@ -82,8 +82,8 @@ public class StripeService {
             String shipLine1 = order.getShippingAddress() != null ? order.getShippingAddress() : "India";
 
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder()
-                    .setAmount(amountInPaise)
-                    .setCurrency("inr")
+                    .setAmount(amountInCents)
+                    .setCurrency("usd")
                     .putMetadata("orderId", orderId.toString())
                     .putMetadata("userId", userId.toString())
                     .setDescription("NexVault Order " + orderId)
@@ -107,10 +107,10 @@ public class StripeService {
             payment.setProvider(PaymentProvider.STRIPE);
             payment.setStatus(PaymentStatus.PENDING);
             payment.setStripePaymentIntentId(intent.getId());
-            payment.setAmount(amountINR);
+            payment.setAmount(amountUSD);
             paymentRepository.save(payment);
 
-            return new StripeIntentResponse(intent.getClientSecret(), publishableKey, amountINR, orderId);
+            return new StripeIntentResponse(intent.getClientSecret(), publishableKey, amountUSD, orderId);
 
         } catch (StripeException e) {
             throw new RuntimeException("Stripe error: " + e.getMessage(), e);
@@ -144,6 +144,7 @@ public class StripeService {
                 order.setPaidAt(LocalDateTime.now());
                 order.setPaymentMethod("STRIPE");
                 orderRepository.save(order);
+                notificationService.broadcastOrderStatusUpdate(order);
                 cartService.clearCart(order.getUser().getId());
                 order.getItems().forEach(item -> {
                     try {
@@ -170,7 +171,7 @@ public class StripeService {
                         order.getUser().getName(),
                         order.getId().toString().substring(0, 8).toUpperCase(),
                         buildItemsHtml(order),
-                        "₹" + order.getTotalAmount().toBigInteger(),
+                        "$" + order.getTotalAmount().toBigInteger(),
                         "Stripe"
                     );
                 } catch (Exception e) {
@@ -196,7 +197,7 @@ public class StripeService {
             String name = item.getProduct() != null ? item.getProduct().getName() : "Product";
             sb.append(String.format(
                 "<tr><td style=\"color:#F1F0F7;padding:6px 0;\">%s × %d</td>" +
-                "<td style=\"text-align:right;color:#C084FC;font-weight:700;\">₹%s</td></tr>",
+                "<td style=\"text-align:right;color:#C084FC;font-weight:700;\">$%s</td></tr>",
                 name, item.getQuantity(),
                 item.getLineTotal() != null ? item.getLineTotal().toBigInteger() : "0"
             ));

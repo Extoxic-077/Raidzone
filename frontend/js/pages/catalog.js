@@ -1,41 +1,51 @@
-import { getProducts, getCategoriesFlat, getCompanies } from '../api.js';
-import { createProductCard } from '../components/productCard.js';
-import { createProductSkeleton } from '../components/skeleton.js';
-import { showToast } from '../components/toast.js';
-import { getCurrentFilters, updateURL } from '../router.js';
+import { getProducts, getCategoriesFlat, getCompanies } from '../api.js?v=1.1.0';
+import { createProductCard } from '../components/productCard.js?v=1.1.0';
+import { createProductSkeleton } from '../components/skeleton.js?v=1.1.0';
+import { showToast } from '../components/toast.js?v=1.1.0';
+import { getCurrentFilters, updateURL } from '../router.js?v=1.1.0';
+import { SEO } from '../seo.js?v=1.1.0';
 
 let filters    = {};
 let currentPage = 0;
 let loading    = false;
 let allLoaded  = false;
 let totalCount = 0;
+let pendingFetch = false;
+let catList    = [];
 
 // ─── STATE HELPERS ───────────────────────────────────────────────────────────
 
 function readFiltersFromURL() {
   const f = getCurrentFilters();
   filters = {
-    categoryId: f.categoryId,
-    companyId:  f.companyId,
-    minPrice:   f.minPrice,
-    maxPrice:   f.maxPrice,
-    minRating:  f.minRating,
-    search:     f.search,
-    sort:       f.sort,
+    categoryId:   f.categoryId,
+    categorySlug: f.categorySlug,
+    companyId:    f.companyId,
+    minPrice:     f.minPrice,
+    maxPrice:     f.maxPrice,
+    minRating:    f.minRating,
+    search:       f.search,
+    sort:         f.sort,
+    productType:  f.productType,
+    blueprintTag: f.blueprintTag,
   };
   currentPage = 0;
   allLoaded   = false;
+  pendingFetch = false;
 }
 
 function getFilterParams() {
   const p = { page: currentPage, size: 16 };
-  if (filters.categoryId) p.categoryId = filters.categoryId;
-  if (filters.companyId)  p.companyId  = filters.companyId;
-  if (filters.minPrice)   p.minPrice   = filters.minPrice;
-  if (filters.maxPrice)   p.maxPrice   = filters.maxPrice;
-  if (filters.minRating)  p.minRating  = filters.minRating;
-  if (filters.search)     p.search     = filters.search;
-  if (filters.sort)       p.sort       = filters.sort;
+  if (filters.categoryId)   p.categoryId   = filters.categoryId;
+  if (filters.categorySlug) p.categorySlug = filters.categorySlug;
+  if (filters.companyId)    p.companyId    = filters.companyId;
+  if (filters.minPrice)     p.minPrice     = filters.minPrice;
+  if (filters.maxPrice)     p.maxPrice     = filters.maxPrice;
+  if (filters.minRating)    p.minRating    = filters.minRating;
+  if (filters.search)       p.search       = filters.search;
+  if (filters.sort)         p.sort         = filters.sort;
+  if (filters.productType)  p.productType  = filters.productType;
+  if (filters.blueprintTag) p.blueprintTag = filters.blueprintTag;
   return p;
 }
 
@@ -88,6 +98,56 @@ const SUB_ICONS = {
 
 const DEFAULT_SUB_ICON = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>`;
 
+// ─── GAME TILE THEMES ─────────────────────────────────────────────────────────
+
+const GAME_THEMES = {
+  'arc-raiders': {
+    emoji: '🤖',
+    badge: 'Featured',
+    logoUrl: '/assets/branding/arc-raiders-logo.png',
+    svgArt: `<img src="/assets/branding/arc-raiders-logo.png" style="position:absolute;bottom:15px;right:15px;opacity:0.25;width:120px;height:auto;mask-image:linear-gradient(to bottom, black, transparent);-webkit-mask-image:linear-gradient(to bottom, black, transparent)">`,
+  },
+  'cs2': {
+    emoji: '🎯',
+    badge: 'Hot',
+    logoUrl: '/assets/branding/cs2-logo.png',
+    svgArt: `<img src="/assets/branding/cs2-logo.png" style="position:absolute;bottom:15px;right:15px;opacity:0.2;width:110px;height:auto;filter:brightness(0) invert(1)">`,
+  },
+  'delta-force': {
+    emoji: '⚔️',
+    badge: 'New',
+    svgArt: `<svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;right:0;opacity:0.15;width:110px;height:85px">
+      <polygon points="40,5 75,55 5,55" stroke="#4ade80" stroke-width="1.5" fill="none"/>
+      <polygon points="40,18 62,52 18,52" stroke="#4ade80" stroke-width="1" fill="none" opacity="0.6"/>
+      <line x1="40" y1="5" x2="40" y2="55" stroke="#4ade80" stroke-width="0.8" opacity="0.5"/>
+    </svg>`,
+  },
+  'windrose': {
+    emoji: '🏵️',
+    badge: 'Rising',
+    logoUrl: '/assets/branding/windrose-logo.png',
+    svgArt: `<img src="/assets/branding/windrose-logo.png" style="position:absolute;bottom:15px;right:-10px;opacity:0.25;width:160px;height:auto;filter:brightness(0) invert(1)">`,
+  },
+  'windows': {
+    emoji: '🪟',
+    badge: 'Digital',
+    svgArt: `<svg viewBox="0 0 80 60" fill="none" xmlns="http://www.w3.org/2000/svg" style="position:absolute;bottom:0;right:0;opacity:0.15;width:110px;height:85px">
+      <rect x="10" y="10" width="28" height="20" rx="2" stroke="#60a5fa" stroke-width="1.5"/>
+      <rect x="42" y="10" width="28" height="20" rx="2" stroke="#60a5fa" stroke-width="1.5"/>
+      <rect x="10" y="34" width="28" height="20" rx="2" stroke="#60a5fa" stroke-width="1.5"/>
+      <rect x="42" y="34" width="28" height="20" rx="2" stroke="#60a5fa" stroke-width="1.5"/>
+    </svg>`,
+  },
+};
+
+function getGameTheme(slug) {
+  if (!slug) return GAME_THEMES['default'] || { emoji: '🎮', badge: 'Browse', svgArt: '' };
+  for (const [key, theme] of Object.entries(GAME_THEMES)) {
+    if (slug.includes(key)) return theme;
+  }
+  return { emoji: '🎮', badge: 'Browse', svgArt: '' };
+}
+
 function getSubIcon(name, slug) {
   const text = ((name || '') + ' ' + (slug || '')).toLowerCase();
   for (const [key, icon] of Object.entries(SUB_ICONS)) {
@@ -103,6 +163,50 @@ async function renderSidebar(catList, companyList) {
   if (!catFilter) return;
 
   catFilter.innerHTML = '';
+
+  // 1. Featured Games Section
+  const gamesHeader = document.createElement('div');
+  gamesHeader.className = 'sidebar-section-title';
+  gamesHeader.style.marginTop = '0';
+  gamesHeader.innerHTML = 'Popular Games';
+  catFilter.appendChild(gamesHeader);
+
+  const gamesCat = catList.find(c => c.slug === 'games');
+  let gameCats = [];
+  if (gamesCat) {
+    gameCats = catList.filter(c => c.parentId === gamesCat.id);
+  } else {
+    gameCats = catList.filter(c => !c.parentId);
+  }
+
+  const gamesGrid = document.createElement('div');
+  gamesGrid.className = 'sidebar-games-links';
+  gamesGrid.style.cssText = 'display:grid; grid-template-columns:1fr; gap:6px; margin-bottom:20px;';
+
+  gameCats.forEach(cat => {
+    const theme = getGameTheme(cat.slug);
+    const btn = document.createElement('button');
+    btn.className = `cat-accordion-header${filters.categorySlug === cat.slug ? ' active' : ''}`;
+    btn.style.padding = '8px 10px';
+    btn.innerHTML = `
+      <div style="display:flex; align-items:center; gap:8px;">
+        <span style="font-size:16px;">${theme.emoji}</span>
+        <span>${cat.name}</span>
+      </div>
+      <svg class="cat-accordion-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><path d="M9 18l6-6-6-6"/></svg>
+    `;
+    btn.addEventListener('click', () => {
+      window.dispatchEvent(new CustomEvent('nav-to-cat', { detail: cat.slug }));
+    });
+    gamesGrid.appendChild(btn);
+  });
+  catFilter.appendChild(gamesGrid);
+
+  const otherHeader = document.createElement('div');
+  otherHeader.className = 'sidebar-section-title';
+  otherHeader.innerHTML = 'All Categories';
+  catFilter.appendChild(otherHeader);
+
 
   // Inject accordion styles once
   if (!document.getElementById('cat-accordion-styles')) {
@@ -162,6 +266,11 @@ async function renderSidebar(catList, companyList) {
       }
       .filter-all-btn:hover { background: var(--glass); color: var(--text-1); }
       .filter-all-btn.active { color: var(--violet-light); background: rgba(124,58,237,0.1); }
+      .sidebar-section-title {
+        font-family: var(--font-display); font-size: 11px; font-weight: 800;
+        text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-4);
+        margin: 24px 0 12px 10px;
+      }
     `;
     document.head.appendChild(s);
   }
@@ -172,7 +281,8 @@ async function renderSidebar(catList, companyList) {
   allBtn.dataset.catId = 'all';
   allBtn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg> All Categories`;
   allBtn.addEventListener('click', () => {
-    filters.categoryId = '';
+    filters.categoryId   = '';
+    filters.categorySlug = '';
     catFilter.querySelectorAll('.active').forEach(el => el.classList.remove('active'));
     allBtn.classList.add('active');
     applyAndFetch();
@@ -196,10 +306,11 @@ async function renderSidebar(catList, companyList) {
     if (subs.length === 0) {
       const btn = document.createElement('button');
       btn.className = `filter-all-btn${isRootActive ? ' active' : ''}`;
-      btn.dataset.catId = String(root.id);
+      btn.dataset.catSlug = root.slug;
       btn.innerHTML = `${getSubIcon(root.name, root.slug)} ${root.name}`;
       btn.addEventListener('click', () => {
-        filters.categoryId = String(root.id);
+        filters.categoryId   = '';
+        filters.categorySlug = root.slug;
         syncActiveStates(catFilter, allBtn);
         applyAndFetch();
       });
@@ -223,7 +334,8 @@ async function renderSidebar(catList, companyList) {
       // Toggle accordion open/close
       acc.classList.toggle('open');
       // Selecting the parent category
-      filters.categoryId = String(root.id);
+      filters.categoryId   = '';
+      filters.categorySlug = root.slug;
       syncActiveStates(catFilter, allBtn);
       applyAndFetch();
     });
@@ -235,9 +347,10 @@ async function renderSidebar(catList, companyList) {
     const allSub = document.createElement('button');
     allSub.className = `cat-sub-item${isRootActive ? ' active' : ''}`;
     allSub.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" width="15" height="15"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg> All ${root.name}`;
-    allSub.dataset.catId = String(root.id);
+    allSub.dataset.catSlug = root.slug;
     allSub.addEventListener('click', () => {
-      filters.categoryId = String(root.id);
+      filters.categoryId   = '';
+      filters.categorySlug = root.slug;
       syncActiveStates(catFilter, allBtn);
       applyAndFetch();
     });
@@ -245,11 +358,12 @@ async function renderSidebar(catList, companyList) {
 
     subs.forEach(sub => {
       const btn = document.createElement('button');
-      btn.className = `cat-sub-item${filters.categoryId === String(sub.id) ? ' active' : ''}`;
+      btn.className = `cat-sub-item${(filters.categoryId === String(sub.id) || filters.categorySlug === sub.slug) ? ' active' : ''}`;
       btn.innerHTML = `${getSubIcon(sub.name, sub.slug)} ${sub.name}`;
-      btn.dataset.catId = String(sub.id);
+      btn.dataset.catSlug = sub.slug;
       btn.addEventListener('click', () => {
-        filters.categoryId = String(sub.id);
+        filters.categoryId   = '';
+        filters.categorySlug = sub.slug;
         acc.classList.add('open');
         syncActiveStates(catFilter, allBtn);
         applyAndFetch();
@@ -302,13 +416,15 @@ function syncActiveStates(catFilter, allBtn) {
   catFilter.querySelectorAll('.cat-accordion-root.has-active').forEach(el => el.classList.remove('has-active'));
   allBtn.classList.remove('active');
 
-  if (!filters.categoryId) {
+  if (!filters.categoryId && !filters.categorySlug) {
     allBtn.classList.add('active');
     return;
   }
-  // Mark matching items active
-  catFilter.querySelectorAll('[data-cat-id]').forEach(el => {
-    if (el.dataset.catId === filters.categoryId) {
+  // Mark matching items active (by ID or Slug)
+  catFilter.querySelectorAll('[data-cat-id], [data-cat-slug]').forEach(el => {
+    const matchId   = filters.categoryId   && el.dataset.catId === filters.categoryId;
+    const matchSlug = filters.categorySlug && el.dataset.catSlug === filters.categorySlug;
+    if (matchId || matchSlug) {
       el.classList.add('active');
       el.closest('.cat-accordion-root')?.classList.add('has-active');
     }
@@ -419,7 +535,14 @@ function showSkeletons(grid, count = 16) {
 }
 
 async function fetchAndRenderProducts(append = false) {
-  if (loading || allLoaded) return;
+  console.log(`[Catalog] fetchAndRenderProducts(append=${append})`);
+  if (append && allLoaded) return;
+  if (loading) {
+    if (!append) pendingFetch = true;
+    return;
+  }
+  
+  if (!append) allLoaded = false;
   loading = true;
 
   const grid    = document.getElementById('products-grid');
@@ -443,9 +566,9 @@ async function fetchAndRenderProducts(append = false) {
     // Remove any remaining skeletons
     grid.querySelectorAll('.skeleton-card').forEach(s => s.remove());
 
-    const items = Array.isArray(data) ? data : (data.content || data.items || []);
-    const total = data.totalElements ?? data.total ?? items.length;
-    const isLast = data.last ?? (items.length < 16);
+    const items = Array.isArray(data) ? data : (data?.content || data?.items || []);
+    const total = data?.totalElements ?? data?.total ?? items.length;
+    const isLast = data?.last ?? (items.length < 16);
 
     if (!append) totalCount = total;
 
@@ -471,37 +594,68 @@ async function fetchAndRenderProducts(append = false) {
       empty.className = 'empty-state';
       empty.innerHTML = `<div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg></div><h3>No products found</h3><p>Try adjusting your filters or search query.</p>`;
       grid.appendChild(empty);
-      loading = false;
+      
+      if (pendingFetch) {
+        pendingFetch = false;
+        loading = false;
+        fetchAndRenderProducts(false);
+      } else {
+        allLoaded = true;
+        loading   = false;
+      }
       return;
     }
 
     items.forEach((product, i) => {
-      const card = createProductCard(product);
+      const card = createProductCard(product, i);
       card.classList.add('stagger-in');
       card.style.animationDelay = `${i * 60}ms`;
       grid.appendChild(card);
     });
 
     if (isLast) {
-      allLoaded = true;
-      if (endMsg) endMsg.style.display = 'block';
+      if (pendingFetch) {
+        pendingFetch = false;
+        loading = false;
+        fetchAndRenderProducts(false);
+      } else {
+        allLoaded = true;
+        loading   = false;
+        if (endMsg) endMsg.style.display = 'block';
+      }
+    } else {
+      if (pendingFetch) {
+        pendingFetch = false;
+        loading = false;
+        fetchAndRenderProducts(false);
+      } else {
+        loading = false;
+        currentPage++;
+      }
     }
-
-    currentPage++;
   } catch (err) {
     grid.querySelectorAll('.skeleton-card').forEach(s => s.remove());
     console.error('Failed to load products:', err);
+    loading = false;
+    pendingFetch = false;
     if (!append) {
       grid.innerHTML = '';
       const empty = document.createElement('div');
       empty.className = 'empty-state';
       empty.innerHTML = `<div class="empty-state-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="48" height="48"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div><h3>Couldn't load products</h3><p>${err.message}</p>`;
       grid.appendChild(empty);
+      allLoaded = true;
     }
     showToast('Failed to load products', 'error');
   }
 
-  loading = false;
+  if (pendingFetch) {
+    pendingFetch = false;
+    loading = false;
+    fetchAndRenderProducts(false);
+  } else {
+    loading = false;
+  }
 }
 
 // ─── INFINITE SCROLL ─────────────────────────────────────────────────────────
@@ -572,31 +726,313 @@ function setupViewToggle() {
   });
 }
 
+function setupCustomFilters() {
+  const typeSel = document.getElementById('type-filter');
+  const blueSel = document.getElementById('blueprint-filter');
+
+  if (typeSel) {
+    typeSel.value = filters.productType || '';
+    typeSel.addEventListener('change', () => {
+      filters.productType = typeSel.value;
+      applyAndFetch();
+    });
+  }
+
+  if (blueSel) {
+    const blueprints = ['Anvil', 'Angled Grip II', 'Angled Grip III', 'Aphelion', 'Barricade Kit', 'Bettina', 'Blaze Grenade', 'Blue Light Stick', 'Bobcat', 'Burletta', 'Combat Mk.3 (Aggressive)', 'Combat Mk.3 (Flanking)', 'Complex Gun Parts', 'Deadline (mine)', 'Defibrillator', 'Equalizer', 'Explosive Mine', 'Fireworks Box', 'Gas Mine', 'Green Light Stick', 'Hullcracker', 'Hullcracker Ammo (Launcher Ammo)', 'Jolt Mine', 'Jupiter', 'Looting Mk.3 (Survivor)', 'Lure Grenade', 'Osprey', 'Pulse Mine', 'Red Light Stick', 'Seeker Grenade', 'Showstopper', 'Smoke Grenade', 'Tagging Grenade', 'Tactical Mk.3 (Defensive)', 'Tempest', 'Torrente', 'Trailblazer', 'Trigger Nade', 'Vita Shot', 'Vita Spray', 'Vulcano', 'Wolfpack'];
+    blueSel.innerHTML = '<option value="">Blueprint</option>' + 
+      blueprints.map(b => `<option value="${b}">${b}</option>`).join('');
+    
+    blueSel.value = filters.blueprintTag || '';
+    blueSel.addEventListener('change', () => {
+      filters.blueprintTag = blueSel.value;
+      applyAndFetch();
+    });
+  }
+}
+
+// ─── VISIBILITY ───────────────────────────────────────────────────────────────
+
+function updateFilterVisibility() {
+  const blueSel = document.getElementById('blueprint-filter');
+  const typeSel = document.getElementById('type-filter');
+  
+  const isArc = filters.categorySlug && filters.categorySlug.includes('arc-raiders');
+
+  if (blueSel) {
+    const parent = blueSel.closest('.catalog-sort');
+    if (isArc) {
+      if (parent) parent.style.display = 'block';
+    } else {
+      if (parent) parent.style.display = 'none';
+      if (filters.blueprintTag) filters.blueprintTag = '';
+    }
+  }
+
+  if (typeSel) {
+    const parent = typeSel.closest('.catalog-sort');
+    if (isArc) {
+      if (parent) parent.style.display = 'block';
+    } else {
+      if (parent) parent.style.display = 'none';
+      if (filters.productType) filters.productType = '';
+    }
+  }
+}
+
+// ─── GAME TILES ───────────────────────────────────────────────────────────────
+
+function getGameDataKey(slug) {
+  if (!slug) return 'default';
+  if (slug.includes('arc-raiders')) return 'arc-raiders';
+  if (slug.includes('cs2') || slug.includes('counter-strike')) return 'cs2';
+  if (slug.includes('delta-force')) return 'delta-force';
+  if (slug.includes('windrose')) return 'windrose';
+  if (slug.includes('windows')) return 'windows';
+  return 'default';
+}
+
+async function renderGameTiles() {
+  const container = document.getElementById('category-hero-container');
+  if (!container) return;
+
+  // Only show when no specific category is selected
+  if (filters.categoryId || filters.categorySlug) {
+    return; // Hero rendering handled by renderCategoryHero
+  }
+
+  if (catList.length === 0) { container.innerHTML = ''; return; }
+
+  // Get game categories under 'Games' root
+  const gamesCat = catList.find(c => c.slug === 'games');
+  let gameCats = [];
+  if (gamesCat) {
+    gameCats = catList.filter(c => c.parentId === gamesCat.id);
+  } else {
+    gameCats = catList.filter(c => !c.parentId);
+  }
+  
+  if (gameCats.length === 0) { container.innerHTML = ''; return; }
+
+  // For each game, count children + self products
+  const tiles = gameCats.map(cat => {
+    const childCount = catList.filter(c => c.parentId === cat.id).length;
+    const theme = getGameTheme(cat.slug);
+    const dataKey = getGameDataKey(cat.slug);
+    return { cat, childCount, theme, dataKey };
+  });
+
+  container.innerHTML = `
+    <div class="game-tiles-section">
+      <div class="game-tiles-heading">Browse by Game</div>
+      <div class="game-tiles-grid">
+        ${tiles.map(({ cat, childCount, theme, dataKey }) => `
+          <div class="game-tile stagger-in" data-game="${dataKey}" 
+               role="button" tabindex="0"
+               onclick="window.dispatchEvent(new CustomEvent('nav-to-cat', {detail: '${cat.slug}'}))">
+            <div class="game-tile-bg"></div>
+            ${theme.svgArt || ''}
+            <div class="game-tile-overlay"></div>
+            <div class="game-tile-badge">${theme.badge || 'Browse'}</div>
+            <div class="game-tile-icon">${theme.emoji || '🎮'}</div>
+            <div class="game-tile-body">
+              <div class="game-tile-name">${cat.name}</div>
+              <div class="game-tile-count">${childCount > 0 ? childCount + ' sub-categories' : 'View items'}</div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+    </div>
+  `;
+
+  // Animate tiles in with stagger
+  container.querySelectorAll('.game-tile').forEach((el, i) => {
+    el.style.animationDelay = `${i * 60}ms`;
+  });
+}
+
+// ─── CATEGORY HERO ────────────────────────────────────────────────────────────
+
+function renderCategoryHero() {
+  const container = document.getElementById('category-hero-container');
+  if (!container) return;
+
+  const currentSlug = filters.categorySlug;
+  const currentId   = filters.categoryId;
+  
+  const category = catList.find(c => 
+    (currentSlug && c.slug === currentSlug) || 
+    (currentId && String(c.id) === String(currentId))
+  );
+
+  if (!category) {
+    container.innerHTML = '';
+    return;
+  }
+
+  // Find parent for breadcrumbs
+  const parent = category.parentId ? catList.find(c => c.id === category.parentId) : null;
+
+  // Build breadcrumbs
+  let crumbs = `
+    <div class="cat-breadcrumb">
+      <a href="/">Home</a>
+      <span class="separator">/</span>
+      <a href="/catalog.html">Catalog</a>
+  `;
+  if (parent) {
+    crumbs += `
+      <span class="separator">/</span>
+      <a href="/catalog.html?category=${parent.slug}">${parent.name}</a>
+    `;
+  }
+  crumbs += `
+      <span class="separator">/</span>
+      <span class="active-crumb">${category.name}</span>
+    </div>
+  `;
+
+  // Stats (placeholder or real if available)
+  const productCount = totalCount || 0;
+
+    const theme = getGameTheme(category.slug);
+    const heroTitle = theme.logoUrl 
+      ? `<img src="${theme.logoUrl}" class="cat-hero-logo stagger-in" alt="${category.name}">` 
+      : category.name;
+
+    container.innerHTML = `
+      <div class="cat-hero stagger-in">
+        <div class="cat-hero-card">
+          <div class="cat-hero-glow"></div>
+          ${crumbs}
+          <div class="cat-hero-header">
+            <h1 class="cat-hero-title">${heroTitle}</h1>
+          </div>
+          ${category.description ? `<p class="cat-hero-desc">${category.description}</p>` : ''}
+        
+        <div class="cat-hero-stats">
+          <div class="cat-stat-item">
+            <span class="cat-stat-value">${productCount}</span>
+            <span class="cat-stat-label">Products</span>
+          </div>
+          <div class="cat-stat-item">
+            <span class="cat-stat-value">24/7</span>
+            <span class="cat-stat-label">Delivery</span>
+          </div>
+          <div class="cat-stat-item">
+            <span class="cat-stat-value">Secure</span>
+            <span class="cat-stat-label">Checkout</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    ${renderQuickNav(category)}
+  `;
+}
+
+function renderQuickNav(currentCat) {
+  // If it's a root category, show its children as quick links
+  // If it's a child, show its siblings
+  const parentId = currentCat.parentId || currentCat.id;
+  const siblings = catList.filter(c => c.parentId === parentId);
+
+  if (siblings.length === 0) return '';
+
+  return `
+    <div class="cat-quick-nav fade-in">
+      ${siblings.map(sib => `
+        <button class="quick-link-btn${sib.id === currentCat.id ? ' active' : ''}" 
+                onclick="window.dispatchEvent(new CustomEvent('nav-to-cat', {detail: '${sib.slug}'}))">
+          ${getSubIcon(sib.name, sib.slug)}
+          ${sib.name}
+        </button>
+      `).join('')}
+    </div>
+  `;
+}
+
+// Global listener for quick nav
+window.addEventListener('nav-to-cat', (e) => {
+  filters.categoryId = '';
+  filters.categorySlug = e.detail;
+  const catFilter = document.getElementById('cat-filter-list');
+  const allBtn = catFilter?.querySelector('.filter-all-btn[data-cat-id="all"]');
+  if (catFilter && allBtn) syncActiveStates(catFilter, allBtn);
+  applyAndFetch();
+});
+
 // ─── APPLY & FETCH ────────────────────────────────────────────────────────────
 
-function applyAndFetch() {
+async function applyAndFetch() {
   currentPage = 0;
   allLoaded   = false;
-  updateURL({ ...filters });
-  fetchAndRenderProducts(false);
+  // Convert categorySlug to 'category' for URL
+  const urlFilters = { ...filters };
+  if (urlFilters.categorySlug) {
+    urlFilters.category = urlFilters.categorySlug;
+    delete urlFilters.categorySlug;
+  }
+  updateURL(urlFilters);
+  updateFilterVisibility();
+
+  if (filters.categoryId || filters.categorySlug) {
+    renderCategoryHero();
+  } else {
+    renderGameTiles();
+  }
+
+  if (loading) {
+    pendingFetch = true;
+    return;
+  }
+
+  await fetchAndRenderProducts(false);
+  
+  // Refresh hero once we have the total count
+  if (filters.categoryId || filters.categorySlug) {
+    renderCategoryHero();
+  }
 }
 
 // ─── ENTRY POINT ──────────────────────────────────────────────────────────────
 
 export async function renderCatalog() {
-  readFiltersFromURL();
-
-  let catList = [], companyList = [];
   try {
-    const [catData, compData] = await Promise.all([getCategoriesFlat(), getCompanies()]);
-    catList     = Array.isArray(catData)  ? catData  : (catData.content  || []);
-    companyList = Array.isArray(compData) ? compData : (compData.content || []);
-  } catch (err) {
-    console.error('Failed to load sidebar data:', err);
-  }
+    readFiltersFromURL();
 
-  await renderSidebar(catList, companyList);
-  setupSidebarEvents();
+    // 1. Fetch products IMMEDIATELY
+    fetchAndRenderProducts(false).catch(err => {
+      console.error('Initial product fetch failed:', err);
+    });
+
+    let companyList = [];
+    try {
+      // 2. Fetch categories and companies sequentially with cache busting
+      const catData  = await getCategoriesFlat();
+      catList = Array.isArray(catData) ? catData : (catData?.content || []);
+      
+      const compData = await getCompanies();
+      companyList = Array.isArray(compData) ? compData : (compData?.content || []);
+
+      // ── SEO REDIRECTION ──
+      if (filters.categoryId) {
+        const match = catList.find(c => String(c.id) === filters.categoryId);
+        if (match && match.slug) {
+          filters.categorySlug = match.slug;
+          filters.categoryId   = '';
+          const urlFilters = { ...filters };
+          urlFilters.category = urlFilters.categorySlug;
+          delete urlFilters.categorySlug;
+          updateURL(urlFilters);
+        }
+      }
+    } catch (err) {
+      console.error('Failed to load initial data:', err);
+    }
+
+    await renderSidebar(catList, companyList);
+    setupSidebarEvents();
 
   // Mobile filter button
   document.getElementById('mobile-filter-btn')?.addEventListener('click', openMobileSheet);
@@ -690,8 +1126,19 @@ export async function renderCatalog() {
 
   setupSearch();
   setupSort();
+  setupCustomFilters();
   setupViewToggle();
   setupInfiniteScroll();
 
-  await fetchAndRenderProducts(false);
+  updateFilterVisibility();
+
+  if (filters.categoryId || filters.categorySlug) {
+    renderCategoryHero();
+  } else {
+    renderGameTiles();
+  }
+
+  } catch (error) {
+    console.error('CRITICAL CATALOG ERROR:', error);
+  }
 }

@@ -4,11 +4,11 @@ import { addToCart, toggleWishlist } from '../api.js';
 
 const CATEGORY_GRADIENTS = {
   'PC Games':       'linear-gradient(135deg, #0f0a2e, #1a0a3e)',
-  'Gift Cards':     'linear-gradient(135deg, #0f0a2e, #1a0a3e)',
-  'Mobile Top-Up':  'linear-gradient(135deg, #0f0a2e, #1a0a4e)',
-  'Streaming':      'linear-gradient(135deg, #1a0a0a, #2a0a1a)',
-  'VPN & Software': 'linear-gradient(135deg, #0a0a2a, #0a1a2e)',
-  'default':        'linear-gradient(135deg, #0d0d1a, #1a1a2e)',
+  'Gift Cards':     'linear-gradient(135deg, #0d0925, #140b2a)',
+  'Mobile Top-Up':  'linear-gradient(135deg, #08081a, #0b0b26)',
+  'Streaming':      'linear-gradient(135deg, #1a0a25, #0a0a2a)',
+  'VPN & Software': 'linear-gradient(135deg, #0a1a2a, #060e1a)',
+  'default':        'linear-gradient(135deg, #050510, #0a0a20)',
 };
 
 function getCategoryGradient(category) {
@@ -58,9 +58,10 @@ function animateCartBadge() {
   badge.addEventListener('animationend', () => badge.classList.remove('pop'), { once: true });
 }
 
-export function createProductCard(product) {
+export function createProductCard(product, index = 0) {
   const card = document.createElement('div');
-  card.className = 'product-card';
+  card.className = 'product-card stagger-in';
+  card.style.animationDelay = `${50 * (index % 12)}ms`;
 
   // Image area
   const imgArea = document.createElement('div');
@@ -140,10 +141,31 @@ export function createProductCard(product) {
 
   const meta = document.createElement('div');
   meta.className = 'card-meta';
-  const parts = [];
-  if (product.categoryName) parts.push(product.categoryName);
-  if (product.brand)        parts.push(product.brand);
-  meta.textContent = parts.join(' · ') || '—';
+  meta.style.display = 'flex';
+  meta.style.alignItems = 'center';
+  meta.style.gap = '8px';
+  meta.style.marginBottom = '8px';
+
+  // Show product type as a small highlighted tag if available, otherwise category
+  if (product.productType) {
+    const typeLabel = document.createElement('span');
+    typeLabel.className = 'card-type-tag';
+    typeLabel.textContent = product.productType;
+    meta.appendChild(typeLabel);
+  } else if (product.categoryName) {
+    const catLabel = document.createElement('span');
+    catLabel.textContent = product.categoryName;
+    meta.appendChild(catLabel);
+  }
+  
+  if (product.brand) {
+    const brandLabel = document.createElement('span');
+    brandLabel.style.marginLeft = 'auto';
+    brandLabel.style.opacity = '0.6';
+    brandLabel.style.fontSize = '10px';
+    brandLabel.textContent = product.brand;
+    meta.appendChild(brandLabel);
+  }
 
   const starsRow = document.createElement('div');
   starsRow.className = 'card-stars';
@@ -158,14 +180,14 @@ export function createProductCard(product) {
 
   const price = document.createElement('div');
   price.className = 'card-price';
-  price.textContent = `₹${(product.price || 0).toLocaleString('en-IN')}`;
+  price.textContent = `$${(product.price || 0).toLocaleString('en-US')}`;
 
   priceBlock.appendChild(price);
 
   if (product.originalPrice && product.originalPrice > product.price) {
     const orig = document.createElement('div');
     orig.className = 'card-orig-price';
-    orig.textContent = `₹${product.originalPrice.toLocaleString('en-IN')}`;
+    orig.textContent = `$${product.originalPrice.toLocaleString('en-US')}`;
     priceBlock.appendChild(orig);
   }
 
@@ -211,6 +233,10 @@ export function createProductCard(product) {
   card.appendChild(body);
 
   card.addEventListener('click', () => {
+    if (product.slug) {
+      window.location.href = `product.html?slug=${encodeURIComponent(product.slug)}`;
+      return;
+    }
     window.location.href = `product.html?id=${product.id}`;
   });
 

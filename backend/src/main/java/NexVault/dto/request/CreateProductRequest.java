@@ -17,6 +17,8 @@ public record CreateProductRequest(
         @Size(max = 100) String productType,
         @Size(max = 50)  String region,
         @Size(max = 20)  String badge,
+        String blueprintTags,
         boolean isFlashDeal,
-        int sortOrder
+        int sortOrder,
+        Integer stockCount
 ) {}

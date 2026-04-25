@@ -27,6 +27,40 @@ public class NotificationService {
     private final NotificationRepository notificationRepository;
     private final UserSessionRepository  userSessionRepository;
     private final UserRepository         userRepository;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
+
+    @Transactional
+    public void broadcastNewOrder(Order order) {
+        // 1. Notify Admin Real-time
+        messagingTemplate.convertAndSend("/topic/admin/orders", 
+            "{\"type\":\"NEW_ORDER\",\"id\":\"" + order.getId() + "\",\"total\":\"" + order.getTotalAmount() + "\"}");
+
+        // 2. Notify User Real-time (Private)
+        String userDest = "/topic/user/" + order.getUser().getId() + "/notifications";
+        messagingTemplate.convertAndSend(userDest, 
+            "{\"type\":\"ORDER_CREATED\",\"title\":\"Order Placed\",\"message\":\"Order #" + order.getId().toString().substring(0,8).toUpperCase() + " is pending payment.\"}");
+
+        // 3. Social Proof (Public)
+        // Only if it's confirmed, but for initial 'Order Placed' we might just notify Admin.
+        // We'll trigger Social Proof later when status changes to CONFIRMED.
+    }
+
+    @Transactional
+    public void broadcastOrderStatusUpdate(Order order) {
+        String msg = "Order #" + order.getId().toString().substring(0,8).toUpperCase() + " status: " + order.getStatus();
+        messagingTemplate.convertAndSend("/topic/user/" + order.getUser().getId() + "/notifications",
+             "{\"type\":\"ORDER_STATUS\",\"id\":\"" + order.getId() + "\",\"status\":\"" + order.getStatus() + "\",\"message\":\"" + msg + "\"}");
+        
+        // If confirmed, broadcast to Social Proof topic
+        if ("CONFIRMED".equals(order.getStatus())) {
+            String name = order.getShippingName() != null ? order.getShippingName() : "A customer";
+            String masked = name.contains(" ") ? name.split(" ")[0] + " " + name.split(" ")[1].charAt(0) + "." : name;
+            String prod = order.getItems().isEmpty() ? "a product" : order.getItems().get(0).getProductName();
+            
+            messagingTemplate.convertAndSend("/topic/social-proof", 
+                String.format("{\"customerName\":\"%s\",\"productName\":\"%s\"}", masked, prod));
+        }
+    }
 
     @Transactional
     public Notification createNotification(UUID userId, String type, String title,

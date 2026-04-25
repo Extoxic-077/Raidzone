@@ -34,11 +34,14 @@ public class AdminProductService {
     private final CompanyRepository companyRepository;
 
     @Transactional(readOnly = true)
-    public Page<ProductResponse> listAll(int page, int size) {
+    public Page<ProductResponse> listAll(int page, int size, boolean includeInactive) {
         PageRequest pageable = PageRequest.of(page, Math.min(size, 100),
                 Sort.by(Sort.Direction.ASC, "sortOrder")
                         .and(Sort.by(Sort.Direction.DESC, "createdAt")));
-        return productRepository.findAll(pageable).map(ProductResponse::from);
+        Page<Product> products = includeInactive
+                ? productRepository.findAll(pageable)
+                : productRepository.findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc(pageable);
+        return products.map(ProductResponse::from);
     }
 
     @Transactional
@@ -64,8 +67,10 @@ public class AdminProductService {
         p.setProductType(req.productType());
         p.setRegion(req.region() != null ? req.region() : "Global");
         p.setBadge(req.badge());
+        p.setBlueprintTags(req.blueprintTags());
         p.setIsFlashDeal(req.isFlashDeal());
         p.setSortOrder(req.sortOrder());
+        if (req.stockCount() != null) p.setStockCount(req.stockCount());
         p.setIsActive(true);
 
         p = productRepository.save(p);
@@ -95,9 +100,11 @@ public class AdminProductService {
         if (req.productType() != null)  p.setProductType(req.productType());
         if (req.region() != null)       p.setRegion(req.region());
         if (req.badge() != null)        p.setBadge(req.badge());
+        if (req.blueprintTags() != null) p.setBlueprintTags(req.blueprintTags());
         if (req.isFlashDeal() != null)  p.setIsFlashDeal(req.isFlashDeal());
         if (req.isActive() != null)     p.setIsActive(req.isActive());
         if (req.sortOrder() != null)    p.setSortOrder(req.sortOrder());
+        if (req.stockCount() != null)   p.setStockCount(req.stockCount());
 
         p = productRepository.save(p);
         log.info("Admin updated product {}", id);

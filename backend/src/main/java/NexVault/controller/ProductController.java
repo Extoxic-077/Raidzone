@@ -36,8 +36,8 @@ public class ProductController {
      * @param page       zero-based page index (default {@code 0})
      * @param size       number of items per page (default {@code 20}, max {@code 100})
      * @param categoryId optional UUID of the category to filter by
-     * @param minPrice   optional minimum price in INR (inclusive)
-     * @param maxPrice   optional maximum price in INR (inclusive)
+     * @param minPrice   optional minimum price in USD (inclusive)
+     * @param maxPrice   optional maximum price in USD (inclusive)
      * @return 200 OK with a paginated {@link Page} of {@link ProductResponse} DTOs
      */
     @GetMapping
@@ -56,13 +56,22 @@ public class ProductController {
             @Parameter(description = "Filter by category UUID")
             @RequestParam(required = false) UUID categoryId,
 
+            @Parameter(description = "Filter by category slug")
+            @RequestParam(required = false) String categorySlug,
+
             @Parameter(description = "Filter by company UUID")
             @RequestParam(required = false) UUID companyId,
 
-            @Parameter(description = "Minimum price in INR (inclusive)", example = "100")
+            @Parameter(description = "Filter by product type (e.g. Blueprints, Weapons)")
+            @RequestParam(required = false) String productType,
+
+            @Parameter(description = "Filter by blueprint tag")
+            @RequestParam(required = false) String blueprintTag,
+
+            @Parameter(description = "Minimum price in USD (inclusive)", example = "100")
             @RequestParam(required = false) BigDecimal minPrice,
 
-            @Parameter(description = "Maximum price in INR (inclusive)", example = "2000")
+            @Parameter(description = "Maximum price in USD (inclusive)", example = "2000")
             @RequestParam(required = false) BigDecimal maxPrice,
 
             @Parameter(description = "Minimum average rating (1-5)", example = "4")
@@ -75,7 +84,7 @@ public class ProductController {
             @RequestParam(required = false) String sort) {
 
         Page<ProductResponse> products =
-                productService.getAllProducts(page, size, categoryId, companyId, minPrice, maxPrice, minRating, search, sort);
+                productService.getAllProducts(page, size, categoryId, categorySlug, companyId, productType, blueprintTag, minPrice, maxPrice, minRating, search, sort);
         return ResponseEntity.ok(ApiResponse.ok(products));
     }
 

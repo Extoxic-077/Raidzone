@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Checkout — Raidzone</title>
+  <title>Checkout — RAIDZONE</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
@@ -22,7 +22,7 @@
 
   <header class="co-topbar">
     <a href="index.html" class="co-topbar-logo">
-      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" width="26" height="26">
+      <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg" width="22" height="22">
         <defs>
           <linearGradient id="hg-tb" x1="0" y1="0" x2="1" y2="1">
             <stop offset="0%" stop-color="#C084FC"/>
@@ -30,9 +30,9 @@
           </linearGradient>
         </defs>
         <path d="M14 2L25.26 8.5V21.5L14 28L2.74 21.5V8.5L14 2Z" fill="url(#hg-tb)"/>
-        <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(7,7,15,0.6)"/>
+        <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(255,255,255,0.1)"/>
       </svg>
-      Raidzone <span>Pay</span>
+      RAIDZONE <span>MARKET</span>
     </a>
   </header>
 
@@ -104,7 +104,7 @@ function setStep(n) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function fmt(v) { return '₹' + Number(v).toLocaleString('en-IN'); }
+function fmt(v) { return '$' + Number(v).toLocaleString('en-US'); }
 
 function humanizeError(msg) {
   if (!msg) return 'An unexpected error occurred. Please try again.';
@@ -363,7 +363,7 @@ async function renderPayment() {
         <button class="btn-co-ghost" id="back-to-review" style="align-self:flex-start;margin-top:8px">← Back to Review</button>
       </div>
       <div class="co-card co-right">
-        <div class="nvpay-secure-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>256-bit SSL · Encrypted Checkout</span></div>
+        <div class="rzpay-secure-row"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" style="vertical-align:middle;margin-right:4px"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>256-bit SSL · Encrypted Checkout</span></div>
         <div class="co-col-title" style="font-size:0.9rem;margin-bottom:10px">Order Summary</div>
         ${summaryHTML()}
         <div class="pay-disclaimer" style="margin-top:10px">
@@ -531,7 +531,7 @@ async function handleRazorpayPay() {
       key:         rzpData.keyId,
       amount:      rzpData.amountInPaise,
       currency:    rzpData.currency,
-      name:        'Raidzone',
+      name:        'RAIDZONE',
       description: 'Digital Goods',
       order_id:    rzpData.razorpayOrderId,
       prefill: {

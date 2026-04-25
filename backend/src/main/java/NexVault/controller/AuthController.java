@@ -187,6 +187,7 @@ public class AuthController {
     @PostMapping("/logout")
     @Operation(summary = "Logout and clear the refresh token cookie")
     public ResponseEntity<ApiResponse<Void>> logout() {
+        // Clear cookie at the exact same path it was set (/api/v1/auth)
         ResponseCookie clearCookie = ResponseCookie.from(REFRESH_COOKIE, "")
                 .httpOnly(true)
                 .path("/api/v1/auth")
@@ -194,8 +195,17 @@ public class AuthController {
                 .sameSite("Lax")
                 .build();
 
+        // Also clear at root path as a safety net (handles any browser inconsistency)
+        ResponseCookie clearCookieRoot = ResponseCookie.from(REFRESH_COOKIE, "")
+                .httpOnly(true)
+                .path("/")
+                .maxAge(0)
+                .sameSite("Lax")
+                .build();
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, clearCookie.toString())
+                .header(HttpHeaders.SET_COOKIE, clearCookieRoot.toString())
                 .body(ApiResponse.ok(null, "Logged out successfully"));
     }
 

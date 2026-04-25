@@ -1,8 +1,9 @@
-import { getFeaturedProducts, getFlashDeals, getCategories, getCompanies } from '../api.js';
-import { createProductCard } from '../components/productCard.js';
-import { createProductSkeleton } from '../components/skeleton.js';
-import { showToast } from '../components/toast.js';
-import { makeDraggable } from '../utils/dragScroll.js';
+import { getFeaturedProducts, getFlashDeals, getCategories, getCompanies } from '../api.js?v=1.1.0';
+import { createProductCard } from '../components/productCard.js?v=1.1.0';
+import { createProductSkeleton } from '../components/skeleton.js?v=1.1.0';
+import { showToast } from '../components/toast.js?v=1.1.0';
+import { makeDraggable } from '../utils/dragScroll.js?v=1.1.0';
+import { SEO } from '../seo.js';
 
 // ─── PROMO SLIDER ────────────────────────────────────────────────────────────
 
@@ -12,7 +13,7 @@ const SLIDES = [
     badge: 'FLASH SALE',
     title: 'Steam Summer Sale',
     subtitle: 'Top titles up to 90% off',
-    price: 'From ₹499',
+    price: 'From $499',
     cta: 'Shop Now →',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" width="100" height="100"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/><path d="M7 7l2 2 4-4"/></svg>`,
   },
@@ -21,7 +22,7 @@ const SLIDES = [
     badge: 'NEW',
     title: 'Xbox Game Pass',
     subtitle: '100+ games, instant access',
-    price: '₹1,299',
+    price: '$1,299',
     cta: 'Get It Now →',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" width="100" height="100"><circle cx="12" cy="12" r="10"/><path d="M8 12l2 2 4-4"/></svg>`,
   },
@@ -39,7 +40,7 @@ const SLIDES = [
     badge: 'HOT',
     title: 'Valorant VP Sale',
     subtitle: 'All regions, instant delivery',
-    price: 'From ₹699',
+    price: 'From $699',
     cta: 'Buy VP →',
     icon: `<svg viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="1" width="100" height="100"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
   },
@@ -47,10 +48,10 @@ const SLIDES = [
 
 const NEWS_CARDS = [
   { type: 'PROMO',  icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`, title: 'Steam Sale starts this Friday — up to 80% off',           date: 'Mar 25, 2026' },
-  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`, title: 'Raidzone now accepts USDT crypto payments',               date: 'Mar 20, 2026' },
+  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>`, title: 'RAIDZONE now accepts USDT crypto payments',               date: 'Mar 20, 2026' },
   { type: 'UPDATE', icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>`, title: 'Valorant Episode 10 — new exclusive skins',               date: 'Mar 15, 2026' },
   { type: 'PROMO',  icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`, title: 'Republic Day Sale — extra 10% with code INDIA26',        date: 'Jan 26, 2026' },
-  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="8" r="6"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>`, title: 'Raidzone reaches 2 million orders delivered',            date: 'Jan 10, 2026' },
+  { type: 'NEWS',   icon: `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="40" height="40"><circle cx="12" cy="8" r="6"/><path d="M8.56 2.75c4.37 6.03 6.02 9.42 8.03 17.72m2.54-15.38c-3.72 4.35-8.94 5.66-16.88 5.85m19.5 1.9c-3.5-.93-6.63-.82-8.94 0-2.58.92-5.01 2.86-7.44 6.32"/></svg>`, title: 'RAIDZONE reaches 2 million orders delivered',            date: 'Jan 10, 2026' },
 ];
 
 const BRANDS = ['Steam', 'Xbox', 'PlayStation', 'Riot Games', 'Epic Games', 'Blizzard', 'Netflix', 'Spotify', 'NordVPN'];
@@ -75,6 +76,19 @@ function initSlider() {
       <div class="slide-price">${s.price}</div>
       <button class="slide-cta">${s.cta}</button>
     `;
+    
+    // Make entire slide clickable to navigate to next slide
+    slide.addEventListener('click', (e) => {
+      if (e.target.classList.contains('slide-cta')) return;
+      goTo(current + 1);
+    });
+    
+    // Make CTA button navigate to catalog
+    slide.querySelector('.slide-cta')?.addEventListener('click', (e) => {
+      e.stopPropagation();
+      window.location.href = 'catalog.html';
+    });
+    
     track.appendChild(slide);
 
     const dot = document.createElement('div');
@@ -135,7 +149,26 @@ function initFlashTimer() {
   setInterval(tick, 1000);
 }
 
+// ─── GAME THEMES (Shared logic) ─────────────────────────────────────────────
+
+const GAME_THEMES = {
+  'arc-raiders':  { emoji: '🤖', color: '#0ea5e9' },
+  'cs2':          { emoji: '🎯', color: '#f97316' },
+  'delta-force':  { emoji: '⚔️', color: '#22c55e' },
+  'windows':      { emoji: '🪟', color: '#3b82f6' },
+  'default':      { emoji: '🎮', color: '#7c3aed' }
+};
+
+function getGameTheme(slug) {
+  if (!slug) return GAME_THEMES.default;
+  for (const [key, theme] of Object.entries(GAME_THEMES)) {
+    if (slug.includes(key)) return theme;
+  }
+  return GAME_THEMES.default;
+}
+
 // ─── CATEGORIES CHIPS ────────────────────────────────────────────────────────
+
 
 async function renderCategoryChips(activeId = null) {
   const container = document.getElementById('categories-row');
@@ -183,9 +216,16 @@ function getCatEmoji(name) {
 
 function createChip(cat, active) {
   const chip = document.createElement('button');
+  const theme = getGameTheme(cat.slug || '');
   chip.className = `cat-chip${active ? ' active' : ''}`;
-  const icon = getCatEmoji(cat.name || cat.slug || '');
-  chip.innerHTML = `<span class="cat-icon">${icon}</span><span class="cat-label">${cat.name || 'All'}</span>`;
+  if (active) chip.style.borderColor = theme.color;
+  
+  chip.innerHTML = `
+    <span class="cat-icon" style="background: ${theme.color}20; color: ${theme.color}">
+      ${theme.emoji}
+    </span>
+    <span class="cat-label">${cat.name || 'All'}</span>
+  `;
   return chip;
 }
 
@@ -205,7 +245,7 @@ async function renderFeatured() {
 
     grid.innerHTML = '';
     products.forEach((product, i) => {
-      const card = createProductCard(product);
+      const card = createProductCard(product, i);
       card.classList.add('stagger-in');
       card.style.animationDelay = `${i * 60}ms`;
       grid.appendChild(card);
@@ -284,14 +324,18 @@ async function renderFlashDeals() {
           <div class="deal-name" title="${p.name}">${p.name}</div>
           <div class="deal-delivery"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="12" height="12"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> Instant Delivery</div>
           <div class="deal-price-row">
-            <span class="deal-price">₹${(p.price || 0).toLocaleString('en-IN')}</span>
-            ${p.originalPrice ? `<span class="deal-orig">₹${p.originalPrice.toLocaleString('en-IN')}</span>` : ''}
+            <span class="deal-price">$${(p.price || 0).toLocaleString('en-US')}</span>
+            ${p.originalPrice ? `<span class="deal-orig">$${p.originalPrice.toLocaleString('en-US')}</span>` : ''}
             ${pct ? `<span class="deal-discount">-${pct}%</span>` : ''}
           </div>
         </div>
       `;
 
       card.addEventListener('click', () => {
+        if (p.slug) {
+          window.location.href = `product.html?slug=${encodeURIComponent(p.slug)}`;
+          return;
+        }
         window.location.href = `product.html?id=${p.id}`;
       });
 
@@ -397,4 +441,6 @@ export async function renderHome() {
     renderFlashDeals(),
     renderBrands(),
   ]);
+
+  SEO.update({ type: 'homepage' });
 }

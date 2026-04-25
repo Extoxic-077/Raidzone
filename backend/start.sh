@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# ─── NexVault Backend Launcher ────────────────────────────────────────────────
+# ─── Raidzone Backend Launcher ────────────────────────────────────────────────
 # Usage:  bash backend/start.sh
 # Loads API keys from backend/.env, then starts the Spring Boot jar.
 set -euo pipefail
@@ -22,4 +22,4 @@ if [[ -z "$JAR" ]]; then
 fi
 
 echo "[start.sh] Starting: $JAR"
-exec java -jar "$JAR"
+exec java -Xmx512m -jar "$JAR"

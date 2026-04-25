@@ -100,7 +100,7 @@ await initAuth();
 if (!isLoggedIn()) { window.location.href = '../login.html'; }
 await initAdminSidebar('orders');
 
-const fmt = v => '₹' + Number(v).toLocaleString('en-IN');
+const fmt = v => '$' + Number(v).toLocaleString('en-US');
 const timeAgo = iso => {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -301,8 +301,8 @@ async function openOrderModal(orderId) {
               <span style="color:#22D3EE;font-weight:600">−${fmt(o.discountAmount ?? 0)}</span>
             </div>` : ''}
           <div style="margin-top:12px;font-size:11px;color:var(--text-4)">
-            Created: ${new Date(o.createdAt).toLocaleString('en-IN')}<br>
-            ${o.paidAt ? 'Paid: ' + new Date(o.paidAt).toLocaleString('en-IN') : ''}
+            Created: ${new Date(o.createdAt).toLocaleString('en-US')}<br>
+            ${o.paidAt ? 'Paid: ' + new Date(o.paidAt).toLocaleString('en-US') : ''}
           </div>
         </div>
         <div>

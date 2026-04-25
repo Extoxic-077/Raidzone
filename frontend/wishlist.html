@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Wishlist — Raidzone</title>
+  <title>Wishlist — RAIDZONE</title>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -37,19 +37,18 @@
 
 <script src="/js/config.js"></script>
 <script type="module">
-import { initNavbar } from './js/components/navbar.js';
+import { initNavbar } from './js/components/rz-nav.js?v=1.1.0';
 import { createProductCard } from './js/components/productCard.js';
 import { showToast }  from './js/components/toast.js';
 import { initAuth, isLoggedIn } from './js/auth.js';
 import { getWishlist } from './js/api.js';
 
+initNavbar();
 await initAuth();
 if (!isLoggedIn()) {
   sessionStorage.setItem('redirectAfterLogin', 'wishlist.html');
   window.location.href = 'login.html';
 }
-
-await initNavbar();
 
 const root = document.getElementById('wishlist-root');
 const label = document.getElementById('wishlist-count-label');

@@ -1,9 +1,21 @@
 /* ─── HERO ───────────────────────────────────── */
 .hero-section {
-  min-height: 100vh;
+  min-height: 100dvh;
   padding-top: 64px;
   display: flex;
   align-items: center;
+}
+
+/* Mobile fix for dynamic viewport height */
+@supports (height: 100dvh) {
+  .hero-section { min-height: 100dvh; }
+}
+
+/* Fallback for older browsers */
+@supports not (height: 100dvh) {
+  @media (max-width: 767px) {
+    .hero-section { min-height: -webkit-fill-available; }
+  }
 }
 
 .hero-inner {
@@ -51,13 +63,13 @@
 .hero-heading {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(36px, 6vw, 62px);
-  letter-spacing: -2px;
-  line-height: 1.05;
-  margin-bottom: 20px;
+  font-size: clamp(40px, 8vw, 78px);
+  letter-spacing: -3px;
+  line-height: 0.95;
+  margin-bottom: 24px;
 }
 
-.hero-heading .line { display: block; }
+.hero-heading .line { display: block; filter: drop-shadow(0 0 40px rgba(124, 58, 237, 0.2)); }
 
 .hero-heading .line-1 {
   color: var(--text-1);
@@ -99,45 +111,54 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 40px;
+  margin-bottom: 16px;
   opacity: 0;
   animation: fadeUp 600ms ease forwards;
   animation-delay: 500ms;
 }
 
-.hero-stats {
+.hero-trust-line {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-3);
+  font-weight: 500;
+  margin-bottom: 24px;
+  animation: fadeUp 600ms ease forwards;
+  animation-delay: 600ms;
+  opacity: 0;
+}
+
+.hero-checkmarks {
   display: flex;
-  gap: 32px;
+  gap: 16px;
   flex-wrap: wrap;
   opacity: 0;
   animation: fadeUp 600ms ease forwards;
-  animation-delay: 600ms;
+  animation-delay: 700ms;
 }
 
-.hero-stat-num {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 24px;
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: block;
-}
-
-.hero-stat-label {
+.hero-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-body);
-  font-size: 12px;
-  color: var(--text-3);
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ─── PROMO SLIDER ───────────────────────────── */
 .promo-slider-wrap {
-  background: var(--bg2);
+  background: var(--bg1);
   border: 1px solid var(--glass-border);
   border-radius: var(--r-xl);
   overflow: hidden;
   position: relative;
+  box-shadow: var(--shadow-lg), inset 0 0 80px rgba(0,0,0,0.5);
 }
 
 .slider-track {
@@ -154,6 +175,9 @@
   display: flex;
   flex-direction: column;
   justify-content: center;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  cursor: pointer;
 }
 
 .slide-bg-icon {
@@ -224,9 +248,12 @@
   cursor: pointer;
   transition: background var(--ease-fast), border-color var(--ease-fast);
   width: fit-content;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
 }
 
 .slide-cta:hover { background: rgba(255,255,255,0.22); }
+.slide-cta:active { transform: scale(0.97); }
 
 .slider-controls {
   display: flex;
@@ -342,6 +369,9 @@
   transition: background var(--ease-base), border-color var(--ease-base);
   flex-shrink: 0;
   font-family: var(--font-body);
+  pointer-events: auto;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .cat-chip:hover {
@@ -412,6 +442,8 @@
   overflow-x: auto;
   scrollbar-width: none;
   padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .deals-scroll::-webkit-scrollbar { display: none; }
@@ -419,6 +451,9 @@
 .deal-card {
   display: flex;
   gap: 14px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
   padding: 16px;
   background: var(--bg2);
   border: 1px solid var(--glass-border);
@@ -502,12 +537,17 @@
   overflow-x: auto;
   scrollbar-width: none;
   padding-bottom: 4px;
+  -webkit-overflow-scrolling: touch;
+  touch-action: pan-x;
 }
 
 .news-scroll::-webkit-scrollbar { display: none; }
 
 .news-card {
   min-width: 300px;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
   background: var(--bg2);
   border: 1px solid var(--glass-border);
   border-radius: var(--r-lg);
@@ -605,6 +645,9 @@
 }
 
 .brand-chip {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
   padding: 10px 20px;
   background: var(--glass);
   border: 1px solid var(--glass-border);

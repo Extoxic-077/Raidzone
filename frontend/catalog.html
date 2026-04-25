@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Catalog — Raidzone</title>
-  <meta name="description" content="Browse thousands of digital products — games, gift cards, top-ups, streaming and software."/>
+  <title>Browse Categories — RAIDZONE Market</title>
+  <meta name="description" content="Explore our massive catalog of game currencies, accounts, items, and professional boosting services. All regions supported."/>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -42,14 +42,14 @@
 
 
         <div class="filter-section">
-          <div class="filter-section-title">Price Range (₹)</div>
+          <div class="filter-section-title">Price Range ($)</div>
           <div class="price-range">
             <div class="price-input-wrap">
-              <label>Min ₹</label>
+              <label>Min $</label>
               <input type="number" id="filter-min-price" placeholder="0" min="0"/>
             </div>
             <div class="price-input-wrap">
-              <label>Max ₹</label>
+              <label>Max $</label>
               <input type="number" id="filter-max-price" placeholder="Any" min="0"/>
             </div>
           </div>
@@ -72,6 +72,9 @@
       <!-- ── MAIN CONTENT ────────────────────────── -->
       <main class="catalog-main">
 
+        <!-- Category Hero Header -->
+        <div id="category-hero-container"></div>
+
         <!-- Top bar -->
         <div class="catalog-topbar">
           <div class="catalog-search-wrap">
@@ -82,6 +85,28 @@
             </span>
             <input type="search" id="catalog-search" placeholder="Search products..." autocomplete="off"/>
             <div class="search-spinner" id="search-spinner"></div>
+          </div>
+
+          <div class="catalog-sort" style="display: none;">
+            <select id="type-filter" aria-label="Filter by item type">
+              <option value="">Item Type</option>
+              <option value="Blueprints">Blueprints</option>
+              <option value="Weapons">Weapons</option>
+              <option value="Weapon Mods">Weapon Mods</option>
+              <option value="Armor">Armor</option>
+              <option value="Armor Mods">Armor Mods</option>
+              <option value="Supplies">Supplies</option>
+              <option value="Currency">Currency</option>
+              <option value="Accounts">Accounts</option>
+              <option value="Boosting">Boosting</option>
+            </select>
+          </div>
+
+          <div class="catalog-sort" style="display: none;">
+            <select id="blueprint-filter" aria-label="Filter by blueprint">
+              <option value="">Blueprint</option>
+              <!-- Populated dynamically -->
+            </select>
           </div>
 
           <div class="catalog-sort">
@@ -156,9 +181,9 @@
 
   <!-- JS entry -->
   <script src="/js/config.js"></script>
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="js/main.js?v=1.4.1"></script>
   <script type="module">
-    import { renderCatalog } from './js/pages/catalog.js';
+    import { renderCatalog } from './js/pages/catalog.js?v=1.5.7';
     document.addEventListener('DOMContentLoaded', () => renderCatalog());
   </script>
 </body>

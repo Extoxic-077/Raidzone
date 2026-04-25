@@ -142,6 +142,9 @@ public class Product {
     @Column(name = "stock_count", nullable = false)
     private Integer stockCount = 0;
 
+    @Column(name = "blueprint_tags", columnDefinition = "TEXT")
+    private String blueprintTags;
+
     /** Timestamp when this product was first created.  Set by Spring Data auditing. */
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)

@@ -40,7 +40,7 @@
           <thead>
             <tr>
               <th style="width:36px"><input type="checkbox" id="select-all" style="accent-color:var(--violet)"/></th>
-              <th>Image</th><th>Name</th><th>Category</th><th>Price</th>
+              <th>Image</th><th>Name</th><th>Category</th><th>Type</th><th>Price</th>
               <th>Active</th><th>Flash</th><th>Badge</th><th>Actions</th>
             </tr>
           </thead>
@@ -62,7 +62,7 @@
       <div class="admin-form-grid">
         <div class="admin-form-group full">
           <label class="admin-form-label">Product Name *</label>
-          <input class="admin-form-input" name="name" required placeholder="e.g. Steam Wallet ₹500"/>
+          <input class="admin-form-input" name="name" required placeholder="e.g. Steam Wallet $500"/>
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Category *</label>
@@ -71,11 +71,11 @@
           </select>
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label">Price (₹) *</label>
+          <label class="admin-form-label">Price ($) *</label>
           <input class="admin-form-input" name="price" type="number" step="0.01" min="0.01" required placeholder="499"/>
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label">Original Price (₹)</label>
+          <label class="admin-form-label">Original Price ($)</label>
           <input class="admin-form-input" name="originalPrice" type="number" step="0.01" min="0" placeholder="599"/>
         </div>
         <div class="admin-form-group">
@@ -87,6 +87,27 @@
         <div class="admin-form-group">
           <label class="admin-form-label">Brand (text)</label>
           <input class="admin-form-input" name="brand" placeholder="Valve / Steam"/>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Item Type</label>
+          <select class="admin-form-select" name="productType" id="item-type-select">
+            <option value="">Select item type…</option>
+          </select>
+        </div>
+        <div class="admin-form-group full">
+          <label class="admin-form-label">Blueprint Filter Tags</label>
+          <div class="multi-filter" id="blueprint-filter">
+            <button type="button" class="multi-filter-trigger" id="blueprint-trigger" aria-expanded="false">
+              <span id="blueprint-trigger-text">Select blueprint options…</span>
+              <span>▾</span>
+            </button>
+            <div class="multi-filter-dropdown" id="blueprint-dropdown">
+              <input type="search" class="admin-form-input multi-filter-search" id="blueprint-search" placeholder="Search blueprint options…"/>
+              <div class="multi-filter-options" id="blueprint-options"></div>
+            </div>
+            <div class="multi-filter-tags" id="blueprint-tags"></div>
+          </div>
+          <input type="hidden" name="blueprintTags" id="blueprint-tags-input"/>
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Region</label>
@@ -110,6 +131,10 @@
         <div class="admin-form-group">
           <label class="admin-form-label">Sort Order</label>
           <input class="admin-form-input" name="sortOrder" type="number" value="0"/>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Stock Count</label>
+          <input class="admin-form-input" name="stockCount" type="number" value="999"/>
         </div>
         <div class="admin-form-group" style="justify-content:flex-end;align-items:flex-start;padding-top:22px;">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text-2);font-size:0.875rem;">
@@ -169,6 +194,79 @@
 <div id="toast-container"></div>
 
 <script src="../js/config.js"></script>
+<style>
+  .multi-filter { position: relative; }
+  .multi-filter-trigger {
+    width: 100%;
+    min-height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--bg3);
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    cursor: pointer;
+  }
+  .multi-filter-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    border: 1px solid var(--glass-border);
+    background: var(--bg2);
+    border-radius: 12px;
+    box-shadow: 0 16px 38px rgba(0,0,0,.32);
+    padding: 10px;
+    z-index: 50;
+    display: none;
+  }
+  .multi-filter.open .multi-filter-dropdown { display: block; }
+  .multi-filter-search { margin-bottom: 10px; }
+  .multi-filter-options {
+    max-height: 210px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .multi-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .85rem;
+    color: var(--text-2);
+    padding: 4px 2px;
+  }
+  .multi-filter-tags {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .multi-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(124,58,237,0.14);
+    border: 1px solid rgba(124,58,237,0.38);
+    color: var(--violet-light);
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: .75rem;
+    line-height: 1;
+  }
+  .multi-filter-tag button {
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 1rem;
+  }
+</style>
 <script type="module">
 import { showToast } from '../js/components/toast.js';
 import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
@@ -194,32 +292,54 @@ const pagination = document.getElementById('pagination');
 const modal      = document.getElementById('product-modal');
 const form       = document.getElementById('product-form');
 const countEl    = document.getElementById('products-count');
+const itemTypeSelect = document.getElementById('item-type-select');
+
+const ITEM_TYPES = [
+  'Blueprints', 'Weapons', 'Weapon Mods', 'Augments', 'Shields', 'Quick Use',
+  'Traps', 'Crafting Materials', 'Keys', 'Coins', 'Other', 'Assorted Seeds'
+];
+const BLUEPRINT_OPTIONS = [
+  'Anvil','Angled Grip II','Combat Mk. 3 (Flanking)','Compensator II','Compensator III','Complex Gun Parts',
+  'Defibrillator','Explosive Mine','Extended Barrel','Extended Light Magazine II','Extended Light Magazine III',
+  'Extended Medium Magazine II','Angled Grip III','Extended Medium Magazine III','Extended Shotgun Magazine II',
+  'Extended Shotgun Magazine III','Equalizer','Fireworks Box','Heavy Gun Parts','Hullcracker','Il Toro','Jolt Mine',
+  'Jupiter','Aphelion','Light Gun Parts','Light Stick (Any Color)','Lightweight Stock','Looting Mk. 3 (Survivor)',
+  'Lure Grenade','Medium Gun Parts','Muzzle Brake II','Muzzle Brake III','Osprey','Padded Stock','Barricade Kit',
+  'Remote Raider Flare','Seeker Grenade','Shotgun Choke II','Shotgun Choke III','Shotgun Silencer','Showstopper',
+  'Silencer I','Silencer II','Smoke Grenade','Snap Hook','Bettina','Stable Stock II','Stable Stock III',
+  'Tactical Mk. 3 (Defensive)','Tactical Mk. 3 (Healing)','Tagging Grenade','Tempest','Torrente',"Trigger 'Nade",
+  'Venator','Vertical Grip II','Blaze Grenade','Vertical Grip III','Vita Shot','Vita Spray','Vulcano','Wolfpack',
+  'Other','Trailblazer','Gas Mine','Deadline','Canto','Bobcat','Dolabra','Surge Coil','Burletta',
+  'Combat Mk. 3 (Aggressive)'
+];
+let selectedBlueprints = [];
+let blueprintSelectorApi = null;
+let blueprintDocClickBound = false;
 
 async function loadCategories() {
   try {
     const tree = await getCategories();
     const sel = document.getElementById('cat-select');
-    // Build flat list from hierarchy so children are grouped under parents
+    sel.innerHTML = '<option value="">Select category…</option>';
     categories = [];
-    tree.forEach(parent => {
-      // Add parent as a disabled label
-      const po = document.createElement('option');
-      po.value = parent.id;
-      po.textContent = parent.name;
-      po.style.fontWeight = 'bold';
-      sel.appendChild(po);
-      categories.push(parent);
-      // Add children indented
-      if (parent.children && parent.children.length) {
-        parent.children.forEach(child => {
-          const co = document.createElement('option');
-          co.value = child.id;
-          co.textContent = '  └ ' + child.name;
-          sel.appendChild(co);
-          categories.push(child);
-        });
-      }
-    });
+
+    function renderOptions(nodes, depth = 0) {
+      nodes.forEach(node => {
+        const o = document.createElement('option');
+        o.value = node.id;
+        // Indent based on depth
+        const prefix = depth > 0 ? '&nbsp;&nbsp;'.repeat(depth) + '└ ' : '';
+        o.innerHTML = prefix + node.name;
+        if (depth === 0) o.style.fontWeight = 'bold';
+        sel.appendChild(o);
+        categories.push(node);
+        if (node.children && node.children.length) {
+          renderOptions(node.children, depth + 1);
+        }
+      });
+    }
+
+    renderOptions(tree);
   } catch (e) { /* ignore */ }
 }
 
@@ -235,6 +355,87 @@ async function loadCompanies() {
       sel.appendChild(o);
     });
   } catch (e) { /* ignore */ }
+}
+
+function initItemTypeOptions() {
+  const sel = document.getElementById('item-type-select');
+  if (!sel) return;
+  ITEM_TYPES.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t;
+    o.textContent = t;
+    sel.appendChild(o);
+  });
+}
+
+function initBlueprintSelector() {
+  const root     = document.getElementById('blueprint-filter');
+  const trigger  = document.getElementById('blueprint-trigger');
+  const dropdown = document.getElementById('blueprint-dropdown');
+  const search   = document.getElementById('blueprint-search');
+  const options  = document.getElementById('blueprint-options');
+  const tags     = document.getElementById('blueprint-tags');
+  const input    = document.getElementById('blueprint-tags-input');
+
+  const renderOptions = () => {
+    const q = search.value.toLowerCase();
+    const filtered = BLUEPRINT_OPTIONS.filter(opt => opt.toLowerCase().includes(q));
+    options.innerHTML = filtered.map(opt => `
+      <label class="multi-filter-option">
+        <input type="checkbox" value="${opt}" ${selectedBlueprints.includes(opt) ? 'checked' : ''} />
+        ${opt}
+      </label>
+    `).join('');
+    
+    options.querySelectorAll('input').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) {
+          if (!selectedBlueprints.includes(cb.value)) selectedBlueprints.push(cb.value);
+        } else {
+          selectedBlueprints = selectedBlueprints.filter(s => s !== cb.value);
+        }
+        sync();
+      });
+    });
+  };
+
+  const sync = () => {
+    tags.innerHTML = selectedBlueprints.map(s => `
+      <span class="multi-filter-tag">${s} <button type="button" data-val="${s}">×</button></span>
+    `).join('');
+    input.value = selectedBlueprints.join(', ');
+    
+    tags.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedBlueprints = selectedBlueprints.filter(s => s !== btn.dataset.val);
+        renderOptions();
+        sync();
+      });
+    });
+  };
+
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    root.classList.toggle('open');
+    trigger.setAttribute('aria-expanded', root.classList.contains('open'));
+  });
+
+  search.addEventListener('click', e => e.stopPropagation());
+  search.addEventListener('input', renderOptions);
+  
+  if (!blueprintDocClickBound) {
+    document.addEventListener('click', (e) => {
+      if (!root.contains(e.target)) {
+        root.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+    blueprintDocClickBound = true;
+  }
+
+  return { root, search, renderOptions, sync };
 }
 
 async function loadProducts(page = 0) {
@@ -263,7 +464,7 @@ function renderTable(products) {
     const imgHtml = p.imageUrl
       ? `<div class="table-thumb"><img src="${p.imageUrl}" alt=""/></div>`
       : `<div class="table-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20" style="opacity:.4"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>`;
-    const price   = p.price != null ? `₹${Number(p.price).toLocaleString('en-IN')}` : '—';
+    const price   = p.price != null ? `$${Number(p.price).toLocaleString('en-US')}` : '—';
     const active  = p.isActive !== false;
     const flash   = !!p.isFlashDeal;
     const badge   = p.badge || '';
@@ -277,6 +478,7 @@ function renderTable(products) {
           <div style="font-size:0.75rem;color:var(--text-4)">${p.slug}</div>
         </td>
         <td>${p.categoryName || '—'}</td>
+        <td><span style="font-size:0.75rem;padding:2px 6px;background:rgba(255,255,255,0.05);border-radius:4px">${p.productType || '—'}</span></td>
         <td>${price}</td>
         <td>
           <label class="admin-toggle" title="${active ? 'Active — click to deactivate' : 'Inactive — click to activate'}">
@@ -398,6 +600,14 @@ function openAdd() {
   document.getElementById('upload-image-btn').style.display = 'none';
   document.getElementById('image-upload-note').textContent = 'Image uploads automatically after saving.';
   form.reset();
+  selectedBlueprints = [];
+  document.getElementById('blueprint-tags-input').value = '';
+  if (blueprintSelectorApi) {
+    blueprintSelectorApi.search.value = '';
+    blueprintSelectorApi.root.classList.remove('open');
+    blueprintSelectorApi.renderOptions();
+    blueprintSelectorApi.sync();
+  }
   resetUploadZone();
   modal.classList.add('open');
 }
@@ -418,10 +628,20 @@ window.openEdit = function(id) {
     form.elements['brand'].value         = p.brand || '';
     form.elements['region'].value        = p.region || 'Global';
     form.elements['badge'].value         = p.badge || '';
+    form.elements['productType'].value   = p.productType || '';
     form.elements['description'].value   = p.description || '';
     form.elements['howToRedeem'].value   = p.howToRedeem || '';
     form.elements['sortOrder'].value     = p.sortOrder != null ? p.sortOrder : 0;
+    form.elements['stockCount'].value    = p.stockCount != null ? p.stockCount : 999;
     form.elements['isFlashDeal'].checked = !!p.isFlashDeal;
+
+    // Load blueprint tags
+    selectedBlueprints = p.blueprintTags ? p.blueprintTags.split(', ').filter(Boolean) : [];
+    if (blueprintSelectorApi) {
+      blueprintSelectorApi.renderOptions();
+      blueprintSelectorApi.sync();
+    }
+
     setTimeout(() => {
       form.elements['categoryId'].value = p.categoryId || '';
       if (form.elements['companyId']) form.elements['companyId'].value = p.companyId || '';
@@ -534,8 +754,11 @@ form.addEventListener('submit', async e => {
     brand:         fd.get('brand') || null,
     region:        fd.get('region') || 'Global',
     badge:         fd.get('badge') || null,
+    productType:   fd.get('productType') || null,
+    blueprintTags: fd.get('blueprintTags') || null,
     isFlashDeal:   fd.get('isFlashDeal') === 'on',
     sortOrder:     parseInt(fd.get('sortOrder')) || 0,
+    stockCount:    parseInt(fd.get('stockCount')) || 0,
   };
 
   try {
@@ -570,6 +793,8 @@ form.addEventListener('submit', async e => {
 
 loadCategories();
 loadCompanies();
+initItemTypeOptions();
+blueprintSelectorApi = initBlueprintSelector();
 loadProducts(0);
 </script>
 

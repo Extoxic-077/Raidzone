@@ -83,7 +83,7 @@
         </label>
         <label class="coupon-type-radio" id="type-fixed-label">
           <input type="radio" name="discountType" value="FIXED"/>
-          <span class="coupon-type-fixed">₹ Fixed</span>
+          <span class="coupon-type-fixed">$ Fixed</span>
         </label>
       </div>
     </div>
@@ -93,11 +93,11 @@
       <input class="admin-form-input" name="discountValue" type="number" step="0.01" min="0.01" required placeholder="20"/>
     </div>
     <div class="admin-form-group">
-      <label class="admin-form-label">Max Discount (₹) <span style="color:var(--text-4);font-weight:400">optional</span></label>
+      <label class="admin-form-label">Max Discount ($) <span style="color:var(--text-4);font-weight:400">optional</span></label>
       <input class="admin-form-input" name="maxDiscount" type="number" step="0.01" min="0" placeholder="500"/>
     </div>
     <div class="admin-form-group">
-      <label class="admin-form-label">Min Order Amount (₹)</label>
+      <label class="admin-form-label">Min Order Amount ($)</label>
       <input class="admin-form-input" name="minOrderAmount" type="number" step="0.01" min="0" value="0" placeholder="0"/>
     </div>
     <div class="admin-form-group">
@@ -173,7 +173,7 @@ async function load() {
 
 function fmtDate(iso) {
   if (!iso) return '—';
-  try { return new Date(iso).toLocaleDateString('en-IN', { year:'numeric', month:'short', day:'numeric' }); }
+  try { return new Date(iso).toLocaleDateString('en-US', { year:'numeric', month:'short', day:'numeric' }); }
   catch { return '—'; }
 }
 
@@ -185,12 +185,12 @@ function renderTable(coupons, tbody) {
   tbody.innerHTML = coupons.map(c => {
     const typeBadge = c.discountType === 'PERCENTAGE'
       ? `<span class="coupon-type-pct">% Off</span>`
-      : `<span class="coupon-type-fixed">₹ Fixed</span>`;
+      : `<span class="coupon-type-fixed">$ Fixed</span>`;
     const value = c.discountType === 'PERCENTAGE'
       ? `${c.discountValue}%`
-      : `₹${Number(c.discountValue).toLocaleString('en-IN')}`;
+      : `$${Number(c.discountValue).toLocaleString('en-US')}`;
     const minOrder = c.minOrderAmount > 0
-      ? `₹${Number(c.minOrderAmount).toLocaleString('en-IN')}`
+      ? `$${Number(c.minOrderAmount).toLocaleString('en-US')}`
       : '—';
     const usedPct = c.maxUses > 0
       ? Math.round((c.usedCount / c.maxUses) * 100)
@@ -306,7 +306,7 @@ window.openUsages = async function(id, code) {
             <tr>
               <td>${u.userName || '—'}</td>
               <td style="font-size:0.8rem;color:var(--text-3)">${u.userEmail || '—'}</td>
-              <td style="color:var(--cyan);font-weight:600">-₹${Number(u.discountApplied || 0).toLocaleString('en-IN')}</td>
+              <td style="color:var(--cyan);font-weight:600">-$${Number(u.discountApplied || 0).toLocaleString('en-US')}</td>
               <td style="font-size:0.8rem;color:var(--text-4)">${fmtDate(u.usedAt)}</td>
             </tr>`).join('')}
         </tbody>
@@ -324,8 +324,8 @@ function updatePreview() {
   const type  = form.querySelector('input[name="discountType"]:checked')?.value || 'PERCENTAGE';
   const min   = parseFloat(form.elements['minOrderAmount']?.value) || 0;
   document.getElementById('prev-code').textContent  = code;
-  document.getElementById('prev-value').textContent = type === 'PERCENTAGE' ? `${val}% OFF` : `₹${val} OFF`;
-  document.getElementById('prev-sub').textContent   = min > 0 ? `Min order ₹${min}` : 'No minimum order';
+  document.getElementById('prev-value').textContent = type === 'PERCENTAGE' ? `${val}% OFF` : `$${val} OFF`;
+  document.getElementById('prev-sub').textContent   = min > 0 ? `Min order $${min}` : 'No minimum order';
 }
 
 document.getElementById('coupon-form').addEventListener('input', updatePreview);

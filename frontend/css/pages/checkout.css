@@ -414,13 +414,11 @@
 
 .co-empty-icon { font-size: 48px; margin-bottom: 12px; }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   NEXVAULT PAY — Step 2 right-column elements
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* ─── RAIDZONE PAY — Step 2 right-column elements ──────────────────────────── */
 
 /* ── Secure row ──────────────────────────────────────────────────────────── */
 
-.nvpay-secure-row {
+.rzpay-secure-row {
   display: flex;
   align-items: center;
   gap: 6px;

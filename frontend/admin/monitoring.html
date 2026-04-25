@@ -279,7 +279,7 @@ async function loadJvm() {
       kv('OS',          `${metrics?.osName} ${metrics?.osVersion} (${metrics?.osArch})`) +
       kv('Total Memory',  fmtBytes(metrics?.totalMemory)) +
       kv('Free Memory',   fmtBytes(metrics?.freeMemory)) +
-      kv('Start Time',    metrics?.startTime ? new Date(metrics.startTime).toLocaleString('en-IN') : '—') +
+      kv('Start Time',    metrics?.startTime ? new Date(metrics.startTime).toLocaleString('en-US') : '—') +
       kv('Class Count',   metrics?.loadedClassCount != null ? `${metrics.loadedClassCount} loaded` : '—');
 
   } catch (err) {
@@ -311,7 +311,7 @@ async function loadDb() {
       tablesEl.innerHTML = db.tables.map(t => `
         <div class="db-table-chip">
           <span class="db-table-name">${t.tableName}</span>
-          <span class="db-table-count">${Number(t.rowCount).toLocaleString('en-IN')}</span>
+          <span class="db-table-count">${Number(t.rowCount).toLocaleString('en-US')}</span>
         </div>`).join('');
     } else {
       tablesEl.innerHTML = '<div style="color:var(--text-4);padding:16px">No table data</div>';

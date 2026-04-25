@@ -29,7 +29,8 @@ spring:
   flyway:
     enabled: true
     locations: classpath:db/migration
-    baseline-on-migrate: false
+    baseline-on-migrate: true
+    baseline-version: 0
     validate-on-migrate: true
 
   # ── Redis ───────────────────────────────────────────────────────────────────
@@ -95,14 +96,19 @@ management:
 
 # ── App-specific settings ─────────────────────────────────────────────────────
 app:
+  mail:
+    from: ${MAIL_FROM:admin@raidzonemarket.com}
+  discord:
+    webhook-url: ${DISCORD_WEBHOOK_URL:}
+    bot-secret: ${DISCORD_BOT_SECRET:}
   cors:
     allowed-origins: ${CORS_ALLOWED_ORIGINS:https://raidzonemarket.com,https://www.raidzonemarket.com}
   jwt:
     secret: ${JWT_SECRET:my-super-secret-key-that-is-at-least-32-characters-long-for-hmac-sha256}
-    access-token-expiry: 900000       # 15 minutes in ms
-    refresh-token-expiry: 604800000   # 7 days in ms
+    access-token-expiry: 2592000000     # 30 days in ms
+    refresh-token-expiry: 2592000000    # 30 days in ms
   upload:
-    dir: ${UPLOAD_DIR:./uploads}
+    dir: ${UPLOAD_DIR:/www/wwwroot/www.raidzonemarket.com/backend/uploads}
     max-file-size: 5MB
     allowed-types: image/jpeg,image/png,image/webp,image/gif
   stripe:

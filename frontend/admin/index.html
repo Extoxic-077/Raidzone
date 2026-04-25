@@ -103,8 +103,8 @@ await initAuth();
 if (!isLoggedIn()) { window.location.href = '../login.html'; }
 await initAdminSidebar('dashboard');
 
-const fmt = v => '₹' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-const fmtK = v => v >= 10000 ? '₹' + (v/1000).toFixed(1) + 'K' : fmt(v);
+const fmt = v => '$' + Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 });
+const fmtK = v => v >= 10000 ? '$' + (v/1000).toFixed(1) + 'K' : fmt(v);
 const timeAgo = iso => {
   const d = new Date(iso), now = Date.now(), diff = now - d.getTime();
   const m = Math.floor(diff / 60000);

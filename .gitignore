@@ -47,3 +47,7 @@ uploads/
 ### Project Memory ###
 MEMORY.md
 LOCAL_DEV.md
+
+### Node modules ###
+node_modules/
+*.log

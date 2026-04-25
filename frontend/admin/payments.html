@@ -123,10 +123,10 @@ function updateStats(payments) {
   const stripe = completed.filter(p => p.provider === 'STRIPE').reduce((s,p) => s + (p.amount || 0), 0);
   const razor  = completed.filter(p => p.provider === 'RAZORPAY').reduce((s,p) => s + (p.amount || 0), 0);
   const crypto = completed.filter(p => p.provider === 'COINBASE').reduce((s,p) => s + (p.amount || 0), 0);
-  document.getElementById('stat-total').textContent    = `₹${total.toLocaleString('en-IN')}`;
-  document.getElementById('stat-stripe').textContent   = `₹${stripe.toLocaleString('en-IN')}`;
-  document.getElementById('stat-razorpay').textContent = `₹${razor.toLocaleString('en-IN')}`;
-  document.getElementById('stat-crypto').textContent   = `₹${crypto.toLocaleString('en-IN')}`;
+  document.getElementById('stat-total').textContent    = `$${total.toLocaleString('en-US')}`;
+  document.getElementById('stat-stripe').textContent   = `$${stripe.toLocaleString('en-US')}`;
+  document.getElementById('stat-razorpay').textContent = `$${razor.toLocaleString('en-US')}`;
+  document.getElementById('stat-crypto').textContent   = `$${crypto.toLocaleString('en-US')}`;
 }
 
 function providerLabel(p) {
@@ -146,7 +146,7 @@ function statusBadge(s) {
 
 function fmtDate(iso) {
   if (!iso) return '—';
-  try { return new Date(iso).toLocaleString('en-IN', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
+  try { return new Date(iso).toLocaleString('en-US', { day:'numeric', month:'short', year:'numeric', hour:'2-digit', minute:'2-digit' }); }
   catch { return '—'; }
 }
 
@@ -164,7 +164,7 @@ function renderTable(payments, tbody) {
         <div style="font-size:0.75rem;color:var(--text-4)">${p.customerEmail || ''}</div>
       </td>
       <td>${providerLabel(p.provider)}</td>
-      <td style="font-weight:600;color:var(--text-1)">₹${Number(p.amount || 0).toLocaleString('en-IN')}</td>
+      <td style="font-weight:600;color:var(--text-1)">$${Number(p.amount || 0).toLocaleString('en-US')}</td>
       <td>${statusBadge(p.status)}</td>
       <td style="font-size:0.8rem;color:var(--text-4);white-space:nowrap">${fmtDate(p.createdAt)}</td>
     </tr>`).join('');

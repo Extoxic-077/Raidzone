@@ -62,6 +62,7 @@ public class SecurityConfig {
             .sessionManagement(session ->
                     session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                    .requestMatchers("/api/v1/public/**", "/ws/**").permitAll()
                     // ── Auth (public) ────────────────────────────────────────────
                     .requestMatchers(
                             "/api/v1/auth/register",
@@ -70,6 +71,7 @@ public class SecurityConfig {
                             "/api/v1/auth/verify-email",
                             "/api/v1/auth/resend-otp",
                             "/api/v1/auth/refresh",
+                            "/api/v1/auth/logout",
                             "/api/v1/auth/oauth/**",
                             "/api/v1/auth/forgot-password",
                             "/api/v1/auth/reset-password"
@@ -92,6 +94,8 @@ public class SecurityConfig {
                     .requestMatchers("/api/v1/subscribe").permitAll()
                     // ── Contact / Partnership forms (public) ─────────────────────
                     .requestMatchers("/api/v1/contact", "/api/v1/partnerships").permitAll()
+                    // ── Discord bot reply (secured by bot secret in body) ─────────
+                    .requestMatchers("/api/v1/chat/discord-reply").permitAll()
                     // ── Notifications (requires authentication) ──────────────────
                     .requestMatchers("/api/v1/notifications/**").authenticated()
                     // ── My Keys (requires authentication) ────────────────────────

@@ -15,7 +15,7 @@ const ICONS = {
   info:    'ℹ',
 };
 
-export function showToast(message, type = 'info') {
+export function showToast(message, type = 'info', options = {duration: 3000}) {
   const c = getContainer();
 
   const toast = document.createElement('div');
@@ -42,10 +42,11 @@ export function showToast(message, type = 'info') {
     toast.addEventListener('animationend', () => toast.remove(), { once: true });
   };
 
-  const timer = setTimeout(dismiss, 3000);
+  const timer = setTimeout(dismiss, options.duration || 3000);
 
   toast.addEventListener('click', () => {
     clearTimeout(timer);
     dismiss();
   });
 }
+

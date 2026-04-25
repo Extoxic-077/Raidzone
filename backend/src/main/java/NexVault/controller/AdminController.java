@@ -186,8 +186,9 @@ public class AdminController {
     @Operation(summary = "List all products including inactive (ADMIN)")
     public ResponseEntity<ApiResponse<Page<ProductResponse>>> listProducts(
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
-        return ResponseEntity.ok(ApiResponse.ok(adminProductService.listAll(page, size)));
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "false") boolean includeInactive) {
+        return ResponseEntity.ok(ApiResponse.ok(adminProductService.listAll(page, size, includeInactive)));
     }
 
     @PostMapping("/products")

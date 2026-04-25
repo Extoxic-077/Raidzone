@@ -54,35 +54,36 @@ public class ProductService {
      */
     public Page<ProductResponse> getAllProducts(
             int page, int size,
-            UUID categoryId, UUID companyId, BigDecimal minPrice, BigDecimal maxPrice, BigDecimal minRating,
+            UUID categoryId, String categorySlug, UUID companyId, String productType, String blueprintTag,
+            BigDecimal minPrice, BigDecimal maxPrice, BigDecimal minRating,
             String search, String sort) {
 
         int cappedSize = Math.min(size, MAX_PAGE_SIZE);
         Sort sorting = buildSort(sort);
         Pageable pageable = PageRequest.of(page, cappedSize, sorting);
 
-        log.info("getAllProducts page={} size={} categoryId={} companyId={} minPrice={} maxPrice={} minRating={} search={} sort={}",
-                page, cappedSize, categoryId, companyId, minPrice, maxPrice, minRating, search, sort);
+        log.info("getAllProducts page={} size={} categoryId={} categorySlug={} companyId={} productType={} blueprintTag={} minPrice={} maxPrice={} minRating={} search={} sort={}",
+                page, cappedSize, categoryId, categorySlug, companyId, productType, blueprintTag, minPrice, maxPrice, minRating, search, sort);
 
         Page<ProductResponse> result;
 
         if (search != null && !search.isBlank()) {
             result = productRepository
-                    .searchProductsWithFilters(search.trim(), categoryId, companyId, pageable)
+                    .searchProductsWithFilters(search.trim(), categoryId, categorySlug, companyId, productType, blueprintTag, pageable)
                     .map(ProductResponse::from);
-        } else if (categoryId == null && companyId == null && minPrice == null && maxPrice == null && minRating == null) {
+        } else if (categoryId == null && categorySlug == null && companyId == null && productType == null && blueprintTag == null && minPrice == null && maxPrice == null && minRating == null) {
             if (sorting.equals(Sort.by(Sort.Direction.ASC, "sortOrder"))) {
                 result = productRepository
                         .findByIsActiveTrueOrderBySortOrderAscCreatedAtDesc(PageRequest.of(page, cappedSize))
                         .map(ProductResponse::from);
             } else {
                 result = productRepository
-                        .findByFilters(null, null, null, null, null, pageable)
+                        .findByFilters(null, null, null, null, null, null, null, null, pageable)
                         .map(ProductResponse::from);
             }
         } else {
             result = productRepository
-                    .findByFilters(categoryId, companyId, minPrice, maxPrice, minRating, pageable)
+                    .findByFilters(categoryId, categorySlug, companyId, productType, blueprintTag, minPrice, maxPrice, minRating, pageable)
                     .map(ProductResponse::from);
         }
 

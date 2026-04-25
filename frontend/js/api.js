@@ -1,10 +1,11 @@
-import { authFetch } from './auth.js';
+import { authFetch, clearAuth } from './auth.js';
 
 const BASE_URL = '/api/v1';
 
 // ─── Public fetch (no auth) ───────────────────────────────────────────────────
 
 async function apiFetch(path) {
+  console.log(`[API] Fetching: ${path}`);
   const res = await fetch(`${BASE_URL}${path}`, {
     headers: { 'Accept': 'application/json' }
   });
@@ -67,13 +68,17 @@ export async function getProducts(params = {}) {
   const qs = new URLSearchParams();
   if (params.page     != null) qs.set('page',       params.page);
   if (params.size     != null) qs.set('size',       params.size);
-  if (params.categoryId)       qs.set('categoryId', params.categoryId);
-  if (params.companyId)        qs.set('companyId',  params.companyId);
+  if (params.categoryId)       qs.set('categoryId',   params.categoryId);
+  if (params.categorySlug)     qs.set('categorySlug', params.categorySlug);
+  if (params.companyId)        qs.set('companyId',    params.companyId);
   if (params.minPrice != null) qs.set('minPrice',   params.minPrice);
   if (params.maxPrice != null) qs.set('maxPrice',   params.maxPrice);
   if (params.search)           qs.set('search',     params.search);
   if (params.sort)             qs.set('sort',       params.sort);
   if (params.minRating != null) qs.set('minRating', params.minRating);
+  if (params.productType)       qs.set('productType', params.productType);
+  if (params.blueprintTag)      qs.set('blueprintTag', params.blueprintTag);
+  qs.set('_t', Date.now());
   const query = qs.toString();
   return apiFetch(`/products${query ? '?' + query : ''}`);
 }
@@ -184,13 +189,14 @@ export async function verifyEmail(data) {
 }
 
 /**
- * Logout — clears the refresh token cookie on the backend.
+ * Logout — clears the refresh token cookie on the backend and clears local auth state.
  */
 export async function logout() {
   await fetch(`${BASE_URL}/auth/logout`, {
     method: 'POST',
     credentials: 'include',
   });
+  clearAuth();
 }
 
 /**
@@ -371,8 +377,11 @@ export async function adminDeleteCategory(id) {
   return authApiFetch(`/admin/categories/${id}`, { method: 'DELETE' });
 }
 
-export async function adminGetProducts(page = 0, size = 20) {
-  return authApiFetch(`/admin/products?page=${page}&size=${size}`, { method: 'GET' });
+export async function adminGetProducts(page = 0, size = 20, includeInactive = false) {
+  return authApiFetch(
+    `/admin/products?page=${page}&size=${size}&includeInactive=${includeInactive}`,
+    { method: 'GET' }
+  );
 }
 
 export async function adminCreateProduct(data) {

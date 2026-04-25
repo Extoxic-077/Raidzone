@@ -49,7 +49,7 @@ public class CoinbaseService {
 
     private static final String COINBASE_API = "https://api.commerce.coinbase.com/charges";
 
-    public CoinbaseChargeResponse createCharge(UUID orderId, BigDecimal amountINR, UUID userId) {
+    public CoinbaseChargeResponse createCharge(UUID orderId, BigDecimal amountUSD, UUID userId) {
         throw new IllegalStateException(
                 "Crypto payments are temporarily unavailable. Coinbase Commerce has shut down. " +
                 "Please use Card or UPI payment instead.");

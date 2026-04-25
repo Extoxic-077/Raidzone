@@ -146,8 +146,8 @@ await initAuth();
 if (!isLoggedIn() || !isAdmin()) { window.location.href = '../login.html'; }
 await initAdminSidebar('analytics');
 
-const fmt  = v => '₹' + Number(v ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-const fmtK = v => v >= 10000 ? '₹' + (v/1000).toFixed(1) + 'K' : fmt(v);
+const fmt  = v => '$' + Number(v ?? 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+const fmtK = v => v >= 10000 ? '$' + (v/1000).toFixed(1) + 'K' : fmt(v);
 
 const CHART_OPTS = {
   responsive: true,

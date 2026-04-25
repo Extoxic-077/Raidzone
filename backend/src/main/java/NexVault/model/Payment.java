@@ -41,7 +41,7 @@ public class Payment {
     private BigDecimal amount;
 
     @Column(name = "currency", nullable = false, length = 10)
-    private String currency = "INR";
+    private String currency = "USD";
 
     @Column(name = "stripe_payment_intent_id", length = 255)
     private String stripePaymentIntentId;

@@ -405,7 +405,7 @@ function keyRow(k, n) {
     <td style="color:var(--text-4);font-family:var(--font-mono)">${n}</td>
     <td class="key-val-cell">${k.maskedKey || '—'}</td>
     <td><span class="${isAvail ? 'badge-available' : 'badge-sold'}">${isAvail ? 'AVAILABLE' : 'USED'}</span></td>
-    <td style="color:var(--text-3)">${k.assignedAt ? new Date(k.assignedAt).toLocaleDateString('en-IN') : '—'}</td>
+    <td style="color:var(--text-3)">${k.assignedAt ? new Date(k.assignedAt).toLocaleDateString('en-US') : '—'}</td>
     <td style="font-family:var(--font-mono);font-size:11px;color:var(--text-4)">${shortOrderId}</td>
     <td class="key-actions-cell">
       ${isAvail ? `

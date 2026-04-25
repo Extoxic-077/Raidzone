@@ -15,15 +15,15 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # Create non-root user
-RUN addgroup -S nexvault && adduser -S nexvault -G nexvault
+RUN addgroup -S raidzone && adduser -S raidzone -G raidzone
 
 # Copy JAR from build stage
 COPY --from=build /app/target/*.jar app.jar
 
 # Create uploads directory with correct ownership
-RUN mkdir -p /app/uploads && chown -R nexvault:nexvault /app
+RUN mkdir -p /app/uploads && chown -R raidzone:raidzone /app
 
-USER nexvault
+USER raidzone
 
 # Cloud Run sets $PORT; default to 8080 for local use
 ENV PORT=8080

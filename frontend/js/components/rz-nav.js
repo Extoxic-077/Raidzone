@@ -1,19 +1,40 @@
 import { showToast } from './toast.js';
-import { initAuth, isLoggedIn, getUser, isAdmin, clearAuth } from '../auth.js';
+import { initAuth, isLoggedIn, getUser, isAdmin, clearAuth, isLikelyLoggedIn } from '../auth.js';
 import { logout, getCartCount, getCategories, getNotificationCount, getNotifications, markAllNotificationsRead, markNotificationRead } from '../api.js';
+import { NotificationBroker } from './NotificationBroker.js';
+import { SocialProof } from './SocialProof.js';
 
 // ── Mega-menu builder ─────────────────────────────────────────────────────────
 
 function buildMegaMenuHTML(categories) {
-  // categories is tree: root items with .children arrays
+  // categories is recursive tree
   return categories.map(cat => {
     const hasChildren = cat.children && cat.children.length > 0;
     if (!hasChildren) {
       return `<button class="nav-cat-btn" data-id="${cat.id}" data-slug="${cat.slug}">${cat.name}</button>`;
     }
-    const childLinks = cat.children.map(sub =>
-      `<a class="mega-sub-link" href="catalog.html?categoryId=${sub.id}" data-id="${sub.id}">${sub.name}</a>`
-    ).join('');
+
+    // Level 2 Grouping
+    const groupsHTML = cat.children.map(sub => {
+      const hasGrandchildren = sub.children && sub.children.length > 0;
+      
+      if (!hasGrandchildren) {
+        return `<a class="mega-sub-link" href="catalog.html?category=${sub.slug}" data-id="${sub.id}" data-slug="${sub.slug}">${sub.name}</a>`;
+      }
+
+      // If it has grandchildren, render as a specialized group
+      const grandchildLinks = sub.children.map(g =>
+        `<a class="mega-sub-link nested" href="catalog.html?category=${g.slug}" data-id="${g.id}" data-slug="${g.slug}">${g.name}</a>`
+      ).join('');
+
+      return `
+        <div class="mega-nested-group">
+          <a class="mega-nested-title" href="catalog.html?category=${sub.slug}">${sub.name}</a>
+          <div class="mega-nested-links">${grandchildLinks}</div>
+        </div>
+      `;
+    }).join('');
+
     return `
       <div class="mega-group" data-group-id="${cat.id}">
         <button class="nav-cat-btn has-mega" data-id="${cat.id}" data-slug="${cat.slug}" aria-haspopup="true" aria-expanded="false">
@@ -22,10 +43,12 @@ function buildMegaMenuHTML(categories) {
         </button>
         <div class="mega-dropdown">
           <div class="mega-dropdown-inner">
-            <a class="mega-sub-link mega-sub-all" href="catalog.html?categoryId=${cat.id}" data-id="${cat.id}">
+            <a class="mega-sub-link mega-sub-all" href="catalog.html?category=${cat.slug}" data-id="${cat.id}" data-slug="${cat.slug}">
               <span style="font-weight:700">All ${cat.name}</span>
             </a>
-            ${childLinks}
+            <div class="mega-groups-container">
+              ${groupsHTML}
+            </div>
           </div>
         </div>
       </div>`;
@@ -41,7 +64,7 @@ function hexagonSVG() {
       </linearGradient>
     </defs>
     <path d="M14 2L25.26 8.5V21.5L14 28L2.74 21.5V8.5L14 2Z" fill="url(#hg)"/>
-    <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(7,7,15,0.6)"/>
+    <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(255,255,255,0.1)"/>
   </svg>`;
 }
 
@@ -60,9 +83,15 @@ function currentPage() {
 
 function userButtonHTML() {
   if (!isLoggedIn()) {
+    // Optimistic: if we think they are logged in, show a skeleton avatar instead of SIGN IN
+    if (isLikelyLoggedIn()) {
+      return `
+        <div class="user-btn-skeleton" style="width:120px;height:36px;background:rgba(255,255,255,0.05);border-radius:var(--r-md);animation:pulse 2s infinite"></div>
+      `;
+    }
     return `
-      <a href="login.html" class="btn btn-primary" style="text-decoration:none;padding:8px 18px;font-size:14px;font-weight:600;border-radius:var(--r-md)">
-        Sign In
+      <a href="login.html" class="btn btn-primary" style="text-decoration:none;padding:8px 18px;font-size:14px;font-weight:700;border-radius:var(--r-md);text-transform:uppercase">
+        SIGN IN
       </a>
     `;
   }
@@ -101,7 +130,7 @@ function renderDesktopNavbar(el, categories, activeCatId) {
     <nav class="navbar-inner">
       <a href="index.html" class="navbar-logo">
         ${hexagonSVG()}
-        Raidzone
+        RAIDZONE
       </a>
 
       <div class="navbar-cats">
@@ -158,40 +187,55 @@ function renderDesktopNavbar(el, categories, activeCatId) {
 
 function renderMobileNavbar(el) {
   const user    = getUser();
-  const initial = isLoggedIn() ? (user?.name || 'U')[0].toUpperCase() : null;
+  const logged  = isLoggedIn();
+  const likely  = isLikelyLoggedIn();
+  const initial = (user?.name || 'U')[0].toUpperCase();
+
+  let actionsContent = '';
+  if (logged) {
+    actionsContent = `
+      <div class="user-btn-wrap" style="position:relative">
+        <button class="user-btn" id="user-btn-mobile" aria-label="Profile" aria-expanded="false">
+          <div class="user-avatar" style="background:linear-gradient(135deg,#7C3AED,#22D3EE);width:32px;height:32px;font-size:13px">${initial}</div>
+        </button>
+        <div class="user-dropdown" id="user-dropdown-mobile" role="menu" aria-hidden="true">
+          <div class="dropdown-header">
+            <div class="dropdown-name">${user?.name || 'User'}</div>
+            <div class="dropdown-email">${user?.email || ''}</div>
+          </div>
+          <div class="dropdown-divider"></div>
+          <a href="orders.html"   class="dropdown-item">My Orders</a>
+          <a href="profile.html" class="dropdown-item">Profile</a>
+          <a href="wishlist.html" class="dropdown-item">Wishlist</a>
+          ${isAdmin() ? `<a href="admin/index.html" class="dropdown-item dropdown-item-admin">Admin Panel</a>` : ''}
+          <div class="dropdown-divider"></div>
+          <button class="dropdown-item dropdown-item-danger" id="logout-btn-mobile">Logout</button>
+        </div>
+      </div>
+    `;
+  } else if (likely) {
+    actionsContent = `
+      <div class="user-btn-skeleton" style="width:36px;height:36px;background:rgba(255,255,255,0.05);border-radius:50%;animation:pulse 2s infinite"></div>
+    `;
+  } else {
+    actionsContent = `
+      <span class="mobile-signin-wrap">
+        <a href="login.html" class="btn btn-primary mobile-signin-btn">
+          SIGN IN
+        </a>
+      </span>
+    `;
+  }
 
   el.innerHTML = `
     <nav class="navbar-inner navbar-mobile-top">
       <a href="index.html" class="navbar-logo">
         ${hexagonSVG()}
-        Raidzone
+        RAIDZONE
       </a>
       <div class="navbar-spacer"></div>
       <div class="navbar-actions" style="gap:8px">
-        ${isLoggedIn() ? `
-          <div class="user-btn-wrap" style="position:relative">
-            <button class="user-btn" id="user-btn-mobile" aria-label="Profile" aria-expanded="false">
-              <div class="user-avatar" style="background:linear-gradient(135deg,#7C3AED,#22D3EE);width:32px;height:32px;font-size:13px">${initial}</div>
-            </button>
-            <div class="user-dropdown" id="user-dropdown-mobile" role="menu" aria-hidden="true">
-              <div class="dropdown-header">
-                <div class="dropdown-name">${user?.name || 'User'}</div>
-                <div class="dropdown-email">${user?.email || ''}</div>
-              </div>
-              <div class="dropdown-divider"></div>
-              <a href="orders.html"   class="dropdown-item">My Orders</a>
-              <a href="profile.html" class="dropdown-item">Profile</a>
-              <a href="wishlist.html" class="dropdown-item">Wishlist</a>
-              ${isAdmin() ? `<a href="admin/index.html" class="dropdown-item dropdown-item-admin">Admin Panel</a>` : ''}
-              <div class="dropdown-divider"></div>
-              <button class="dropdown-item dropdown-item-danger" id="logout-btn-mobile">Sign Out</button>
-            </div>
-          </div>
-        ` : `
-          <a href="login.html" class="btn btn-primary" style="text-decoration:none;padding:7px 16px;font-size:13px;font-weight:600;border-radius:var(--r-md)">
-            Sign In
-          </a>
-        `}
+        ${actionsContent}
       </div>
     </nav>
   `;
@@ -220,6 +264,18 @@ function renderBottomNav() {
       </svg>
       <span>Catalog</span>
     </a>
+    <button class="bottom-nav-item" id="bottom-nav-search" aria-label="Search">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <span>Search</span>
+    </button>
+    <button class="bottom-nav-item" id="bottom-nav-wishlist" aria-label="Wishlist">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+      </svg>
+      <span>Wishlist</span>
+    </button>
     <button class="bottom-nav-item ${page === 'cart' ? 'active' : ''}" id="bottom-nav-cart">
       <span class="bottom-nav-icon-wrap">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="22" height="22">
@@ -236,14 +292,43 @@ function renderBottomNav() {
   document.body.style.paddingBottom = '80px';
   document.body.appendChild(nav);
 
-  document.getElementById('bottom-nav-cart')?.addEventListener('click', () => {
-    if (!isLoggedIn()) {
-      showToast('Please sign in first', 'info');
-      setTimeout(() => { window.location.href = 'login.html'; }, 600);
-      return;
-    }
-    window.location.href = 'cart.html';
-  });
+  // Bind bottom nav click events with useCapture for better mobile support
+  const bindBottomNavEvents = () => {
+    const cartBtn = document.getElementById('bottom-nav-cart');
+    const searchBtn = document.getElementById('bottom-nav-search');
+    const wishBtn = document.getElementById('bottom-nav-wishlist');
+
+    cartBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isLoggedIn()) {
+        showToast('Please sign in first', 'info');
+        setTimeout(() => { window.location.href = 'login.html'; }, 600);
+        return;
+      }
+      window.location.href = 'cart.html';
+    }, { passive: false });
+
+    searchBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      window.location.href = 'catalog.html';
+    }, { passive: false });
+
+    wishBtn?.addEventListener('click', (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      if (!isLoggedIn()) {
+        showToast('Please sign in first', 'info');
+        setTimeout(() => { window.location.href = 'login.html'; }, 600);
+        return;
+      }
+      window.location.href = 'wishlist.html';
+    }, { passive: false });
+  };
+
+  // Immediate binding for instant click response
+  bindBottomNavEvents();
 }
 
 // ── Inject shared styles ──────────────────────────────────────────────────────
@@ -284,7 +369,14 @@ function injectDropdownStyles() {
       transform: translateX(-50%) translateY(0);
       pointer-events: all;
     }
-    .mega-dropdown-inner { display: flex; flex-direction: column; gap: 4px; }
+    /* Simple scale in animation for modern feel */
+    @keyframes dropdownIn {
+      from { opacity: 0; transform: translateX(-50%) translateY(10px) scale(0.98); }
+      to   { opacity: 1; transform: translateX(-50%) translateY(0) scale(1); }
+    }
+    .mega-dropdown.open {
+      animation: dropdownIn 0.25s cubic-bezier(0.2, 0.8, 0.2, 1);
+    }
     .mega-sub-link {
       display: flex;
       align-items: center;
@@ -299,6 +391,20 @@ function injectDropdownStyles() {
     }
     .mega-sub-link:hover { background: rgba(255,255,255,0.06); color: #fff; transform: translateX(4px); }
     .mega-sub-all { border-bottom: 1px solid rgba(255,255,255,0.08); margin-bottom: 8px; color: #7c3aed; font-weight: 700; }
+
+    .mega-dropdown-inner { min-width: 250px; }
+    .mega-groups-container { display: flex; flex-direction: column; gap: 12px; }
+    .mega-nested-group { display: flex; flex-direction: column; gap: 4px; padding: 4px 0; }
+    .mega-nested-title { 
+      font-size: 13px; font-weight: 700; color: #fff; 
+      text-decoration: none; padding: 4px 16px; 
+      text-transform: uppercase; letter-spacing: 0.5px;
+      opacity: 0.9;
+    }
+    .mega-nested-title:hover { color: var(--primary); }
+    .mega-nested-links { display: flex; flex-direction: column; gap: 2px; padding-left: 12px; }
+    .mega-sub-link.nested { font-size: 13px; padding: 6px 16px; opacity: 0.8; }
+    .mega-sub-link.nested:hover { opacity: 1; }
     .nav-cat-btn, .icon-btn, .user-btn { will-change: transform, filter; transform: translateZ(0); }
     .nav-cat-btn:hover, .icon-btn:hover, .user-btn:hover { transform: translateY(-1px); filter: brightness(1.06); }
 
@@ -334,24 +440,41 @@ function injectDropdownStyles() {
 
     /* Mobile top navbar */
     .navbar-mobile-top { padding: 0 16px; }
+    .mobile-signin-wrap { display: flex; align-items: center; }
+    .mobile-signin-btn {
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+      text-decoration: none;
+      border-radius: var(--r-md);
+      background: var(--gradient);
+      color: #fff;
+    }
 
     /* Bottom nav */
     #bottom-nav {
-      position: fixed; bottom: 0; left: 0; right: 0; height: 60px;
+      position: fixed; bottom: 0; left: 0; right: 0; height: 64px;
       background: var(--bg2); border-top: 1px solid var(--glass-border);
-      display: flex; align-items: stretch; z-index: 100;
+      display: flex; align-items: stretch; z-index: 1300;
       backdrop-filter: blur(12px);
+      padding-bottom: env(safe-area-inset-bottom, 8px);
     }
     .bottom-nav-item {
       flex: 1; display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 3px; color: var(--text-4); font-size: 10px;
+      justify-content: center; gap: 4px; color: var(--text-4); font-size: 10px;
       font-family: var(--font-body); font-weight: 500; text-decoration: none;
       background: none; border: none; cursor: pointer;
       transition: color 0.15s ease;
+      padding: 6px 4px;
+      min-height: 44px;
+      min-width: 44px;
+      touch-action: manipulation;
     }
+    .bottom-nav-item:active { transform: scale(0.95); opacity: 0.7; }
     .bottom-nav-item.active { color: var(--primary); }
     .bottom-nav-item:hover  { color: var(--text-2); }
-    .bottom-nav-item svg { display: block; stroke: currentColor; transition: stroke 0.15s ease; }
+    .bottom-nav-item svg { display: block; stroke: currentColor; transition: stroke 0.15s ease; width: 22px; height: 22px; }
 
     .bottom-nav-icon-wrap {
       position: relative; display: inline-flex; align-items: center; justify-content: center;
@@ -433,19 +556,24 @@ function injectDropdownStyles() {
   document.head.appendChild(style);
 }
 
-// ── Bind desktop events ───────────────────────────────────────────────────────
+let globalsBound = false;
 
 function bindDesktopEvents(el) {
-  const onScroll = () => el.classList.toggle('scrolled', window.scrollY > 20);
-  window.addEventListener('scroll', onScroll, { passive: true });
-  onScroll();
+  if (!globalsBound) {
+    const onScroll = () => {
+      const navEl = document.getElementById('navbar');
+      if (navEl) navEl.classList.toggle('scrolled', window.scrollY > 20);
+    };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    onScroll();
+  }
   const supportsHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
   // Plain category buttons (no children)
   el.querySelectorAll('.nav-cat-btn:not(.has-mega)').forEach(btn => {
     btn.addEventListener('click', () => {
-      const id = btn.dataset.id;
-      window.location.href = id ? `catalog.html?categoryId=${id}` : 'catalog.html';
+      const slug = btn.dataset.slug;
+      window.location.href = slug ? `catalog.html?category=${slug}` : 'catalog.html';
     });
   });
 
@@ -484,29 +612,34 @@ function bindDesktopEvents(el) {
     btn.addEventListener('click', (e) => {
       e.preventDefault();
       e.stopPropagation();
+      const id = btn.dataset.id;
       const isOpen = dropdown.classList.contains('open');
-      if (isOpen) {
-        // If it's already open (likely from hover), we keep it open or toggle it
-        // based on whether it was a "fresh" click or a hover-click.
-        // User wants TOGGLE, so we force close.
-        dropdown.classList.remove('open');
-        btn.setAttribute('aria-expanded', 'false');
-      } else {
-        open();
+      
+      // If it's a mobile touch or already open, navigate
+      if (isOpen && btn.getAttribute('aria-expanded') === 'true') {
+        const slug = btn.dataset.slug;
+        window.location.href = `catalog.html?category=${slug}`;
+        return;
       }
+
+      open();
     });
 
     dropdown.addEventListener('click', e => e.stopPropagation());
   });
 
   // Close mega on outside click
-  document.addEventListener('click', () => {
-    el.querySelectorAll('.mega-dropdown.open').forEach(d => {
-      d.classList.remove('open');
-      const parentBtn = d.closest('.mega-group')?.querySelector('.nav-cat-btn');
-      if (parentBtn) parentBtn.setAttribute('aria-expanded', 'false');
+  if (!globalsBound) {
+    document.addEventListener('click', () => {
+      const navEl = document.getElementById('navbar');
+      if (!navEl) return;
+      navEl.querySelectorAll('.mega-dropdown.open').forEach(d => {
+        d.classList.remove('open');
+        const parentBtn = d.closest('.mega-group')?.querySelector('.nav-cat-btn');
+        if (parentBtn) parentBtn.setAttribute('aria-expanded', 'false');
+      });
     });
-  });
+  }
 
   bindNotifDropdown();
 
@@ -532,26 +665,29 @@ function bindDesktopEvents(el) {
     btn.addEventListener('click', async () => {
       await logout();
       clearAuth();
-      window.location.href = 'login.html';
+      window.location.href = 'login.html?logout=true';
     });
   });
 
   // Handle outside click for user and notif dropdowns
-  document.addEventListener('click', (e) => {
-    if (!e.target.closest('.user-btn-wrap')) {
-      document.getElementById('user-dropdown')?.classList.remove('open');
-      document.getElementById('user-dropdown-mobile')?.classList.remove('open');
-      document.getElementById('user-btn')?.setAttribute('aria-expanded', 'false');
-      document.getElementById('user-btn-mobile')?.setAttribute('aria-expanded', 'false');
-    }
-    if (!e.target.closest('.notif-wrap')) {
-      const drop = document.getElementById('notif-dropdown');
-      if (drop) {
-        drop.style.display = 'none';
-        drop.setAttribute('aria-hidden', 'true');
+  if (!globalsBound) {
+    document.addEventListener('click', (e) => {
+      if (!e.target.closest('.user-btn-wrap')) {
+        document.getElementById('user-dropdown')?.classList.remove('open');
+        document.getElementById('user-dropdown-mobile')?.classList.remove('open');
+        document.getElementById('user-btn')?.setAttribute('aria-expanded', 'false');
+        document.getElementById('user-btn-mobile')?.setAttribute('aria-expanded', 'false');
       }
-    }
-  });
+      if (!e.target.closest('.notif-wrap')) {
+        const drop = document.getElementById('notif-dropdown');
+        if (drop) {
+          drop.style.display = 'none';
+          drop.setAttribute('aria-hidden', 'true');
+        }
+      }
+    });
+    globalsBound = true;
+  }
 
   // User dropdown toggle
   el.querySelectorAll('#user-btn, #user-btn-mobile').forEach(btn => {
@@ -679,37 +815,131 @@ function formatTime(iso) {
  * Initializes the global navbar and bottom nav.
  * Call this once on each page.
  */
-export async function initNavbar() {
-  initAuth();
+export function initNavbar() {
   const el = document.getElementById('navbar');
   if (!el) return;
 
-  const isMobile = window.innerWidth < 768;
+  const getIsMobile = () => window.innerWidth < 768;
+  let currentIsMobile = getIsMobile();
   const path = window.location.pathname;
   
-  // Extract categoryId from query params if on catalog page
   let activeCatId = null;
+  let activeCatSlug = null;
   if (path.includes('catalog')) {
     const params = new URLSearchParams(window.location.search);
-    activeCatId = params.get('categoryId');
-  }
-
-  // Fetch categories for mega-menu
-  let categories = [];
-  try {
-    categories = await getCategories();
-  } catch (err) {
-    console.warn('Failed to load categories for navbar:', err);
+    activeCatId   = params.get('categoryId');
+    activeCatSlug = params.get('category');
   }
 
   injectDropdownStyles();
 
-  if (isMobile) {
+  // PASS 1: Synchronous Optimistic Render
+  let categories = [];
+  try {
+    const cached = localStorage.getItem('hv_categories');
+    if (cached) categories = JSON.parse(cached);
+  } catch(e) {}
+
+  const renderMobile = () => {
     renderMobileNavbar(el);
     renderBottomNav();
-  } else {
-    renderDesktopNavbar(el, categories, activeCatId);
-  }
+  };
+  const renderDesktop = () => {
+    renderDesktopNavbar(el, categories, activeCatId || activeCatSlug);
+  };
 
+  if (currentIsMobile) {
+    renderMobile();
+  } else {
+    renderDesktop();
+  }
   bindDesktopEvents(el);
+
+  // Resize listener to re-render on responsive break
+  const handleResize = () => {
+    const newIsMobile = getIsMobile();
+    if (newIsMobile !== currentIsMobile) {
+      currentIsMobile = newIsMobile;
+      if (currentIsMobile) {
+        renderMobile();
+      } else {
+        renderDesktop();
+      }
+    }
+  };
+  window.addEventListener('resize', handleResize);
+
+  // Clean up on page unload
+  window.addEventListener('beforeunload', () => {
+    window.removeEventListener('resize', handleResize);
+  });
+
+  // PASS 2: Asynchronous Background Update
+  Promise.all([
+    initAuth(),
+    getCategories().catch(() => [])
+  ]).then(([authRes, newCats]) => {
+    if (newCats && newCats.length > 0) {
+      localStorage.setItem('hv_categories', JSON.stringify(newCats));
+      categories = newCats;
+}
+    
+    // Re-render to reflect new categories and exact user auth state
+    if (currentIsMobile) {
+      renderMobileNavbar(el);
+    } else {
+      renderDesktopNavbar(el, categories, activeCatId || activeCatSlug);
+    }
+    bindDesktopEvents(el);
+
+    if (isLoggedIn()) {
+      NotificationBroker.init();
+      SocialProof.init();
+      window.addEventListener('refresh-notifications', async () => {
+        const drop = document.getElementById('notif-dropdown');
+        const isOpen = drop && drop.getAttribute('aria-hidden') === 'false';
+        if (isOpen) {
+          const list = document.getElementById('notif-dropdown-list');
+          if (list) list.innerHTML = '<div class="notif-empty">Loading…</div>';
+          try {
+            const notifs = await getNotifications(0, 5);
+            if (list && notifs && notifs.length > 0) {
+              list.innerHTML = notifs.map(n => `
+                <div class="notif-item ${!n.isRead ? 'notif-item--unread' : ''}" data-id="${n.id}">
+                  <div class="notif-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16">
+                      <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0"/>
+                    </svg>
+                  </div>
+                  <div class="notif-content">
+                    <div class="notif-title">${n.title}</div>
+                    <div class="notif-msg">${n.message}</div>
+                    <div class="notif-time">${formatTime(n.createdAt)}</div>
+                  </div>
+                </div>
+              `).join('');
+            } else if (list) {
+              list.innerHTML = '<div class="notif-empty">No new notifications</div>';
+            }
+          } catch {
+            if (list) list.innerHTML = '<div class="notif-empty">Failed to load</div>';
+          }
+        }
+        const badge = document.getElementById('notif-badge');
+        try {
+          const count = await getNotificationCount();
+          if (badge) {
+            if (count > 0) {
+              badge.textContent = count > 9 ? '9+' : count;
+              badge.style.display = 'flex';
+            } else {
+              badge.style.display = 'none';
+            }
+          }
+        } catch {}
+      });
+    }
+  }).catch(err => {
+    console.warn('Navbar background refresh failed:', err);
+  });
 }
