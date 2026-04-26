@@ -6,14 +6,21 @@ const BASE_URL = '/api/v1';
 
 async function apiFetch(path) {
   console.log(`[API] Fetching: ${path}`);
-  const res = await fetch(`${BASE_URL}${path}`, {
-    headers: { 'Accept': 'application/json' }
-  });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || `API error: ${res.status}`);
+  try {
+    const res = await fetch(`${BASE_URL}${path}`, {
+      headers: { 'Accept': 'application/json' }
+    });
+    const json = await res.json();
+    if (!res.ok || json.success === false) {
+      throw new Error(json.message || `API error: ${res.status}`);
+    }
+    return json.data;
+  } catch (err) {
+    if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
+      throw new Error('Backend unavailable - please ensure the server is running');
+    }
+    throw err;
   }
-  return json.data;
 }
 
 // ─── Authenticated fetch ──────────────────────────────────────────────────────
