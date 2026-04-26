@@ -54,7 +54,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
             public Message<?> preSend(Message<?> message, MessageChannel channel) {
                 StompHeaderAccessor accessor =
                         MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
-                if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                if (accessor == null || StompCommand.CONNECT.equals(accessor.getCommand())) {
                     // Log headers to pinpoint exact bug (as suggested)
                     log.info("[WS CONNECT] Native Headers: {}", accessor.toNativeHeaderMap());
                     
