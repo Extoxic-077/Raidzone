@@ -231,6 +231,7 @@ async function renderSidebar(catList, companyList) {
   catsGroup.innerHTML = `<div class="sidebar-group-title">Browse Categories</div>`;
 
   const allBtnRoot = document.createElement('button');
+  allBtnRoot.id = 'filter-all-btn';
   allBtnRoot.className = `filter-all-btn-new ${!filters.categoryId && !filters.categorySlug ? 'active' : ''}`;
   allBtnRoot.dataset.catId = 'all';
   allBtnRoot.innerHTML = `
@@ -885,7 +886,7 @@ window.addEventListener('nav-to-cat', (e) => {
   filters.categoryId = '';
   filters.categorySlug = e.detail;
   const catFilter = document.getElementById('cat-filter-list');
-  const allBtn = catFilter?.querySelector('.filter-all-btn[data-cat-id="all"]');
+  const allBtn = catFilter?.querySelector('.filter-all-btn-new[data-cat-id="all"]');
   if (catFilter && allBtn) syncActiveStates(catFilter, allBtn);
   applyAndFetch();
 });
@@ -1307,6 +1308,8 @@ function renderTagPills() {
   if (tabConfig.subTabs && !currentSubTabKey) return hide();
   if (!tabConfig.filters) return hide();
 
+  const filterGroups = (!Array.isArray(tabConfig.filters) && tabConfig.filters) ? tabConfig.filters : null;
+
   // CASE A: Array filters (simple chips)
   // Ensure these ONLY show for the intended tabs (Coins/Accounts)
   if (Array.isArray(tabConfig.filters)) {
@@ -1335,6 +1338,8 @@ function renderTagPills() {
     }
 
   // Find if any group matches currentSubTabKey ("Blueprints" → "Blueprint")
+  if (!filterGroups) return hide();
+
   let activeGroupKey = null;
   if (currentSubTabKey) {
     const singular = currentSubTabKey.replace(/s$/, '');
