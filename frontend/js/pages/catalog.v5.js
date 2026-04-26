@@ -1239,10 +1239,11 @@ function detectHierarchy() {
 // ── 1. TABS: always from CATEGORY_CONFIG[game].tabs keys ─────────────────────
 function renderDynamicTabs() {
   const container = document.getElementById('game-tabs');
-
+  if (!container) return;
 
   const tabs = Object.keys(CATEGORY_CONFIG[currentGameKey].tabs);
   container.style.display = 'flex';
+
   container.innerHTML = tabs.map(tab =>
     `<div class="dynamic-tab ${currentTabKey === tab ? 'active' : ''}" data-tab="${tab}">${tab}</div>`
   ).join('');
