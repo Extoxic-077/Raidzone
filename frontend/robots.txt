@@ -1,0 +1,13 @@
+User-agent: *
+Allow: /buy/
+Allow: /catalog.html
+Allow: /
+Disallow: /admin/
+Disallow: /checkout.html
+Disallow: /cart.html
+Disallow: /orders.html
+Disallow: /api/
+Disallow: /login.html
+Disallow: /register.html
+
+Sitemap: https://www.raidzonemarket.com/sitemap.xml

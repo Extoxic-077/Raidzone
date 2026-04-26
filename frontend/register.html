@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Create Account — Raidzone</title>
+  <title>Create Account — RAIDZONE</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 
-  <link rel="stylesheet" href="css/variables.css"/>
-  <link rel="stylesheet" href="css/animations.css"/>
-  <link rel="stylesheet" href="css/base.css"/>
-  <link rel="stylesheet" href="css/components.css"/>
-  <link rel="stylesheet" href="css/pages/auth.css"/>
+  <link rel="stylesheet" href="css/variables.v5.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/animations.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/base.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/components.v5.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/pages/auth.css?v=2.1.0"/>
 
   <style>
     .otp-grid { display:flex; gap:10px; justify-content:center; margin:24px 0; }
@@ -38,13 +38,13 @@
     .social-btn:not([disabled]) { opacity:1; }
     .social-btn[disabled] { opacity:.45; cursor:not-allowed; }
   </style>
-</head>
+<link rel="stylesheet" href="/css/rz-header.v5.css?v=5.0.0"></head>
 <body>
 
 <div class="auth-page">
   <div class="auth-card">
 
-    <a href="index.html" class="auth-logo">
+    <a href="/index.html" class="auth-logo">
       <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
@@ -55,7 +55,7 @@
         <path d="M14 2L25.26 8.5V21.5L14 28L2.74 21.5V8.5L14 2Z" fill="url(#hg)"/>
         <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(7,7,15,0.6)"/>
       </svg>
-      <span class="auth-logo-text">Raidzone</span>
+      <span class="auth-logo-text">RAIDZONE</span>
     </a>
 
     <!-- ── STEP 1: Registration form ────────────────────────────────── -->
@@ -384,7 +384,7 @@ async function submitOtp() {
   try {
     const authData = await verifyEmail({ email: pendingEmail, otpCode: code });
     setAuth(authData);
-    showToast('Email verified! Welcome to Raidzone 🎉', 'success');
+    showToast('Email verified! Welcome to RAIDZONE 🎉', 'success');
     setTimeout(() => { window.location.href = 'index.html'; }, 1000);
   } catch (err) {
     otpError.textContent = err.message || 'Invalid code. Please try again.';

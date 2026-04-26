@@ -9,11 +9,11 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
 
-  <link rel="stylesheet" href="../css/variables.css"/>
-  <link rel="stylesheet" href="../css/animations.css"/>
-  <link rel="stylesheet" href="../css/base.css"/>
-  <link rel="stylesheet" href="../css/components.css"/>
-  <link rel="stylesheet" href="../css/pages/admin.css"/>
+  <link rel="stylesheet" href="../css/variables.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/animations.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/base.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/components.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/pages/admin.css?v=11.0.0"/>
 </head>
 <body>
 
@@ -40,7 +40,7 @@
           <thead>
             <tr>
               <th style="width:36px"><input type="checkbox" id="select-all" style="accent-color:var(--violet)"/></th>
-              <th>Image</th><th>Name</th><th>Category</th><th>Price</th>
+              <th>Image</th><th>Name</th><th>Category</th><th>Type</th><th>Price</th>
               <th>Active</th><th>Flash</th><th>Badge</th><th>Actions</th>
             </tr>
           </thead>
@@ -62,31 +62,53 @@
       <div class="admin-form-grid">
         <div class="admin-form-group full">
           <label class="admin-form-label">Product Name *</label>
-          <input class="admin-form-input" name="name" required placeholder="e.g. Steam Wallet ₹500"/>
+          <input class="admin-form-input" name="name" required placeholder="e.g. 10M Arc Raiders Coins (Instant Delivery)"/>
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label">Category *</label>
+          <label class="admin-form-label">Choose game / category *</label>
           <select class="admin-form-select" name="categoryId" required id="cat-select">
-            <option value="">Select category…</option>
+            <option value="">Choose game / category</option>
           </select>
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label">Price (₹) *</label>
+          <label class="admin-form-label">Price ($) *</label>
           <input class="admin-form-input" name="price" type="number" step="0.01" min="0.01" required placeholder="499"/>
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label">Original Price (₹)</label>
+          <label class="admin-form-label">Original Price ($)</label>
           <input class="admin-form-input" name="originalPrice" type="number" step="0.01" min="0" placeholder="599"/>
         </div>
-        <div class="admin-form-group">
-          <label class="admin-form-label">Company / Brand</label>
-          <select class="admin-form-select" name="companyId" id="company-select">
-            <option value="">— None —</option>
-          </select>
+        <!-- Hidden but kept for API compatibility -->
+        <div style="display:none">
+          <select name="companyId" id="company-select"><option value=""></option></select>
+          <input name="brand" value=""/>
         </div>
         <div class="admin-form-group">
-          <label class="admin-form-label">Brand (text)</label>
-          <input class="admin-form-input" name="brand" placeholder="Valve / Steam"/>
+          <label class="admin-form-label">Tab *</label>
+          <select class="admin-form-select" name="productType" id="item-type-select" required>
+            <option value="">Select tab…</option>
+          </select>
+        </div>
+        <div class="admin-form-group" id="sub-tab-group" style="display:none">
+          <label class="admin-form-label">Sub-Tab</label>
+          <select class="admin-form-select" name="subTab" id="sub-tab-select">
+            <option value="">None</option>
+          </select>
+        </div>
+        <div class="admin-form-group full">
+          <label class="admin-form-label">Blueprint Filter Tags</label>
+          <div class="multi-filter" id="blueprint-filter">
+            <button type="button" class="multi-filter-trigger" id="blueprint-trigger" aria-expanded="false">
+              <span id="blueprint-trigger-text">Select blueprint options…</span>
+              <span>▾</span>
+            </button>
+            <div class="multi-filter-dropdown" id="blueprint-dropdown">
+              <input type="search" class="admin-form-input multi-filter-search" id="blueprint-search" placeholder="Search blueprint options…"/>
+              <div class="multi-filter-options" id="blueprint-options"></div>
+            </div>
+            <div class="multi-filter-tags" id="blueprint-tags"></div>
+          </div>
+          <input type="hidden" name="blueprintTags" id="blueprint-tags-input"/>
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Region</label>
@@ -110,6 +132,10 @@
         <div class="admin-form-group">
           <label class="admin-form-label">Sort Order</label>
           <input class="admin-form-input" name="sortOrder" type="number" value="0"/>
+        </div>
+        <div class="admin-form-group">
+          <label class="admin-form-label">Stock Count</label>
+          <input class="admin-form-input" name="stockCount" type="number" value="999"/>
         </div>
         <div class="admin-form-group" style="justify-content:flex-end;align-items:flex-start;padding-top:22px;">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text-2);font-size:0.875rem;">
@@ -148,7 +174,7 @@
 
 <!-- Mobile bottom nav -->
 <nav class="admin-bottom-nav">
-  <a href="index.html" class="admin-bottom-tab">
+  <a href="/admin/index.html" class="admin-bottom-tab">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     Analytics
   </a>
@@ -168,7 +194,102 @@
 
 <div id="toast-container"></div>
 
-<script src="../js/config.js"></script>
+<script src="../js/config.js?v=11.0.0"></script>
+<style>
+  .multi-filter { position: relative; }
+  .multi-filter-trigger {
+    width: 100%;
+    min-height: 40px;
+    border-radius: 12px;
+    border: 1px solid var(--glass-border);
+    background: var(--bg3);
+    color: var(--text-2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    cursor: pointer;
+  }
+  .multi-filter-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    border: 1px solid var(--glass-border);
+    background: var(--bg2);
+    border-radius: 12px;
+    box-shadow: 0 16px 38px rgba(0,0,0,.32);
+    padding: 10px;
+    z-index: 50;
+    display: none;
+  }
+  .multi-filter.open .multi-filter-dropdown { display: block; }
+  .multi-filter-search { margin-bottom: 10px; }
+  .multi-filter-options {
+    max-height: 210px;
+    overflow: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .multi-filter-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: .85rem;
+    color: var(--text-2);
+    padding: 4px 2px;
+  }
+  .multi-filter-tags {
+    margin-top: 10px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .multi-filter-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(124,58,237,0.1);
+    border: 1px solid rgba(124,58,237,0.25);
+    color: var(--violet-light);
+    border-radius: 10px;
+    padding: 6px 14px;
+    font-size: .8rem;
+    line-height: 1;
+    cursor: pointer;
+    transition: all 0.2s ease;
+  }
+  .multi-filter-tag:hover {
+    background: rgba(124,58,237,0.2);
+    border-color: var(--violet);
+    transform: translateY(-1px);
+  }
+  .multi-filter-tag.selected {
+    background: var(--violet);
+    color: #fff;
+    border-color: var(--violet);
+  }
+  .multi-filter-tag button {
+    border: none;
+    background: none;
+    color: inherit;
+    cursor: pointer;
+    padding: 0;
+    line-height: 1;
+    font-size: 1.1rem;
+    opacity: 0.6;
+  }
+  .multi-filter-tag button:hover { opacity: 1; }
+  
+  /* Quick Chip Layout */
+  .quick-chips-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+</style>
 <script type="module">
 import { showToast } from '../js/components/toast.js';
 import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
@@ -178,6 +299,8 @@ import {
   adminUploadImage, getCategories, getCategoriesFlat, adminGetCompanies,
   adminToggleProductActive, adminToggleFlashDeal, adminSetBadge, adminBulkToggleActive
 } from '../js/api.js';
+
+import { CATEGORY_CONFIG } from '../js/category-config.js';
 
 await initAuth();
 if (!isLoggedIn() || !isAdmin()) window.location.href = '../login.html';
@@ -194,32 +317,140 @@ const pagination = document.getElementById('pagination');
 const modal      = document.getElementById('product-modal');
 const form       = document.getElementById('product-form');
 const countEl    = document.getElementById('products-count');
+const itemTypeSelect = document.getElementById('item-type-select');
+
+let selectedBlueprints = [];
+let blueprintSelectorApi = null;
+let blueprintDocClickBound = false;
+let currentItemTypes = [];
+let currentBlueprintOptions = [];
+
+function getGameConfig(catName) {
+  for (const [name, config] of Object.entries(CATEGORY_CONFIG)) {
+    if (catName.toLowerCase().includes(name.toLowerCase())) return { name, config };
+  }
+  return null;
+}
+
+function updateTabs(catId) {
+  const catOption = document.querySelector(`#cat-select option[value="${catId}"]`);
+  const catName = catOption ? catOption.textContent.replace(/^[└\s&nbsp;]+/, '').trim() : '';
+  const game = getGameConfig(catName);
+
+  const typeSelect = document.getElementById('item-type-select');
+  const brandInput = form.querySelector('input[name="brand"]');
+  
+  if (game) {
+    if (brandInput) brandInput.value = game.config.brand || game.name;
+    const tabs = Object.keys(game.config.tabs);
+    typeSelect.innerHTML = '<option value="">Select tab…</option>';
+    tabs.forEach(tab => {
+      const o = document.createElement('option');
+      o.value = tab; o.textContent = tab;
+      typeSelect.appendChild(o);
+    });
+  } else {
+    typeSelect.innerHTML = '<option value="">Select tab…</option>';
+    ['Other', 'Digital Code', 'Account', 'Currency', 'Boosting'].forEach(t => {
+      const o = document.createElement('option');
+      o.value = t; o.textContent = t;
+      typeSelect.appendChild(o);
+    });
+  }
+  // Reset dependents
+  updateSubTabsAndFilters();
+}
+
+function updateSubTabsAndFilters() {
+  const catId = document.getElementById('cat-select').value;
+  const tabName = document.getElementById('item-type-select').value;
+  const catOption = document.querySelector(`#cat-select option[value="${catId}"]`);
+  const catName = catOption ? catOption.textContent.replace(/^[└\s&nbsp;]+/, '').trim() : '';
+  const game = getGameConfig(catName);
+
+  const subTabGroup  = document.getElementById('sub-tab-group');
+  const subTabSelect = document.getElementById('sub-tab-select');
+  const blueprintFilter = document.getElementById('blueprint-filter');
+
+  // Default Hides
+  subTabGroup.style.display = 'none';
+  blueprintFilter.style.display = 'block'; // Most have filters
+  selectedBlueprints = [];
+
+  if (!game || !tabName || !game.config.tabs[tabName]) {
+    if (blueprintSelectorApi) {
+      currentBlueprintOptions = [];
+      blueprintSelectorApi.renderOptions();
+    }
+    return;
+  }
+
+  const tabConfig = game.config.tabs[tabName];
+
+  // 1. Handle Sub-Tabs
+  if (tabConfig.subTabs) {
+    subTabGroup.style.display = 'flex';
+    subTabSelect.innerHTML = '<option value="">None</option>';
+    tabConfig.subTabs.forEach(st => {
+      const o = document.createElement('option');
+      o.value = st; o.textContent = st;
+      subTabSelect.appendChild(o);
+    });
+  }
+
+  // 2. Handle Filters
+  if (tabName === 'Boosting') {
+    blueprintFilter.style.display = 'none';
+  } else {
+    blueprintFilter.style.display = 'block';
+    if (tabConfig.filters) {
+      if (Array.isArray(tabConfig.filters)) {
+        currentBlueprintOptions = tabConfig.filters;
+      } else if (tabConfig.filters.Blueprint) {
+        // Special case for Items with nested categories
+        currentBlueprintOptions = [
+          ...tabConfig.filters.Blueprint,
+          ...tabConfig.filters.Category
+        ];
+      } else {
+        currentBlueprintOptions = Object.keys(tabConfig.filters);
+      }
+    } else {
+      currentBlueprintOptions = [];
+    }
+  }
+
+  if (blueprintSelectorApi) {
+    blueprintSelectorApi.renderOptions();
+    blueprintSelectorApi.sync();
+  }
+}
 
 async function loadCategories() {
   try {
     const tree = await getCategories();
     const sel = document.getElementById('cat-select');
-    // Build flat list from hierarchy so children are grouped under parents
+    sel.innerHTML = '<option value="">Choose game / category</option>';
     categories = [];
-    tree.forEach(parent => {
-      // Add parent as a disabled label
-      const po = document.createElement('option');
-      po.value = parent.id;
-      po.textContent = parent.name;
-      po.style.fontWeight = 'bold';
-      sel.appendChild(po);
-      categories.push(parent);
-      // Add children indented
-      if (parent.children && parent.children.length) {
-        parent.children.forEach(child => {
-          const co = document.createElement('option');
-          co.value = child.id;
-          co.textContent = '  └ ' + child.name;
-          sel.appendChild(co);
-          categories.push(child);
-        });
-      }
-    });
+
+    function renderOptions(nodes, depth = 0) {
+      nodes.forEach(node => {
+        const o = document.createElement('option');
+        o.value = node.id;
+        const prefix = depth > 0 ? '&nbsp;&nbsp;'.repeat(depth) + '└ ' : '';
+        o.innerHTML = prefix + node.name;
+        if (depth === 0) o.style.fontWeight = 'bold';
+        sel.appendChild(o);
+        categories.push(node);
+        if (node.children && node.children.length) {
+          renderOptions(node.children, depth + 1);
+        }
+      });
+    }
+
+    renderOptions(tree);
+    sel.addEventListener('change', (e) => updateTabs(e.target.value));
+    document.getElementById('item-type-select').addEventListener('change', updateSubTabsAndFilters);
   } catch (e) { /* ignore */ }
 }
 
@@ -237,7 +468,118 @@ async function loadCompanies() {
   } catch (e) { /* ignore */ }
 }
 
-async function loadProducts(page = 0) {
+function initItemTypeOptions() {
+  const sel = document.getElementById('item-type-select');
+  if (!sel) return;
+  ITEM_TYPES.forEach(t => {
+    const o = document.createElement('option');
+    o.value = t;
+    o.textContent = t;
+    sel.appendChild(o);
+  });
+}
+
+function initBlueprintSelector() {
+  const root     = document.getElementById('blueprint-filter');
+  const trigger  = document.getElementById('blueprint-trigger');
+  const dropdown = document.getElementById('blueprint-dropdown');
+  const search   = document.getElementById('blueprint-search');
+  const options  = document.getElementById('blueprint-options');
+  const tags     = document.getElementById('blueprint-tags');
+  const input    = document.getElementById('blueprint-tags-input');
+
+  // NEW: Quick Chips Container
+  let chipsList = root.querySelector('.quick-chips-grid');
+  if (!chipsList) {
+    chipsList = document.createElement('div');
+    chipsList.className = 'quick-chips-grid';
+    root.insertBefore(chipsList, dropdown.previousSibling || dropdown);
+  }
+
+  const renderOptions = () => {
+    const q = search.value.toLowerCase();
+    const filtered = currentBlueprintOptions.filter(opt => opt.toLowerCase().includes(q));
+    
+    // 1. Render chips (always visible)
+    chipsList.innerHTML = currentBlueprintOptions.slice(0, 15).map(opt => `
+      <div class="multi-filter-tag ${selectedBlueprints.includes(opt) ? 'selected' : ''}" data-val="${opt}">
+        ${opt}
+      </div>
+    `).join('');
+
+    chipsList.querySelectorAll('.multi-filter-tag').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const val = chip.dataset.val;
+        if (selectedBlueprints.includes(val)) {
+          selectedBlueprints = selectedBlueprints.filter(s => s !== val);
+        } else {
+          selectedBlueprints.push(val);
+        }
+        sync();
+        renderOptions();
+      });
+    });
+
+    // 2. Render dropdown list (for search)
+    options.innerHTML = filtered.map(opt => `
+      <label class="multi-filter-option">
+        <input type="checkbox" value="${opt}" ${selectedBlueprints.includes(opt) ? 'checked' : ''} />
+        ${opt}
+      </label>
+    `).join('');
+    
+    options.querySelectorAll('input').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if (cb.checked) {
+          if (!selectedBlueprints.includes(cb.value)) selectedBlueprints.push(cb.value);
+        } else {
+          selectedBlueprints = selectedBlueprints.filter(s => s !== cb.value);
+        }
+        sync();
+        renderOptions();
+      });
+    });
+  };
+
+  const sync = () => {
+    tags.innerHTML = selectedBlueprints.map(s => `
+      <span class="multi-filter-tag selected">${s} <button type="button" data-val="${s}">×</button></span>
+    `).join('');
+    input.value = selectedBlueprints.join(', ');
+    
+    tags.querySelectorAll('button').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        selectedBlueprints = selectedBlueprints.filter(s => s !== btn.dataset.val);
+        renderOptions();
+        sync();
+      });
+    });
+  };
+
+  trigger.addEventListener('click', (e) => {
+    e.preventDefault(); e.stopPropagation();
+    root.classList.toggle('open');
+    trigger.setAttribute('aria-expanded', root.classList.contains('open'));
+  });
+
+  search.addEventListener('click', e => e.stopPropagation());
+  search.addEventListener('input', renderOptions);
+  
+  if (!blueprintDocClickBound) {
+    document.addEventListener('click', (e) => {
+      if (!root.contains(e.target)) {
+        root.classList.remove('open');
+        trigger.setAttribute('aria-expanded', 'false');
+      }
+    });
+    blueprintDocClickBound = true;
+  }
+
+  return { root, search, renderOptions, sync };
+}
+
+window.loadProducts = async function(page = 0) {
   tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
   try {
     const result = await adminGetProducts(page, 20);
@@ -263,7 +605,7 @@ function renderTable(products) {
     const imgHtml = p.imageUrl
       ? `<div class="table-thumb"><img src="${p.imageUrl}" alt=""/></div>`
       : `<div class="table-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20" style="opacity:.4"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>`;
-    const price   = p.price != null ? `₹${Number(p.price).toLocaleString('en-IN')}` : '—';
+    const price   = p.price != null ? `$${Number(p.price).toLocaleString('en-US')}` : '—';
     const active  = p.isActive !== false;
     const flash   = !!p.isFlashDeal;
     const badge   = p.badge || '';
@@ -277,6 +619,7 @@ function renderTable(products) {
           <div style="font-size:0.75rem;color:var(--text-4)">${p.slug}</div>
         </td>
         <td>${p.categoryName || '—'}</td>
+        <td><span style="font-size:0.75rem;padding:2px 6px;background:rgba(255,255,255,0.05);border-radius:4px">${p.productType || '—'}</span></td>
         <td>${price}</td>
         <td>
           <label class="admin-toggle" title="${active ? 'Active — click to deactivate' : 'Inactive — click to activate'}">
@@ -398,6 +741,14 @@ function openAdd() {
   document.getElementById('upload-image-btn').style.display = 'none';
   document.getElementById('image-upload-note').textContent = 'Image uploads automatically after saving.';
   form.reset();
+  selectedBlueprints = [];
+  document.getElementById('blueprint-tags-input').value = '';
+  if (blueprintSelectorApi) {
+    blueprintSelectorApi.search.value = '';
+    blueprintSelectorApi.root.classList.remove('open');
+    blueprintSelectorApi.renderOptions();
+    blueprintSelectorApi.sync();
+  }
   resetUploadZone();
   modal.classList.add('open');
 }
@@ -418,13 +769,36 @@ window.openEdit = function(id) {
     form.elements['brand'].value         = p.brand || '';
     form.elements['region'].value        = p.region || 'Global';
     form.elements['badge'].value         = p.badge || '';
+    form.elements['productType'].value   = p.productType || '';
     form.elements['description'].value   = p.description || '';
     form.elements['howToRedeem'].value   = p.howToRedeem || '';
     form.elements['sortOrder'].value     = p.sortOrder != null ? p.sortOrder : 0;
+    form.elements['stockCount'].value    = p.stockCount != null ? p.stockCount : 999;
     form.elements['isFlashDeal'].checked = !!p.isFlashDeal;
+
+    // Load hierarchical tags
+    const allTags = p.blueprintTags ? p.blueprintTags.split(', ').filter(Boolean) : [];
+    const subTabTag = allTags.find(t => t.startsWith('SubTab:'));
+    const subTabVal = subTabTag ? subTabTag.replace('SubTab:', '') : '';
+    
+    selectedBlueprints = allTags.filter(t => !t.startsWith('SubTab:'));
+
+    if (blueprintSelectorApi) {
+      blueprintSelectorApi.renderOptions();
+      blueprintSelectorApi.sync();
+    }
+
     setTimeout(() => {
       form.elements['categoryId'].value = p.categoryId || '';
+      updateTabs(p.categoryId);
       if (form.elements['companyId']) form.elements['companyId'].value = p.companyId || '';
+      
+      // Re-set type after dynamic update
+      form.elements['productType'].value = p.productType || '';
+      updateSubTabsAndFilters();
+
+      // Finally set subTab
+      if (form.elements['subTab']) form.elements['subTab'].value = subTabVal;
     }, 0);
     // Show current image in preview
     if (p.imageUrl) {
@@ -523,6 +897,12 @@ form.addEventListener('submit', async e => {
     return;
   }
 
+  let blueprintTags = fd.get('blueprintTags') || '';
+  const subTab = fd.get('subTab');
+  if (subTab) {
+    blueprintTags = `SubTab:${subTab}${blueprintTags ? ', ' + blueprintTags : ''}`;
+  }
+
   const data = {
     name:          fd.get('name'),
     categoryId,
@@ -534,8 +914,11 @@ form.addEventListener('submit', async e => {
     brand:         fd.get('brand') || null,
     region:        fd.get('region') || 'Global',
     badge:         fd.get('badge') || null,
+    productType:   fd.get('productType') || null,
+    blueprintTags: blueprintTags || null,
     isFlashDeal:   fd.get('isFlashDeal') === 'on',
     sortOrder:     parseInt(fd.get('sortOrder')) || 0,
+    stockCount:    parseInt(fd.get('stockCount')) || 0,
   };
 
   try {
@@ -570,6 +953,8 @@ form.addEventListener('submit', async e => {
 
 loadCategories();
 loadCompanies();
+initItemTypeOptions();
+blueprintSelectorApi = initBlueprintSelector();
 loadProducts(0);
 </script>
 

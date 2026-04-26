@@ -7,12 +7,12 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="../css/variables.css"/>
-  <link rel="stylesheet" href="../css/animations.css"/>
-  <link rel="stylesheet" href="../css/base.css"/>
-  <link rel="stylesheet" href="../css/components.css"/>
-  <link rel="stylesheet" href="../css/pages/admin.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="../css/variables.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/animations.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/base.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/components.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/pages/admin.css?v=11.0.0"/>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=11.0.0"></script>
 </head>
 <body>
 <div class="admin-layout">
@@ -92,7 +92,7 @@
 </div>
 <div id="toast-container"></div>
 
-<script src="../js/config.js"></script>
+<script src="../js/config.js?v=11.0.0"></script>
 <script type="module">
 import { initAdminSidebar } from './js/adminSidebar.js';
 import { initAuth, isLoggedIn } from '../js/auth.js';
@@ -103,8 +103,8 @@ await initAuth();
 if (!isLoggedIn()) { window.location.href = '../login.html'; }
 await initAdminSidebar('dashboard');
 
-const fmt = v => '₹' + Number(v).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-const fmtK = v => v >= 10000 ? '₹' + (v/1000).toFixed(1) + 'K' : fmt(v);
+const fmt = v => '$' + Number(v).toLocaleString('en-US', { maximumFractionDigits: 0 });
+const fmtK = v => v >= 10000 ? '$' + (v/1000).toFixed(1) + 'K' : fmt(v);
 const timeAgo = iso => {
   const d = new Date(iso), now = Date.now(), diff = now - d.getTime();
   const m = Math.floor(diff / 60000);

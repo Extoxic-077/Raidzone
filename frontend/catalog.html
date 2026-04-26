@@ -3,21 +3,23 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Catalog — Raidzone</title>
-  <meta name="description" content="Browse thousands of digital products — games, gift cards, top-ups, streaming and software."/>
+  <title>Browse Categories — RAIDZONE Market</title>
+  <meta name="description" content="Explore our massive catalog of game currencies, accounts, items, and professional boosting services. All regions supported."/>
 
-  <!-- Fonts -->
+  <!-- Fonts: preload Syne (primary), load async -->
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+  <link rel="preload" as="style" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap" onload="this.onload=null;this.rel='stylesheet'"/>
+  <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&display=swap"/></noscript>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" media="print" onload="this.media='all'"/>
 
   <!-- CSS -->
-  <link rel="stylesheet" href="css/variables.css"/>
-  <link rel="stylesheet" href="css/animations.css"/>
-  <link rel="stylesheet" href="css/base.css"/>
-  <link rel="stylesheet" href="css/components.css"/>
-  <link rel="stylesheet" href="css/pages/catalog.css"/>
-</head>
+  <link rel="stylesheet" href="/css/variables.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="/css/animations.css?v=11.0.0"/>
+  <link rel="stylesheet" href="/css/base.css?v=11.0.0"/>
+  <link rel="stylesheet" href="/css/components.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="/css/pages/catalog.v2.css?v=12.8.0">
+<link rel="stylesheet" href="/css/rz-header.v5.css?v=12.8.0"></head>
 <body>
 
   <!-- Navbar mount -->
@@ -27,50 +29,23 @@
     <div class="catalog-layout">
 
       <!-- ── DESKTOP SIDEBAR ─────────────────────── -->
+      <!-- ── SIDEBAR (DYNAMICALY MOUNTED) ── -->
       <aside class="catalog-sidebar">
-        <div class="sidebar-header">
-          <span class="sidebar-title">Filters</span>
-          <button class="clear-all-btn" id="clear-all-btn">Clear All</button>
+        <div id="cat-filter-list">
+          <!-- JS Renders sidebar-groups here -->
+          <div class="skeleton-sidebar"></div>
         </div>
-
-        <div class="filter-section">
-          <div class="filter-section-title">Category</div>
-          <div class="filter-cat-list" id="cat-filter-list"></div>
-        </div>
-
-
-
-
-        <div class="filter-section">
-          <div class="filter-section-title">Price Range (₹)</div>
-          <div class="price-range">
-            <div class="price-input-wrap">
-              <label>Min ₹</label>
-              <input type="number" id="filter-min-price" placeholder="0" min="0"/>
-            </div>
-            <div class="price-input-wrap">
-              <label>Max ₹</label>
-              <input type="number" id="filter-max-price" placeholder="Any" min="0"/>
-            </div>
-          </div>
-        </div>
-
-        <div class="filter-section">
-          <div class="filter-section-title">Minimum Rating</div>
-          <div class="rating-stars">
-            <button class="rating-star-btn" data-value="1">★</button>
-            <button class="rating-star-btn" data-value="2">★</button>
-            <button class="rating-star-btn" data-value="3">★</button>
-            <button class="rating-star-btn" data-value="4">★</button>
-            <button class="rating-star-btn" data-value="5">★</button>
-          </div>
-        </div>
-
-        <button class="apply-filters-btn" id="apply-filters-btn">Apply Filters</button>
       </aside>
 
       <!-- ── MAIN CONTENT ────────────────────────── -->
       <main class="catalog-main">
+
+        <!-- Category Hero Header -->
+        <div id="category-hero-container"></div>
+
+        <!-- Dynamic Eldorado Tabs -->
+        <div class="dynamic-tabs-container" id="game-tabs"></div>
+        <div class="sub-tabs-pills" id="sub-tabs-container" style="display:none"></div>
 
         <!-- Top bar -->
         <div class="catalog-topbar">
@@ -84,13 +59,17 @@
             <div class="search-spinner" id="search-spinner"></div>
           </div>
 
+          <!-- Item Type & Blueprint filters removed: replaced by dynamic tag chips -->
+
+
           <div class="catalog-sort">
             <select id="sort-select" aria-label="Sort products">
               <option value="">Popular</option>
               <option value="newest">Newest</option>
-              <option value="price_asc">Price: Low to High</option>
+              <option value="price_asc">Cheapest 🔥</option>
               <option value="price_desc">Price: High to Low</option>
-              <option value="rating_desc">Top Rated</option>
+              <option value="rating_desc">Best Rated ⭐</option>
+              <option value="delivery_fast">Fastest ⚡</option>
             </select>
           </div>
 
@@ -156,9 +135,9 @@
 
   <!-- JS entry -->
   <script src="/js/config.js"></script>
-  <script type="module" src="js/main.js"></script>
+  <script type="module" src="/js/main.v5.js?v=11.0.0"></script>
   <script type="module">
-    import { renderCatalog } from './js/pages/catalog.js';
+    import { renderCatalog } from '/js/pages/catalog.v5.js?v=15.3.0';
     document.addEventListener('DOMContentLoaded', () => renderCatalog());
   </script>
 </body>

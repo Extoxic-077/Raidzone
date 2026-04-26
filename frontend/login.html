@@ -3,17 +3,17 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Sign In — Raidzone</title>
+  <title>Sign In — RAIDZONE</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 
-  <link rel="stylesheet" href="css/variables.css"/>
-  <link rel="stylesheet" href="css/animations.css"/>
-  <link rel="stylesheet" href="css/base.css"/>
-  <link rel="stylesheet" href="css/components.css"/>
-  <link rel="stylesheet" href="css/pages/auth.css"/>
+  <link rel="stylesheet" href="css/variables.v5.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/animations.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/base.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/components.v5.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/pages/auth.css?v=2.1.0"/>
 
   <style>
     /* ── OTP input grid ──────────────────────────────────────────────── */
@@ -112,14 +112,14 @@
     .social-btn:not([disabled]) { opacity: 1; }
     .social-btn[disabled] { opacity: 0.45; cursor: not-allowed; }
   </style>
-</head>
+<link rel="stylesheet" href="/css/rz-header.v5.css?v=5.0.0"></head>
 <body>
 
 <div class="auth-page">
   <div class="auth-card">
 
     <!-- Logo -->
-    <a href="index.html" class="auth-logo">
+    <a href="/index.html" class="auth-logo">
       <svg viewBox="0 0 28 28" fill="none" xmlns="http://www.w3.org/2000/svg">
         <defs>
           <linearGradient id="hg" x1="0" y1="0" x2="1" y2="1">
@@ -130,13 +130,13 @@
         <path d="M14 2L25.26 8.5V21.5L14 28L2.74 21.5V8.5L14 2Z" fill="url(#hg)"/>
         <path d="M14 6L21.26 10.5V19.5L14 24L6.74 19.5V10.5L14 6Z" fill="rgba(7,7,15,0.6)"/>
       </svg>
-      <span class="auth-logo-text">Raidzone</span>
+      <span class="auth-logo-text">RAIDZONE</span>
     </a>
 
     <!-- ── STEP 1: credentials ──────────────────────────────────────── -->
     <div id="step-credentials">
       <h1 class="auth-title">Welcome back</h1>
-      <p class="auth-subtitle">Sign in to your Raidzone account</p>
+      <p class="auth-subtitle">Sign in to your RAIDZONE account</p>
 
       <!-- OAuth buttons -->
       <div class="social-btns">
@@ -180,6 +180,13 @@
             </button>
           </div>
           <span class="field-error" id="password-error"></span>
+        </div>
+
+        <div class="form-group" style="margin-bottom: 20px;">
+          <label style="display: flex; align-items: center; gap: 8px; cursor: pointer; user-select: none;">
+            <input type="checkbox" id="remember-me" checked style="width: 16px; height: 16px; cursor: pointer; accent-color: var(--primary);">
+            <span style="font-size: 13px; color: var(--text-3);">Keep me signed in</span>
+          </label>
         </div>
 
         <div class="form-error-box" id="form-error"></div>
@@ -243,8 +250,18 @@ import { loginStep1, verifyOtp, resendOtp, getGoogleAuthUrl, getDiscordAuthUrl }
 import { initAuth, setAuth, isLoggedIn } from './js/auth.js';
 import { showToast } from './js/components/toast.js';
 
-await initAuth();
-if (isLoggedIn()) { window.location.href = 'index.html'; }
+const urlParams = new URLSearchParams(window.location.search);
+const justLoggedOut = urlParams.get('logout') === 'true';
+
+if (!justLoggedOut) {
+  await initAuth();
+  if (isLoggedIn()) { window.location.href = 'index.html'; }
+} else {
+  // Clear any leftover state just in case
+  clearAuth();
+  // Optional: show a toast confirming logout
+  setTimeout(() => showToast('You have been safely logged out.', 'info'), 500);
+}
 
 // ── State ───────────────────────────────────────────────────────────────────
 let pendingEmail = '';
@@ -401,14 +418,15 @@ async function submitOtp() {
   setLoading(otpSubmitBtn, true);
 
   try {
+    const persistent = document.getElementById('remember-me')?.checked;
     const authData = await verifyOtp({ email: pendingEmail, otpCode: code });
-    setAuth(authData);
+    setAuth(authData, persistent);
 
     const name = authData.user?.name || 'there';
     showToast(`Welcome back, ${name.split(' ')[0]}!`, 'success');
 
-    const redirect = sessionStorage.getItem('redirectAfterLogin');
-    sessionStorage.removeItem('redirectAfterLogin');
+    const redirect = localStorage.getItem('redirectAfterLogin');
+    localStorage.removeItem('redirectAfterLogin');
     setTimeout(() => { window.location.href = redirect || 'index.html'; }, 800);
   } catch (err) {
     otpError.textContent = err.message || 'Invalid code. Please try again.';

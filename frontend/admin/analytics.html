@@ -9,13 +9,13 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 
-  <link rel="stylesheet" href="../css/variables.css"/>
-  <link rel="stylesheet" href="../css/animations.css"/>
-  <link rel="stylesheet" href="../css/base.css"/>
-  <link rel="stylesheet" href="../css/components.css"/>
-  <link rel="stylesheet" href="../css/pages/admin.css"/>
+  <link rel="stylesheet" href="../css/variables.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/animations.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/base.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/components.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/pages/admin.css?v=11.0.0"/>
 
-  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js?v=11.0.0"></script>
   <style>
     /* Prevent chart cards from overflowing viewport on mobile */
     .admin-chart-card { overflow: hidden; min-width: 0; }
@@ -135,7 +135,7 @@
 
 <div id="toast-container"></div>
 
-<script src="../js/config.js"></script>
+<script src="../js/config.js?v=11.0.0"></script>
 <script type="module">
 import { initAuth, isLoggedIn, isAdmin } from '../js/auth.js';
 import { initAdminSidebar } from './js/adminSidebar.js';
@@ -146,8 +146,8 @@ await initAuth();
 if (!isLoggedIn() || !isAdmin()) { window.location.href = '../login.html'; }
 await initAdminSidebar('analytics');
 
-const fmt  = v => '₹' + Number(v ?? 0).toLocaleString('en-IN', { maximumFractionDigits: 0 });
-const fmtK = v => v >= 10000 ? '₹' + (v/1000).toFixed(1) + 'K' : fmt(v);
+const fmt  = v => '$' + Number(v ?? 0).toLocaleString('en-US', { maximumFractionDigits: 0 });
+const fmtK = v => v >= 10000 ? '$' + (v/1000).toFixed(1) + 'K' : fmt(v);
 
 const CHART_OPTS = {
   responsive: true,

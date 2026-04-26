@@ -1,0 +1,87 @@
+[[1;34mINFO[m] Scanning for projects...
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m------------------------< [0;36mcom.raidzone:backend[0;1m >------------------------[m
+[[1;34mINFO[m] [1mBuilding hashvault-backend 0.0.1-SNAPSHOT[m
+[[1;34mINFO[m] [1m--------------------------------[ jar ]---------------------------------[m
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-clean-plugin:3.4.1:clean[m [1m(default-clean)[m @ [36mbackend[0;1m ---[m
+[[1;34mINFO[m] Deleting /www/wwwroot/www.raidzonemarket.com/backend/target
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-resources-plugin:3.3.1:resources[m [1m(default-resources)[m @ [36mbackend[0;1m ---[m
+[[1;34mINFO[m] Copying 1 resource from src/main/resources to target/classes
+[[1;34mINFO[m] Copying 24 resources from src/main/resources to target/classes
+[[1;34mINFO[m] 
+[[1;34mINFO[m] [1m--- [0;32mmaven-compiler-plugin:3.13.0:compile[m [1m(default-compile)[m @ [36mbackend[0;1m ---[m
+[[1;34mINFO[m] Recompiling the module because of [1mchanged source code[m.
+[[1;34mINFO[m] Compiling 150 source files with javac [debug parameters release 21] to target/classes
+[[1;34mINFO[m] -------------------------------------------------------------
+[[1;33mWARNING[m] COMPILATION WARNING : 
+[[1;34mINFO[m] -------------------------------------------------------------
+[[1;33mWARNING[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/AuthService.java:[129,25] deprecated item is not annotated with @Deprecated
+[[1;34mINFO[m] 1 warning
+[[1;34mINFO[m] -------------------------------------------------------------
+[[1;34mINFO[m] -------------------------------------------------------------
+[[1;31mERROR[m] COMPILATION ERROR : 
+[[1;34mINFO[m] -------------------------------------------------------------
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/config/WebSocketConfig.java:[60,52] cannot find symbol
+  symbol:   method parseClaims(java.lang.String)
+  location: variable jwtUtil of type NexVault.security.JwtUtil
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[36,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+  required: java.lang.String,java.lang.Object
+  found:    java.lang.String
+  reason: actual and formal argument lists differ in length
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[48,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+  required: java.lang.String,java.lang.Object
+  found:    java.lang.String
+  reason: actual and formal argument lists differ in length
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[57,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+  required: java.lang.String,java.lang.Object
+  found:    java.lang.String
+  reason: actual and formal argument lists differ in length
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[59,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+  required: java.lang.String,java.lang.Object
+  found:    java.lang.String
+  reason: actual and formal argument lists differ in length
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[97,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+  required: java.lang.String,java.lang.Object
+  found:    java.lang.String
+  reason: actual and formal argument lists differ in length
+[[1;34mINFO[m] 6 errors 
+[[1;34mINFO[m] -------------------------------------------------------------
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] [1;31mBUILD FAILURE[m
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;34mINFO[m] Total time:  8.467 s
+[[1;34mINFO[m] Finished at: 2026-04-25T01:44:05Z
+[[1;34mINFO[m] [1m------------------------------------------------------------------------[m
+[[1;31mERROR[m] Failed to execute goal [32morg.apache.maven.plugins:maven-compiler-plugin:3.13.0:compile[m [1m(default-compile)[m on project [36mbackend[m: [1;31mCompilation failure[m: Compilation failure: 
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/config/WebSocketConfig.java:[60,52] cannot find symbol
+[[1;31mERROR[m]   symbol:   method parseClaims(java.lang.String)
+[[1;31mERROR[m]   location: variable jwtUtil of type NexVault.security.JwtUtil
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[36,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+[[1;31mERROR[m]   required: java.lang.String,java.lang.Object
+[[1;31mERROR[m]   found:    java.lang.String
+[[1;31mERROR[m]   reason: actual and formal argument lists differ in length
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[48,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+[[1;31mERROR[m]   required: java.lang.String,java.lang.Object
+[[1;31mERROR[m]   found:    java.lang.String
+[[1;31mERROR[m]   reason: actual and formal argument lists differ in length
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[57,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+[[1;31mERROR[m]   required: java.lang.String,java.lang.Object
+[[1;31mERROR[m]   found:    java.lang.String
+[[1;31mERROR[m]   reason: actual and formal argument lists differ in length
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[59,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+[[1;31mERROR[m]   required: java.lang.String,java.lang.Object
+[[1;31mERROR[m]   found:    java.lang.String
+[[1;31mERROR[m]   reason: actual and formal argument lists differ in length
+[[1;31mERROR[m] /www/wwwroot/www.raidzonemarket.com/backend/src/main/java/NexVault/service/ChatService.java:[97,36] constructor ResourceNotFoundException in class NexVault.exception.ResourceNotFoundException cannot be applied to given types;
+[[1;31mERROR[m]   required: java.lang.String,java.lang.Object
+[[1;31mERROR[m]   found:    java.lang.String
+[[1;31mERROR[m]   reason: actual and formal argument lists differ in length
+[[1;31mERROR[m] -> [1m[Help 1][m
+[[1;31mERROR[m] 
+[[1;31mERROR[m] To see the full stack trace of the errors, re-run Maven with the [1m-e[m switch.
+[[1;31mERROR[m] Re-run Maven using the [1m-X[m switch to enable full debug logging.
+[[1;31mERROR[m] 
+[[1;31mERROR[m] For more information about the errors and possible solutions, please read the following articles:
+[[1;31mERROR[m] [1m[Help 1][m http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException

@@ -1,0 +1,168 @@
+nohup: ignoring input
+[start.sh] WARNING: /www/wwwroot/www.raidzonemarket.com/backend/.env not found — using application.yml defaults
+[start.sh] Starting: /www/wwwroot/www.raidzonemarket.com/backend/target/backend-0.0.1-SNAPSHOT.jar
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+
+ :: Spring Boot ::                (v3.4.4)
+
+2026-04-24T16:31:24.572Z  INFO 4040 --- [hashvault-backend] [           main] NexVault.BackendApplication              : Starting BackendApplication v0.0.1-SNAPSHOT using Java 21.0.10 with PID 4040 (/www/wwwroot/www.raidzonemarket.com/backend/target/backend-0.0.1-SNAPSHOT.jar started by root in /root)
+2026-04-24T16:31:24.578Z  INFO 4040 --- [hashvault-backend] [           main] NexVault.BackendApplication              : No active profile set, falling back to 1 default profile: "default"
+2026-04-24T16:31:27.795Z  INFO 4040 --- [hashvault-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-04-24T16:31:27.798Z  INFO 4040 --- [hashvault-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-04-24T16:31:28.066Z  INFO 4040 --- [hashvault-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 251 ms. Found 17 JPA repository interfaces.
+2026-04-24T16:31:28.100Z  INFO 4040 --- [hashvault-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-04-24T16:31:28.105Z  INFO 4040 --- [hashvault-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-04-24T16:31:28.133Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.CategoryRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.134Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.CompanyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.134Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.CouponRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.134Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.CouponUsageRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.146Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.DigitalKeyRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.146Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.EmailSubscriberRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.146Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.NotificationRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.147Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.OrderItemRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.148Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.OrderRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.149Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.OtpRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.149Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.PaymentRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.150Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.ProductRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.151Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.PurchaseRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.151Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.ReviewRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.152Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.UserRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.153Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.UserSessionRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.153Z  INFO 4040 --- [hashvault-backend] [           main] .RepositoryConfigurationExtensionSupport : Spring Data Redis - Could not safely identify store assignment for repository candidate interface NexVault.repository.WishlistRepository; If you want this repository to be a Redis repository, consider annotating your entities with one of these annotations: org.springframework.data.redis.core.RedisHash (preferred), or consider extending one of the following types with your repository: org.springframework.data.keyvalue.repository.KeyValueRepository
+2026-04-24T16:31:28.153Z  INFO 4040 --- [hashvault-backend] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 33 ms. Found 0 Redis repository interfaces.
+2026-04-24T16:31:29.698Z  INFO 4040 --- [hashvault-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8080 (http)
+2026-04-24T16:31:29.715Z  INFO 4040 --- [hashvault-backend] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-04-24T16:31:29.715Z  INFO 4040 --- [hashvault-backend] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.39]
+2026-04-24T16:31:29.757Z  INFO 4040 --- [hashvault-backend] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-04-24T16:31:29.758Z  INFO 4040 --- [hashvault-backend] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 4942 ms
+2026-04-24T16:31:30.572Z  INFO 4040 --- [hashvault-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-04-24T16:31:31.300Z  INFO 4040 --- [hashvault-backend] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@5a96f3cb
+2026-04-24T16:31:31.302Z  INFO 4040 --- [hashvault-backend] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-04-24T16:31:31.411Z  INFO 4040 --- [hashvault-backend] [           main] org.flywaydb.core.FlywayExecutor         : Database: jdbc:postgresql://localhost:5432/nexvault (PostgreSQL 16.13)
+2026-04-24T16:31:31.574Z  INFO 4040 --- [hashvault-backend] [           main] o.f.core.internal.command.DbValidate     : Successfully validated 22 migrations (execution time 00:00.081s)
+2026-04-24T16:31:31.599Z  INFO 4040 --- [hashvault-backend] [           main] o.f.core.internal.command.DbMigrate      : Current version of schema "public": 22
+2026-04-24T16:31:31.602Z  INFO 4040 --- [hashvault-backend] [           main] o.f.core.internal.command.DbMigrate      : Schema "public" is up to date. No migration necessary.
+2026-04-24T16:31:31.808Z  INFO 4040 --- [hashvault-backend] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-04-24T16:31:31.932Z  INFO 4040 --- [hashvault-backend] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.6.11.Final
+2026-04-24T16:31:31.989Z  INFO 4040 --- [hashvault-backend] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-04-24T16:31:32.521Z  INFO 4040 --- [hashvault-backend] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-04-24T16:31:32.594Z  WARN 4040 --- [hashvault-backend] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-04-24T16:31:32.619Z  INFO 4040 --- [hashvault-backend] [           main] org.hibernate.orm.connections.pooling    : HHH10001005: Database info:
+	Database JDBC URL [Connecting through datasource 'HikariDataSource (HikariPool-1)']
+	Database driver: undefined/unknown
+	Database version: 16.13
+	Autocommit mode: undefined/unknown
+	Isolation level: undefined/unknown
+	Minimum pool size: undefined/unknown
+	Maximum pool size: undefined/unknown
+2026-04-24T16:31:34.778Z  INFO 4040 --- [hashvault-backend] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-04-24T16:31:34.853Z  INFO 4040 --- [hashvault-backend] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-04-24T16:31:35.349Z  INFO 4040 --- [hashvault-backend] [           main] o.s.d.j.r.query.QueryEnhancerFactory     : Hibernate is in classpath; If applicable, HQL parser will be used.
+2026-04-24T16:31:38.588Z  INFO 4040 --- [hashvault-backend] [           main] NexVault.service.FileStorageService      : Upload directory ready: /root/uploads/products
+2026-04-24T16:31:41.114Z  INFO 4040 --- [hashvault-backend] [           main] NexVault.service.StripeService           : StripeService initialized. SecretKey prefix: sk_test_... PublishableKey prefix: pk_test_plac... Configured: false
+2026-04-24T16:31:41.126Z  INFO 4040 --- [hashvault-backend] [           main] NexVault.service.RazorpayService         : RazorpayService initialized. KeyId: rzp_test_placeholder KeySecret length: 11 Configured: false
+2026-04-24T16:31:41.849Z  WARN 4040 --- [hashvault-backend] [           main] .s.s.UserDetailsServiceAutoConfiguration : 
+
+Using generated security password: fe9cd491-78a4-4db7-a5b6-bfc9fbf85f73
+
+This generated password is for development use only. Your security configuration must be updated before running your application in production.
+
+2026-04-24T16:31:41.860Z  INFO 4040 --- [hashvault-backend] [           main] r$InitializeUserDetailsManagerConfigurer : Global AuthenticationManager configured with UserDetailsService bean with name inMemoryUserDetailsManager
+2026-04-24T16:31:42.510Z  INFO 4040 --- [hashvault-backend] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 4 endpoints beneath base path '/actuator'
+2026-04-24T16:31:43.806Z  INFO 4040 --- [hashvault-backend] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8080 (http) with context path '/'
+2026-04-24T16:31:43.827Z  INFO 4040 --- [hashvault-backend] [           main] NexVault.BackendApplication              : Started BackendApplication in 20.254 seconds (process running for 21.361)
+2026-04-24T16:31:44.111Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-04-24T16:31:44.111Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-04-24T16:31:44.113Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 2 ms
+2026-04-24T16:32:09.228Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-5] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:32:09.228Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-4] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:32:09.272Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:32:09.276Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-3] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:32:16.373Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-8] NexVault.service.ProductService          : Looking up product by id: e8fd1bc3-8fa3-4359-a33a-c7fbd6c54c54
+2026-04-24T16:32:16.387Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-7] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:32:16.702Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-9] NexVault.service.ProductService          : getAllProducts page=0 size=8 categoryId=bb6b552e-6758-469f-ba61-76edba74d4ef companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:32:16.734Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-9] NexVault.service.ProductService          : getAllProducts found 1 total products (page 0/1)
+2026-04-24T16:32:16.740Z  WARN 4040 --- [hashvault-backend] [nio-8080-exec-9] ration$PageModule$WarningLoggingModifier : Serializing PageImpl instances as-is is not supported, meaning that there is no guarantee about the stability of the resulting JSON structure!
+	For a stable JSON structure, please use Spring Data's PagedModel (globally via @EnableSpringDataWebSupport(pageSerializationMode = VIA_DTO))
+	or Spring HATEOAS and Spring Data's PagedResourcesAssembler as documented in https://docs.spring.io/spring-data/commons/reference/repositories/core-extensions.html#core.web.pageables.
+
+2026-04-24T16:32:32.122Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:32:32.127Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:32:32.140Z  INFO 4040 --- [hashvault-backend] [io-8080-exec-10] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:32:32.424Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-6] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:33:15.874Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-7] NexVault.service.ProductService          : getAllProducts page=0 size=16 categoryId=9e6303e1-0a4f-485b-9aed-2966ba943da5 companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:33:15.878Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-7] NexVault.service.ProductService          : getAllProducts found 1 total products (page 0/1)
+2026-04-24T16:33:22.435Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.ProductService          : getAllProducts page=0 size=16 categoryId=9e6303e1-0a4f-485b-9aed-2966ba943da5 companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:33:22.442Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.ProductService          : getAllProducts found 1 total products (page 0/1)
+2026-04-24T16:33:32.750Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-6] NexVault.service.ProductService          : getAllProducts page=0 size=16 categoryId=dfd6eb44-fb43-498f-b510-921649519afd companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:33:32.752Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-6] NexVault.service.ProductService          : getAllProducts found 0 total products (page 0/0)
+2026-04-24T16:33:33.098Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-5] NexVault.service.ProductService          : getAllProducts page=0 size=16 categoryId=dfd6eb44-fb43-498f-b510-921649519afd companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:33:33.100Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-5] NexVault.service.ProductService          : getAllProducts found 0 total products (page 0/0)
+2026-04-24T16:35:37.458Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-9] NexVault.service.ProductService          : getAllProducts page=0 size=16 categoryId=dfd6eb44-fb43-498f-b510-921649519afd companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:35:37.461Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-9] NexVault.service.ProductService          : getAllProducts found 0 total products (page 0/0)
+2026-04-24T16:35:37.761Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.ProductService          : getAllProducts page=0 size=16 categoryId=dfd6eb44-fb43-498f-b510-921649519afd companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:35:37.764Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.ProductService          : getAllProducts found 0 total products (page 0/0)
+2026-04-24T16:35:41.507Z  INFO 4040 --- [hashvault-backend] [io-8080-exec-10] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:35:41.513Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-5] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:35:41.529Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-3] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:35:50.035Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:35:50.048Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-7] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:35:50.053Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-4] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:36:01.532Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.ProductService          : Looking up product by id: e8fd1bc3-8fa3-4359-a33a-c7fbd6c54c54
+2026-04-24T16:36:01.834Z  INFO 4040 --- [hashvault-backend] [io-8080-exec-10] NexVault.service.ProductService          : getAllProducts page=0 size=8 categoryId=bb6b552e-6758-469f-ba61-76edba74d4ef companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:36:01.840Z  INFO 4040 --- [hashvault-backend] [io-8080-exec-10] NexVault.service.ProductService          : getAllProducts found 1 total products (page 0/1)
+2026-04-24T16:37:08.308Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-6] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:37:08.324Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:37:08.329Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-3] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:38:15.868Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-4] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:38:15.872Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:38:15.881Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-7] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:38:24.464Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-6] NexVault.service.ProductService          : getAllProducts page=0 size=16 categoryId=null companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:38:24.517Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-6] NexVault.service.ProductService          : getAllProducts found 1 total products (page 0/1)
+2026-04-24T16:38:37.229Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-9] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:38:37.240Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:38:37.243Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-3] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:39:26.038Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-3] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:39:28.770Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-8] NexVault.service.AdminProductService     : Admin soft-deleted product c26fc316-cda6-445c-8fce-2a38f09eb458
+2026-04-24T16:39:31.524Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-9] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:39:34.830Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.AdminProductService     : Admin soft-deleted product c26fc316-cda6-445c-8fce-2a38f09eb458
+2026-04-24T16:39:37.570Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-7] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:41:46.871Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:41:46.873Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:41:46.888Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-9] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:46:13.506Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-6] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:46:13.482Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-4] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:46:13.483Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:54:11.228Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-3] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T16:54:11.228Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-9] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T16:54:11.241Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:54:11.247Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-4] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:54:21.703Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-8] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:54:22.017Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] NexVault.service.ProductService          : getAllProducts page=0 size=16 categoryId=bb6b552e-6758-469f-ba61-76edba74d4ef companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:54:22.034Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] NexVault.service.ProductService          : getAllProducts found 1 total products (page 0/1)
+2026-04-24T16:54:26.361Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-6] NexVault.service.ProductService          : Looking up product by id: e8fd1bc3-8fa3-4359-a33a-c7fbd6c54c54
+2026-04-24T16:54:26.377Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-3] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T16:54:26.696Z  INFO 4040 --- [hashvault-backend] [io-8080-exec-10] NexVault.service.ProductService          : getAllProducts page=0 size=8 categoryId=bb6b552e-6758-469f-ba61-76edba74d4ef companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T16:54:26.708Z  INFO 4040 --- [hashvault-backend] [io-8080-exec-10] NexVault.service.ProductService          : getAllProducts found 1 total products (page 0/1)
+2026-04-24T17:08:04.296Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-5] NexVault.service.ProductService          : Looking up product by id: e8fd1bc3-8fa3-4359-a33a-c7fbd6c54c54
+2026-04-24T17:08:04.876Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-8] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T17:08:05.081Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] NexVault.service.ProductService          : getAllProducts page=0 size=8 categoryId=bb6b552e-6758-469f-ba61-76edba74d4ef companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T17:08:05.106Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-1] NexVault.service.ProductService          : getAllProducts found 1 total products (page 0/1)
+2026-04-24T17:08:07.744Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-6] NexVault.service.ProductService          : Fetched 1 featured products
+2026-04-24T17:08:07.749Z  INFO 4040 --- [hashvault-backend] [io-8080-exec-10] NexVault.service.ProductService          : Fetched 1 flash-deal products
+2026-04-24T17:08:07.755Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-3] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T17:08:08.061Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-2] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T17:09:22.076Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-5] NexVault.service.ProductService          : Looking up product by id: e8fd1bc3-8fa3-4359-a33a-c7fbd6c54c54
+2026-04-24T17:09:22.124Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-7] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T17:09:22.385Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-8] NexVault.service.ProductService          : getAllProducts page=0 size=8 categoryId=bb6b552e-6758-469f-ba61-76edba74d4ef companyId=null minPrice=null maxPrice=null minRating=null search=null sort=null
+2026-04-24T17:09:22.391Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-8] NexVault.service.ProductService          : getAllProducts found 1 total products (page 0/1)
+2026-04-24T17:09:30.400Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-3] NexVault.service.CategoryService         : Fetched 4 root categories for tree
+2026-04-24T17:10:58.681Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-7] NexVault.service.AdminProductService     : Admin updated product e8fd1bc3-8fa3-4359-a33a-c7fbd6c54c54
+2026-04-24T17:11:00.058Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-8] NexVault.service.FileStorageService      : Deleted image: /root/uploads/products/1m-coins-1777046781589.png
+2026-04-24T17:11:00.070Z  INFO 4040 --- [hashvault-backend] [nio-8080-exec-8] NexVault.service.FileStorageService      : Stored product image: /root/uploads/products/1m-coins-1-1777050660059.png

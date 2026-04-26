@@ -39,6 +39,7 @@ public class OrderService {
     private final CouponRepository     couponRepository;
     private final DigitalKeyRepository digitalKeyRepository;
     private final ReviewRepository     reviewRepository;
+    private final NotificationService  notificationService;
 
     @Transactional
     public OrderResponse createOrder(UUID userId, CreateOrderRequest req) {
@@ -99,6 +100,9 @@ public class OrderService {
 
         log.info("Order created: id={} user={} total={} status=PENDING_PAYMENT",
                 saved.getId(), userId, saved.getTotalAmount());
+        
+        notificationService.broadcastNewOrder(saved);
+        
         return OrderResponse.from(saved);
     }
 
@@ -109,6 +113,36 @@ public class OrderService {
                 .map(order -> enrichWithKeyRevealStatus(order))
                 .toList();
     }
+
+    /**
+     * Returns the last 10 confirmed orders with masked buyer info.
+     * Used for the social proof notification system.
+     */
+    @Transactional(readOnly = true)
+    public List<PublicOrderActivity> getRecentPublicOrders() {
+        // We only want CONFIRMED or DELIVERED orders that actually have items
+        return orderRepository.findTop10ByStatusInOrderByCreatedAtDesc(List.of("CONFIRMED", "DELIVERED"))
+                .stream()
+                .map(o -> {
+                    String name = o.getShippingName() != null ? o.getShippingName() : "A customer";
+                    // Mask name: "John Doe" -> "John D."
+                    String masked = name;
+                    if (name.contains(" ")) {
+                        String[] parts = name.split(" ");
+                        masked = parts[0] + " " + parts[1].charAt(0) + ".";
+                    }
+                    
+                    String firstProd = "a product";
+                    if (!o.getItems().isEmpty()) {
+                        firstProd = o.getItems().get(0).getProductName();
+                    }
+                    
+                    return new PublicOrderActivity(masked, firstProd, o.getCreatedAt());
+                })
+                .toList();
+    }
+
+    public record PublicOrderActivity(String customerName, String productName, java.time.LocalDateTime createdAt) {}
 
     private OrderResponse enrichWithKeyRevealStatus(Order order) {
         UUID userId = order.getUser().getId();

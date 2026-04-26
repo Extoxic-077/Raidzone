@@ -1,0 +1,10 @@
+◇ injected env (13) from ../www/wwwroot/www.raidzonemarket.com/backend/.env // tip: ⌘ suppress logs { quiet: true }
+[Discord Bot] Logged in as Raid Zone Market BOT#8325
+(node:65615) DeprecationWarning: The ready event has been renamed to clientReady to distinguish it from the gateway READY event and will only emit under that name in v15. Please use clientReady instead.
+(Use `node --trace-deprecation ...` to show where the warning was created)
+[Discord Bot] Forwarding reply to thread 9b4bdd11-acb5-465a-b152-27cfd0253fca: hey
+[Discord Bot] Forwarding reply to thread 9b4bdd11-acb5-465a-b152-27cfd0253fca: hello
+[Discord Bot] API returned 502
+[Discord Bot] Forwarding reply to thread 9b4bdd11-acb5-465a-b152-27cfd0253fca: hello
+[Discord Bot] Forwarding reply to thread 9b4bdd11-acb5-465a-b152-27cfd0253fca: asdasd
+[Discord Bot] Forwarding reply to thread 9b4bdd11-acb5-465a-b152-27cfd0253fca: hey

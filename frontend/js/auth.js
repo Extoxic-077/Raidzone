@@ -2,8 +2,8 @@
  * Auth state management for HashVault frontend.
  *
  * Access tokens are stored in memory only (never localStorage).
- * Minimal user info (name, email, role, id) is stored in sessionStorage
- * for UI display across same-tab navigation, but is cleared on tab close.
+ * Minimal user info (name, email, role, id) is stored in localStorage
+ * for UI display across sessions.
  * Refresh tokens live in an HttpOnly cookie managed by the backend.
  */
 
@@ -18,25 +18,38 @@ export function getAccessToken() {
 }
 
 /**
- * Stores the access token in memory and saves minimal user info in sessionStorage.
- * @param {Object} authResponse - The auth response data object from the API
+ * Stores the access token in memory and saves user info in either localStorage or sessionStorage.
+ * @param {Object} authResponse - The auth response data object
+ * @param {boolean} persistent - If true, uses localStorage; else sessionStorage
  */
-export function setAuth(authResponse) {
+export function setAuth(authResponse, persistent = true) {
   _accessToken = authResponse.accessToken;
   if (authResponse.user) {
-    sessionStorage.setItem('hv_user', JSON.stringify({
+    const userData = JSON.stringify({
       id:    authResponse.user.id,
       name:  authResponse.user.name,
       email: authResponse.user.email,
       role:  authResponse.user.role,
-    }));
+    });
+    
+    if (persistent) {
+      localStorage.setItem('hv_user', userData);
+      localStorage.setItem('hv_is_persistent', 'true');
+    } else {
+      sessionStorage.setItem('hv_user', userData);
+      localStorage.removeItem('hv_is_persistent');
+    }
+    localStorage.setItem('hv_logged_in', 'true');
   }
 }
 
-/** Clears the in-memory token and sessionStorage user info. */
+/** Clears tokens and info from all storage locations. */
 export function clearAuth() {
   _accessToken = null;
+  localStorage.removeItem('hv_user');
   sessionStorage.removeItem('hv_user');
+  localStorage.removeItem('hv_is_persistent');
+  localStorage.removeItem('hv_logged_in');
 }
 
 /**
@@ -48,15 +61,20 @@ export function clearAuth() {
  */
 export async function initAuth() {
   if (_accessToken) return true;
-  if (!sessionStorage.getItem('hv_user')) return false;
+  
   const ok = await _tryRefresh();
   if (!ok) clearAuth();
   return ok;
 }
 
-/** Returns true if a token is in memory AND user info is in sessionStorage. */
+/** Returns true if a token is in memory AND user info is in storage. */
 export function isLoggedIn() {
-  return _accessToken !== null && sessionStorage.getItem('hv_user') !== null;
+  return _accessToken !== null && (localStorage.getItem('hv_user') !== null || sessionStorage.getItem('hv_user') !== null);
+}
+
+/** Returns true if localStorage suggests the user was logged in (even if token not yet refreshed). */
+export function isLikelyLoggedIn() {
+  return localStorage.getItem('hv_logged_in') === 'true';
 }
 
 /**
@@ -64,7 +82,7 @@ export function isLoggedIn() {
  * @returns {{ id, name, email, role } | null}
  */
 export function getUser() {
-  const raw = sessionStorage.getItem('hv_user');
+  const raw = localStorage.getItem('hv_user') || sessionStorage.getItem('hv_user');
   if (!raw) return null;
   try { return JSON.parse(raw); } catch { return null; }
 }
@@ -107,33 +125,39 @@ export async function authFetch(url, options = {}) {
     } else {
       clearAuth();
       const page = window.location.pathname.split('/').pop() || 'index.html';
-      sessionStorage.setItem('redirectAfterLogin', page);
-      const loginPath = window.location.pathname.includes('/admin/') ? '../login.html' : 'login.html';
-      window.location.href = loginPath;
+      localStorage.setItem('redirectAfterLogin', page);
+      window.location.href = '/login.html';
     }
   }
 
   return res;
 }
 
+let _refreshPromise = null;
+
 /**
  * Attempts to refresh the access token using the HttpOnly refresh cookie.
  * @returns {Promise<boolean>} true if refresh succeeded
  */
 async function _tryRefresh() {
-  try {
-    const res = await fetch(`${BASE_URL}/auth/refresh`, {
-      method: 'POST',
-      credentials: 'include',
-    });
-    if (!res.ok) return false;
-    const json = await res.json();
-    if (json.success && json.data) {
-      setAuth(json.data);
-      return true;
-    }
-    return false;
-  } catch {
-    return false;
-  }
+  if (_refreshPromise) return _refreshPromise;
+  
+  _refreshPromise = fetch(`${BASE_URL}/auth/refresh`, {
+    method: 'POST',
+    credentials: 'include',
+  })
+    .then(res => {
+      if (!res.ok) return false;
+      return res.json().then(json => {
+        if (json.success && json.data) {
+          setAuth(json.data);
+          return true;
+        }
+        return false;
+      });
+    })
+    .catch(() => false)
+    .finally(() => { _refreshPromise = null; });
+
+  return _refreshPromise;
 }

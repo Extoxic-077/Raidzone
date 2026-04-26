@@ -9,8 +9,8 @@
 .hero-inner {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 40px;
-  padding: 48px 20px;
+  gap: 24px;
+  padding: 32px 16px;
   max-width: 1280px;
   margin: 0 auto;
   width: 100%;
@@ -51,13 +51,13 @@
 .hero-heading {
   font-family: var(--font-display);
   font-weight: 800;
-  font-size: clamp(36px, 6vw, 62px);
-  letter-spacing: -2px;
-  line-height: 1.05;
-  margin-bottom: 20px;
+  font-size: clamp(40px, 8vw, 78px);
+  letter-spacing: -3px;
+  line-height: 0.95;
+  margin-bottom: 24px;
 }
 
-.hero-heading .line { display: block; }
+.hero-heading .line { display: block; filter: drop-shadow(0 0 40px rgba(124, 58, 237, 0.2)); }
 
 .hero-heading .line-1 {
   color: var(--text-1);
@@ -99,45 +99,54 @@
   display: flex;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 40px;
+  margin-bottom: 16px;
   opacity: 0;
   animation: fadeUp 600ms ease forwards;
   animation-delay: 500ms;
 }
 
-.hero-stats {
+.hero-trust-line {
+  font-family: var(--font-body);
+  font-size: 13px;
+  color: var(--text-3);
+  font-weight: 500;
+  margin-bottom: 24px;
+  animation: fadeUp 600ms ease forwards;
+  animation-delay: 600ms;
+  opacity: 0;
+}
+
+.hero-checkmarks {
   display: flex;
-  gap: 32px;
+  gap: 16px;
   flex-wrap: wrap;
   opacity: 0;
   animation: fadeUp 600ms ease forwards;
-  animation-delay: 600ms;
+  animation-delay: 700ms;
 }
 
-.hero-stat-num {
-  font-family: var(--font-display);
-  font-weight: 800;
-  font-size: 24px;
-  background: var(--gradient-text);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: block;
-}
-
-.hero-stat-label {
+.hero-check {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-family: var(--font-body);
-  font-size: 12px;
-  color: var(--text-3);
+  font-size: 13px;
+  color: var(--text-2);
+  font-weight: 500;
+  background: rgba(255, 255, 255, 0.03);
+  padding: 6px 12px;
+  border-radius: var(--r-full);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* ─── PROMO SLIDER ───────────────────────────── */
 .promo-slider-wrap {
-  background: var(--bg2);
+  background: var(--bg1);
   border: 1px solid var(--glass-border);
   border-radius: var(--r-xl);
   overflow: hidden;
   position: relative;
+  box-shadow: var(--shadow-lg), inset 0 0 80px rgba(0,0,0,0.5);
 }
 
 .slider-track {
@@ -286,6 +295,8 @@
   scrollbar-width: none;
   position: relative;
   z-index: 1;
+  mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 10%, #000 90%, transparent);
 }
 
 .trust-bar::-webkit-scrollbar { display: none; }
@@ -296,7 +307,6 @@
   gap: 0;
   min-width: max-content;
   margin: 0 auto;
-  max-width: 1280px;
 }
 
 .trust-item {
@@ -342,6 +352,8 @@
   transition: background var(--ease-base), border-color var(--ease-base);
   flex-shrink: 0;
   font-family: var(--font-body);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .cat-chip:hover {
@@ -427,6 +439,8 @@
   cursor: pointer;
   transition: border-color var(--ease-fast), transform var(--ease-base);
   flex-shrink: 0;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .deal-card:hover {
@@ -501,10 +515,10 @@
   gap: 14px;
   overflow-x: auto;
   scrollbar-width: none;
-  padding-bottom: 4px;
+  padding: 0 4px 12px;
+  mask-image: linear-gradient(90deg, #000 85%, transparent);
+  -webkit-mask-image: linear-gradient(90deg, #000 85%, transparent);
 }
-
-.news-scroll::-webkit-scrollbar { display: none; }
 
 .news-card {
   min-width: 300px;
@@ -515,6 +529,8 @@
   cursor: pointer;
   flex-shrink: 0;
   transition: border-color var(--ease-base), transform var(--ease-base);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .news-card:hover {
@@ -615,6 +631,8 @@
   color: var(--text-3);
   cursor: pointer;
   transition: all var(--ease-fast);
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .brand-chip:hover {

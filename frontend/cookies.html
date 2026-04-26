@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Cookie Policy — Raidzone</title>
+  <title>Cookie Policy — RAIDZONE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/variables.css"/>
-  <link rel="stylesheet" href="css/base.css"/>
-  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/variables.v5.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/base.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/components.v5.css?v=2.1.0"/>
   <style>
     .static-page { max-width: 760px; margin: 0 auto; padding: 84px 24px 120px; }
     .static-title { font-family: var(--font-heading); font-size: clamp(1.8rem, 4vw, 2.6rem); font-weight: 800; margin-bottom: 8px; }
@@ -20,7 +20,7 @@
     th { background: var(--bg2); padding: 10px 14px; text-align: left; font-weight: 700; color: var(--text-3); border-bottom: 1px solid var(--glass-border); }
     td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,.04); color: var(--text-2); }
   </style>
-</head>
+<link rel="stylesheet" href="/css/rz-header.v5.css?v=5.0.0"></head>
 <body>
 <div id="navbar"></div>
 
@@ -28,7 +28,7 @@
   <h1 class="static-title">Cookie Policy</h1>
   <p class="static-date">Last updated: January 2025</p>
 
-  <p>We use cookies and similar technologies to operate and improve Raidzone. This page explains what cookies we use and how you can control them.</p>
+  <p>We use cookies and similar technologies to operate and improve RAIDZONE. This page explains what cookies we use and how you can control them.</p>
 
   <h2>What Are Cookies?</h2>
   <p>Cookies are small text files stored on your device by your browser. They help websites remember information about your visit and preferences.</p>
@@ -65,8 +65,8 @@
 
 <script src="/js/config.js"></script>
 <script type="module">
-import { initNavbar } from './js/components/navbar.js';
-import { initFooter } from './js/components/footer.js';
+import { initNavbar } from './js/components/rz-nav.js?v=1.1.0';
+import { initFooter } from './js/components/rz-foot.js?v=1.1.0';
 await initNavbar();
 initFooter();
 </script>

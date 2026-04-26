@@ -6,15 +6,15 @@ services:
     image: postgres:16
     container_name: hashvault-db
     environment:
-      POSTGRES_DB: nexvault
-      POSTGRES_USER: nexvault
-      POSTGRES_PASSWORD: nexvault
+      POSTGRES_DB: raidzone
+      POSTGRES_USER: raidzone
+      POSTGRES_PASSWORD: raidzone
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U nexvault -d nexvault"]
+      test: ["CMD-SHELL", "pg_isready -U raidzone -d raidzone"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -81,7 +81,7 @@ services:
     container_name: hashvault-postgres-exporter
     profiles: [monitoring]
     environment:
-      DATA_SOURCE_NAME: postgresql://nexvault:nexvault@postgres:5432/nexvault?sslmode=disable
+      DATA_SOURCE_NAME: postgresql://raidzone:raidzone@postgres:5432/raidzone?sslmode=disable
     ports:
       - "9187:9187"
     depends_on:

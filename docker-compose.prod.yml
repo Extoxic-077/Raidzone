@@ -5,15 +5,15 @@ services:
   # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:16
-    container_name: nexvault-db
+    container_name: raidzone-db
     environment:
-      POSTGRES_DB: ${DB_NAME:-nexvault}
-      POSTGRES_USER: ${DB_USER:-nexvault}
+      POSTGRES_DB: ${DB_NAME:-raidzone}
+      POSTGRES_USER: ${DB_USER:-raidzone}
       POSTGRES_PASSWORD: ${DB_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-nexvault} -d ${DB_NAME:-nexvault}"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER:-raidzone} -d ${DB_NAME:-raidzone}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -23,7 +23,7 @@ services:
   # ── Redis ────────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
-    container_name: nexvault-redis
+    container_name: raidzone-redis
     command: >
       redis-server
       --maxmemory 256mb
@@ -40,13 +40,13 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
-    container_name: nexvault-backend
+    container_name: raidzone-backend
     environment:
       PORT: ${PORT:-8080}
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_NAME: ${DB_NAME:-nexvault}
-      DB_USER: ${DB_USER:-nexvault}
+      DB_NAME: ${DB_NAME:-raidzone}
+      DB_USER: ${DB_USER:-raidzone}
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: redis
       REDIS_PORT: 6379
@@ -77,7 +77,7 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
-    container_name: nexvault-frontend
+    container_name: raidzone-frontend
     environment:
       PORT: 3000
       API_URL: ${API_URL:-http://localhost:8080}

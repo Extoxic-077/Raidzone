@@ -7,11 +7,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="../css/variables.css"/>
-  <link rel="stylesheet" href="../css/animations.css"/>
-  <link rel="stylesheet" href="../css/base.css"/>
-  <link rel="stylesheet" href="../css/components.css"/>
-  <link rel="stylesheet" href="../css/pages/admin.css"/>
+  <link rel="stylesheet" href="../css/variables.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/animations.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/base.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/components.v5.css?v=11.0.0"/>
+  <link rel="stylesheet" href="../css/pages/admin.css?v=11.0.0"/>
 </head>
 <body>
 <div class="admin-layout">
@@ -89,7 +89,7 @@
 
 <div id="toast-container"></div>
 
-<script src="../js/config.js"></script>
+<script src="../js/config.js?v=11.0.0"></script>
 <script type="module">
 import { initAdminSidebar } from './js/adminSidebar.js';
 import { initAuth, isLoggedIn } from '../js/auth.js';
@@ -100,7 +100,7 @@ await initAuth();
 if (!isLoggedIn()) { window.location.href = '../login.html'; }
 await initAdminSidebar('orders');
 
-const fmt = v => '₹' + Number(v).toLocaleString('en-IN');
+const fmt = v => '$' + Number(v).toLocaleString('en-US');
 const timeAgo = iso => {
   const diff = Date.now() - new Date(iso).getTime();
   const m = Math.floor(diff / 60000);
@@ -122,7 +122,7 @@ let selectedIds = new Set();
 let currentOrderId = null;
 
 // ── Load & render orders ──────────────────────────────────────────────────────
-async function loadOrders(page = 0) {
+window.loadOrders = async function(page = 0) {
   const status = document.getElementById('status-filter').value;
   const search = document.getElementById('search-input').value.trim();
   document.getElementById('orders-body').innerHTML = '<tr><td colspan="9" style="text-align:center;color:var(--text-4);padding:40px">Loading…</td></tr>';
@@ -301,8 +301,8 @@ async function openOrderModal(orderId) {
               <span style="color:#22D3EE;font-weight:600">−${fmt(o.discountAmount ?? 0)}</span>
             </div>` : ''}
           <div style="margin-top:12px;font-size:11px;color:var(--text-4)">
-            Created: ${new Date(o.createdAt).toLocaleString('en-IN')}<br>
-            ${o.paidAt ? 'Paid: ' + new Date(o.paidAt).toLocaleString('en-IN') : ''}
+            Created: ${new Date(o.createdAt).toLocaleString('en-US')}<br>
+            ${o.paidAt ? 'Paid: ' + new Date(o.paidAt).toLocaleString('en-US') : ''}
           </div>
         </div>
         <div>

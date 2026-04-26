@@ -41,20 +41,18 @@
 /* ─── PAGE SHELL: fills viewport, no outer scroll ────────────────────────── */
 
 .checkout-page {
-  height: 100vh;
+  min-height: 100dvh;
   padding-top: 52px;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
 }
 
 .checkout-inner {
   flex: 1;
-  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: 14px 24px 16px;
+  padding: 14px 16px 24px;
   max-width: 1080px;
   width: 100%;
   margin: 0 auto;
@@ -134,9 +132,17 @@
 
 .co-layout {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 14px;
-  height: 100%;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  height: auto;
+}
+
+@media (min-width: 1024px) {
+  .co-layout {
+    grid-template-columns: 1fr 1fr;
+    height: 100%;
+    gap: 14px;
+  }
 }
 
 /* ─── Column cards ───────────────────────────────────────────────────────── */
@@ -149,8 +155,14 @@
   display: flex;
   flex-direction: column;
   min-height: 0;
-  overflow-y: auto;
+  overflow-y: visible;
   overflow-x: hidden;
+}
+
+@media (min-width: 1024px) {
+  .co-card {
+     overflow-y: auto;
+  }
 }
 
 /* thin scrollbar inside cards */
@@ -414,13 +426,11 @@
 
 .co-empty-icon { font-size: 48px; margin-bottom: 12px; }
 
-/* ═══════════════════════════════════════════════════════════════════════════
-   NEXVAULT PAY — Step 2 right-column elements
-   ═══════════════════════════════════════════════════════════════════════════ */
+/* ─── RAIDZONE PAY — Step 2 right-column elements ──────────────────────────── */
 
 /* ── Secure row ──────────────────────────────────────────────────────────── */
 
-.nvpay-secure-row {
+.rzpay-secure-row {
   display: flex;
   align-items: center;
   gap: 6px;

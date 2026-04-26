@@ -85,4 +85,6 @@ public interface OrderRepository extends JpaRepository<Order, UUID> {
     /** Revenue from CONFIRMED orders since a given timestamp. */
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM Order o WHERE o.status = 'CONFIRMED' AND o.createdAt >= :since")
     Double sumRevenueSince(@Param("since") LocalDateTime since);
+
+    List<Order> findTop10ByStatusInOrderByCreatedAtDesc(List<String> statuses);
 }

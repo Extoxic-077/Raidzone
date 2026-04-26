@@ -32,8 +32,8 @@ jobs:
 
             echo "DB_HOST=127.0.0.1"
             echo "DB_PORT=5432"
-            echo "DB_NAME=nexvault"
-            echo "DB_USER=nexvault"
+            echo "DB_NAME=raidzone"
+            echo "DB_USER=raidzone"
             printf 'DB_PASSWORD=%s\n' '${{ secrets.DB_PASSWORD }}'
 
             echo "REDIS_HOST=127.0.0.1"
@@ -41,7 +41,7 @@ jobs:
 
             printf 'JWT_SECRET=%s\n' '${{ secrets.JWT_SECRET }}'
 
-            echo "CORS_ALLOWED_ORIGINS=https://nexvault.digital"
+            echo "CORS_ALLOWED_ORIGINS=https://raidzone.digital"
 
             printf 'MAIL_USERNAME=%s\n' '${{ secrets.MAIL_USERNAME }}'
             printf 'MAIL_PASSWORD=%s\n' '${{ secrets.MAIL_PASSWORD }}'
@@ -51,7 +51,7 @@ jobs:
             printf 'GOOGLE_CLIENT_SECRET=%s\n' '${{ secrets.GOOGLE_CLIENT_SECRET }}'
             printf 'DISCORD_CLIENT_ID=%s\n'    '${{ secrets.DISCORD_CLIENT_ID }}'
             printf 'DISCORD_CLIENT_SECRET=%s\n' '${{ secrets.DISCORD_CLIENT_SECRET }}'
-            echo "OAUTH_REDIRECT_BASE_URL=https://nexvault.digital"
+            echo "OAUTH_REDIRECT_BASE_URL=https://raidzone.digital"
 
             printf 'STRIPE_SECRET_KEY=%s\n'      '${{ secrets.STRIPE_SECRET_KEY }}'
             printf 'STRIPE_PUBLISHABLE_KEY=%s\n' '${{ secrets.STRIPE_PUBLISHABLE_KEY }}'
@@ -65,11 +65,11 @@ jobs:
             printf 'COINBASE_WEBHOOK_SECRET=%s\n' '${{ secrets.COINBASE_WEBHOOK_SECRET }}'
 
             # $HOME expands on the server when the file is sourced — not here
-            echo 'UPLOAD_DIR=$HOME/nexvault-uploads'
-          } > /tmp/nexvault.env
+            echo 'UPLOAD_DIR=$HOME/raidzone-uploads'
+          } > /tmp/raidzone.env
 
-          scp /tmp/nexvault.env "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/nexvault/.env"
-          rm -f /tmp/nexvault.env
+          scp /tmp/raidzone.env "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:~/raidzone/.env"
+          rm -f /tmp/raidzone.env
 
       # ── Main deploy ───────────────────────────────────────────────────────────
       # Single-quoted 'ENDSSH' → bash variables like ${DB_HOST} are NOT expanded
@@ -81,13 +81,13 @@ jobs:
 
             # ── Pull latest code ────────────────────────────────────────────────
             echo "=== Pulling latest code ==="
-            cd ~/nexvault
+            cd ~/raidzone
             git reset --hard HEAD
             git pull origin master
 
             # ── Build backend ───────────────────────────────────────────────────
             echo "=== Building backend ==="
-            cd ~/nexvault/backend
+            cd ~/raidzone/backend
             ./mvnw clean package -DskipTests
 
             # ── Stop old backend ────────────────────────────────────────────────
@@ -96,16 +96,16 @@ jobs:
             sleep 3
 
             # ── Ensure upload directory exists ──────────────────────────────────
-            mkdir -p "$HOME/nexvault-uploads"
+            mkdir -p "$HOME/raidzone-uploads"
 
             # ── Load all secrets from .env ──────────────────────────────────────
             set -a
-            source ~/nexvault/.env
+            source ~/raidzone/.env
             set +a
 
             # ── Start backend ───────────────────────────────────────────────────
             echo "=== Starting backend ==="
-            cd ~/nexvault
+            cd ~/raidzone
             nohup java -jar backend/target/backend-0.0.1-SNAPSHOT.jar \
               --spring.datasource.url="jdbc:postgresql://${DB_HOST}:${DB_PORT}/${DB_NAME}" \
               --spring.datasource.username="${DB_USER}" \
@@ -129,7 +129,7 @@ jobs:
               --app.razorpay.webhook-secret="${RAZORPAY_WEBHOOK_SECRET}" \
               --app.coinbase.api-key="${COINBASE_API_KEY}" \
               --app.coinbase.webhook-secret="${COINBASE_WEBHOOK_SECRET}" \
-              --app.upload.dir="$HOME/nexvault-uploads" \
+              --app.upload.dir="$HOME/raidzone-uploads" \
               --management.health.mail.enabled=false \
               --server.port=8080 \
               > ~/app.log 2>&1 &
@@ -145,8 +145,8 @@ jobs:
               || { echo "CATEGORIES CHECK FAILED"; tail -20 ~/app.log; exit 1; }
 
             # ── Public HTTPS sanity check via domain ────────────────────────────
-            curl -sf https://nexvault.digital/api/v1/categories \
+            curl -sf https://raidzone.digital/api/v1/categories \
               || echo "WARN: HTTPS domain check failed (may be DNS/proxy lag)"
 
-            echo "=== Deploy complete! https://nexvault.digital ==="
+            echo "=== Deploy complete! https://raidzone.digital ==="
           ENDSSH

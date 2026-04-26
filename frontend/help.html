@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Help Center — Raidzone</title>
+  <title>Help Center — RAIDZONE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/variables.css"/>
-  <link rel="stylesheet" href="css/base.css"/>
-  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/variables.v5.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/base.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/components.v5.css?v=2.1.0"/>
   <style>
     .static-page { max-width: 800px; margin: 0 auto; padding: 84px 24px 120px; }
     .static-hero { text-align: center; margin-bottom: 48px; }
@@ -25,7 +25,7 @@
     .faq-a { display: none; padding: 14px 18px; font-size: 14px; color: var(--text-2); line-height: 1.7; background: var(--bg1); }
     .faq-item.open .faq-a { display: block; }
   </style>
-</head>
+<link rel="stylesheet" href="/css/rz-header.v5.css?v=5.0.0"></head>
 <body>
 <div id="navbar"></div>
 
@@ -73,8 +73,8 @@
 
 <script src="/js/config.js"></script>
 <script type="module">
-import { initNavbar } from './js/components/navbar.js';
-import { initFooter } from './js/components/footer.js';
+import { initNavbar } from './js/components/rz-nav.js?v=1.1.0';
+import { initFooter } from './js/components/rz-foot.js?v=1.1.0';
 await initNavbar();
 initFooter();
 

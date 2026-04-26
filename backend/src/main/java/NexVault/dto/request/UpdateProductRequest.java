@@ -18,7 +18,9 @@ public record UpdateProductRequest(
         @Size(max = 100) String productType,
         @Size(max = 50)  String region,
         @Size(max = 20)  String badge,
+        String blueprintTags,
         Boolean isFlashDeal,
         Boolean isActive,
-        Integer sortOrder
+        Integer sortOrder,
+        Integer stockCount
 ) {}

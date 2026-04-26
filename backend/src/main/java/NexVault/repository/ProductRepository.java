@@ -93,18 +93,35 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
      */
     @Query("""
             SELECT p FROM Product p
+            LEFT JOIN p.category cat
+            LEFT JOIN cat.parent p1
+            LEFT JOIN p1.parent p2
+            LEFT JOIN p2.parent p3
             WHERE p.isActive = true
-              AND (:categoryId IS NULL
-                   OR p.category.id = :categoryId
-                   OR p.category.parent.id = :categoryId)
+              AND (
+                   (:categoryId IS NULL AND :categorySlug IS NULL)
+                   OR (cat.id = :categoryId)
+                   OR (p1.id = :categoryId)
+                   OR (p2.id = :categoryId)
+                   OR (p3.id = :categoryId)
+                   OR (cat.slug = :categorySlug)
+                   OR (p1.slug = :categorySlug)
+                   OR (p2.slug = :categorySlug)
+                   OR (p3.slug = :categorySlug)
+                  )
               AND (:companyId  IS NULL OR p.company.id = :companyId)
+              AND (CAST(:productType AS text) IS NULL OR p.productType = CAST(:productType AS text))
+              AND (CAST(:blueprintTag AS text) IS NULL OR p.blueprintTags LIKE CONCAT('%', CAST(:blueprintTag AS text), '%'))
               AND (:minPrice   IS NULL OR p.price >= :minPrice)
               AND (:maxPrice   IS NULL OR p.price <= :maxPrice)
               AND (:minRating  IS NULL OR p.avgRating >= :minRating)
             """)
     Page<Product> findByFilters(
             @Param("categoryId") UUID categoryId,
+            @Param("categorySlug") String categorySlug,
             @Param("companyId")  UUID companyId,
+            @Param("productType") String productType,
+            @Param("blueprintTag") String blueprintTag,
             @Param("minPrice")   BigDecimal minPrice,
             @Param("maxPrice")   BigDecimal maxPrice,
             @Param("minRating")  BigDecimal minRating,
@@ -112,11 +129,25 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
 
     @Query("""
             SELECT p FROM Product p
+            LEFT JOIN p.category cat
+            LEFT JOIN cat.parent p1
+            LEFT JOIN p1.parent p2
+            LEFT JOIN p2.parent p3
             WHERE p.isActive = true
-              AND (:categoryId IS NULL
-                   OR p.category.id = :categoryId
-                   OR p.category.parent.id = :categoryId)
+              AND (
+                   (:categoryId IS NULL AND :categorySlug IS NULL)
+                   OR (cat.id = :categoryId)
+                   OR (p1.id = :categoryId)
+                   OR (p2.id = :categoryId)
+                   OR (p3.id = :categoryId)
+                   OR (cat.slug = :categorySlug)
+                   OR (p1.slug = :categorySlug)
+                   OR (p2.slug = :categorySlug)
+                   OR (p3.slug = :categorySlug)
+                  )
               AND (:companyId  IS NULL OR p.company.id = :companyId)
+              AND (CAST(:productType AS text) IS NULL OR p.productType = CAST(:productType AS text))
+              AND (CAST(:blueprintTag AS text) IS NULL OR p.blueprintTags LIKE CONCAT('%', CAST(:blueprintTag AS text), '%'))
               AND (
                 LOWER(p.name)        LIKE LOWER(CONCAT('%', :query, '%'))
                 OR LOWER(p.description) LIKE LOWER(CONCAT('%', :query, '%'))
@@ -126,6 +157,9 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Page<Product> searchProductsWithFilters(
             @Param("query")      String query,
             @Param("categoryId") UUID categoryId,
+            @Param("categorySlug") String categorySlug,
             @Param("companyId")  UUID companyId,
+            @Param("productType") String productType,
+            @Param("blueprintTag") String blueprintTag,
             Pageable pageable);
 }

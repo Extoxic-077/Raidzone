@@ -3,13 +3,13 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Press — Raidzone</title>
+  <title>Press — RAIDZONE</title>
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="css/variables.css"/>
-  <link rel="stylesheet" href="css/base.css"/>
-  <link rel="stylesheet" href="css/components.css"/>
+  <link rel="stylesheet" href="css/variables.v5.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/base.css?v=2.1.0"/>
+  <link rel="stylesheet" href="css/components.v5.css?v=2.1.0"/>
   <style>
     .static-page { max-width: 760px; margin: 0 auto; padding: 84px 24px 120px; }
     .static-hero { text-align: center; margin-bottom: 56px; }
@@ -32,15 +32,15 @@
     .fact-val { font-size: 1.6rem; font-weight: 800; color: var(--violet-light); font-family: var(--font-mono); }
     .fact-lbl { font-size: 12px; color: var(--text-3); margin-top: 4px; }
   </style>
-</head>
+<link rel="stylesheet" href="/css/rz-header.v5.css?v=5.0.0"></head>
 <body>
 <div id="navbar"></div>
 
 <div class="static-page">
   <div class="static-hero">
     <div class="static-eyebrow">Newsroom</div>
-    <h1 class="static-title">Raidzone Press Kit</h1>
-    <p class="static-lead">Resources and information for journalists, bloggers, and content creators covering Raidzone.</p>
+    <h1 class="static-title">RAIDZONE Press Kit</h1>
+    <p class="static-lead">Resources and information for journalists, bloggers, and content creators covering RAIDZONE.</p>
   </div>
 
   <div class="static-section">
@@ -57,7 +57,7 @@
 
   <div class="static-section">
     <h2>Brand Assets</h2>
-    <p>Use the following assets when covering Raidzone. Please do not alter colours, proportions, or spacing of the logo.</p>
+    <p>Use the following assets when covering RAIDZONE. Please do not alter colours, proportions, or spacing of the logo.</p>
     <div class="asset-grid">
       <div class="asset-card" onclick="toast('Logo SVG — contact press@raidzonemarket.com')"><div class="asset-icon">⬡</div><div class="asset-name">Logo (SVG)</div><div class="asset-size">Vector · All sizes</div></div>
       <div class="asset-card" onclick="toast('Logo PNG — contact press@raidzonemarket.com')"><div class="asset-icon">🖼️</div><div class="asset-name">Logo (PNG)</div><div class="asset-size">2x · Dark bg</div></div>
@@ -81,8 +81,8 @@
 
 <script src="/js/config.js"></script>
 <script type="module">
-import { initNavbar } from './js/components/navbar.js';
-import { initFooter } from './js/components/footer.js';
+import { initNavbar } from './js/components/rz-nav.js?v=1.1.0';
+import { initFooter } from './js/components/rz-foot.js?v=1.1.0';
 import { showToast } from './js/components/toast.js';
 await initNavbar();
 initFooter();

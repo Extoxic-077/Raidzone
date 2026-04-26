@@ -277,9 +277,9 @@ For local development the defaults in `application.yml` work without any setup (
 
 ```env
 # Database
-DB_URL=jdbc:postgresql://localhost:5432/nexvault
-DB_USER=nexvault
-DB_PASS=nexvault
+DB_URL=jdbc:postgresql://localhost:5432/raidzone
+DB_USER=raidzone
+DB_PASS=raidzone
 
 # JWT
 JWT_SECRET=your-secret-key-min-32-characters

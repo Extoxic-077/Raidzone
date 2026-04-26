@@ -39,4 +39,10 @@ public interface UserRepository extends JpaRepository<User, UUID> {
      * Count users registered in a given date range.
      */
     long countByCreatedAtBetween(LocalDateTime from, LocalDateTime to);
+
+    /**
+     * Finds the first user with the given role (e.g., "ADMIN").
+     * Used by DiscordService to find an admin sender for Discord-originated replies.
+     */
+    Optional<User> findFirstByRole(String role);
 }

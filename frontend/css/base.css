@@ -51,10 +51,19 @@ body::before {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background:
-    radial-gradient(ellipse 80vw 60vh at 80% 10%, rgba(124, 58, 237, 0.15) 0%, transparent 60%),
-    radial-gradient(ellipse 60vw 50vh at 10% 90%, rgba(34, 211, 238, 0.08) 0%, transparent 60%);
-  animation: meshShift 12s ease-in-out infinite;
+  background: 
+    radial-gradient(circle at 10% 10%, rgba(124, 58, 237, 0.12) 0%, transparent 40%),
+    radial-gradient(circle at 90% 10%, rgba(34, 211, 238, 0.08) 0%, transparent 40%),
+    radial-gradient(circle at 50% 90%, rgba(124, 58, 237, 0.05) 0%, transparent 50%),
+    radial-gradient(circle at 80% 80%, rgba(34, 211, 238, 0.03) 0%, transparent 40%);
+  filter: blur(80px);
+  animation: meshShift 20s ease-in-out infinite alternate;
+}
+
+@keyframes meshShift {
+  0%   { transform: scale(1) translate(0, 0); }
+  50%  { transform: scale(1.1) translate(-2%, 2%); }
+  100% { transform: scale(1) translate(1%, -1%); }
 }
 
 /* Grid overlay */
@@ -216,6 +225,19 @@ select option {
   background: rgba(124,58,237,0.08);
 }
 
+.stagger-in {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: revealIn 0.5s cubic-bezier(0.23, 1, 0.32, 1) forwards;
+}
+
+@keyframes revealIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .visually-hidden {
   position: absolute;
   width: 1px;
@@ -236,4 +258,61 @@ select option {
     animation-iteration-count: 1 !important;
     transition-duration: 0.001ms !important;
   }
+}
+/* ─── MOBILE INTERACTION & CLICK-BLOCKER FIXES ───────────────────────── */
+/* 
+ * Proactive reset to ensure that decorative technical layers (particles, glows, 
+ * glass overlays) never capture touch events intended for UI elements.
+ */
+
+/* 1. Global pointer-event reset for decorative elements */
+canvas,
+.background,
+.overlay,
+.particles,
+.technical-glow,
+.glass-shine,
+.body-mesh,
+.grid-overlay {
+  pointer-events: none !important;
+}
+
+/* 2. Raise interaction priority for all primary UI elements */
+button,
+a,
+input,
+select,
+textarea,
+.product-card,
+.game-tile,
+.cat-chip,
+.bn-item,
+.nav-cat-btn,
+.game-tab,
+[role="button"] {
+  pointer-events: auto !important;
+  position: relative;
+  z-index: 10; /* Elevate above background mesh */
+  touch-action: manipulation; /* Eliminate browser 300ms delay */
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* 3. Accessibility: Minimum touch target size on mobile */
+@media (max-width: 767px) {
+  button, 
+  .btn,
+  .bn-item,
+  .icon-btn,
+  .nav-cat-btn {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}
+
+/* 4. Fix potential invisible blocking layers from backdrop-filters */
+.navbar, 
+.header, 
+#navbar, 
+#bottom-nav {
+  pointer-events: auto !important;
 }

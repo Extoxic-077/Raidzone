@@ -31,7 +31,7 @@ public record AdminPaymentResponse(
             custName, custEmail,
             p.getProvider() != null ? p.getProvider().name() : null,
             p.getStatus()   != null ? p.getStatus().name()   : null,
-            p.getAmount(), "INR",
+            p.getAmount(), "USD",
             p.getCreatedAt()
         );
     }

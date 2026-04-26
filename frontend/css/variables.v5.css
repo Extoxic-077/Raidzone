@@ -1,0 +1,73 @@
+:root {
+  /* Backgrounds — Ultra-layered depth system */
+  --bg0: #05050A;        /* Deep abyss */
+  --bg1: #0A0A16;        /* Surface */
+  --bg2: #0F0F23;        /* Elevation 1 */
+  --bg3: #16162E;        /* Elevation 2 */
+  --bg4: #1E1E3A;        /* Elevation 3 */
+
+  /* Glass morphism — Premium levels */
+  --glass: rgba(255, 255, 255, 0.03);
+  --glass-hover: rgba(255, 255, 255, 0.06);
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-border-accent: rgba(34, 211, 238, 0.2);
+  --glass-blur: blur(20px);
+  --glass-blur-heavy: blur(40px);
+
+  /* Accents — Neon & Gradient system */
+  --neon-teal:      #00FFCC;
+  --neon-blue:      #22D3EE;
+  --neon-purple:    #C084FC;
+  --neon-magenta:   #FF33FF;
+  
+  --neon-glow:      0 0 15px rgba(34, 211, 238, 0.4);
+  --neon-glow-teal: 0 0 15px rgba(0, 255, 204, 0.4);
+  
+  --success: #00FF66;
+  --warning: #FFCC00;
+  --danger:  #FF3366;
+  
+  --gradient-brand:  linear-gradient(135deg, #7C3AED, #22D3EE);
+  --gradient-cyber:  linear-gradient(135deg, #C084FC, #22D3EE);
+  --gradient-teal:   linear-gradient(135deg, #22D3EE, #00FFCC);
+  --gradient-neon:   linear-gradient(135deg, #00FFCC, #22D3EE);
+  --gradient-text:   linear-gradient(135deg, #FFFFFF, #22D3EE);
+  --gradient-shimmer: linear-gradient(90deg, transparent, rgba(255,255,255,0.1), transparent);
+  
+  /* Neutral palette */
+  --text-1: #FFFFFF;
+  --text-2: #B8B5D4;
+  --text-3: #716F96;
+  --text-4: #45426B;
+  --text-5: #2A2845;
+
+  /* Aliases for legacy system compatibility */
+  --violet:       #7C3AED;
+  --violet-light: #C084FC;
+  --gradient:     linear-gradient(135deg, #7C3AED, #22D3EE);
+
+  /* Shadows */
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 12px 32px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 24px 64px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(34, 211, 238, 0.2);
+  --shadow-neon: 0 0 25px rgba(0, 255, 204, 0.3);
+
+  /* Border Radii */
+  --r-sm: 8px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-xl: 32px;
+  --r-full: 9999px;
+
+  /* Sophisticated Transitions */
+  --ease-fast: 150ms cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-base: 300ms cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-slow: 600ms cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-spring: 600ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+
+  /* Fonts */
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'DM Sans', sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}

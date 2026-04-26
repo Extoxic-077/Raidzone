@@ -55,7 +55,7 @@ public class RazorpayService {
     }
 
     @Transactional
-    public RazorpayOrderResponse createOrder(UUID orderId, BigDecimal amountINR, UUID userId) {
+    public RazorpayOrderResponse createOrder(UUID orderId, BigDecimal amountUSD, UUID userId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order", orderId));
 
@@ -66,14 +66,14 @@ public class RazorpayService {
             throw new IllegalStateException("Order is not awaiting payment (status: " + order.getStatus() + ")");
         }
 
-        long amountInPaise = amountINR.multiply(BigDecimal.valueOf(100)).longValue();
+        long amountInCents = amountUSD.multiply(BigDecimal.valueOf(100)).longValue();
 
         try {
             RazorpayClient razorpay = new RazorpayClient(keyId, keySecret);
 
             JSONObject options = new JSONObject();
-            options.put("amount",   amountInPaise);
-            options.put("currency", "INR");
+            options.put("amount",   amountInCents);
+            options.put("currency", "USD");
             options.put("receipt",  "hv_" + orderId.toString().substring(0, 8));
 
             JSONObject notes = new JSONObject();
@@ -89,10 +89,10 @@ public class RazorpayService {
             payment.setProvider(PaymentProvider.RAZORPAY);
             payment.setStatus(PaymentStatus.PENDING);
             payment.setRazorpayOrderId(razorpayOrderId);
-            payment.setAmount(amountINR);
+            payment.setAmount(amountUSD);
             paymentRepository.save(payment);
 
-            return new RazorpayOrderResponse(razorpayOrderId, keyId, amountInPaise, "INR", orderId);
+            return new RazorpayOrderResponse(razorpayOrderId, keyId, amountInCents, "USD", orderId);
 
         } catch (RazorpayException e) {
             throw new RuntimeException("Razorpay error: " + e.getMessage(), e);
@@ -136,6 +136,7 @@ public class RazorpayService {
         order.setPaidAt(LocalDateTime.now());
         order.setPaymentMethod("RAZORPAY");
         orderRepository.save(order);
+        notificationService.broadcastOrderStatusUpdate(order);
         cartService.clearCart(userId);
 
         order.getItems().forEach(item -> {
@@ -165,7 +166,7 @@ public class RazorpayService {
                 order.getUser().getName(),
                 order.getId().toString().substring(0, 8).toUpperCase(),
                 buildItemsHtml(order),
-                "₹" + order.getTotalAmount().toBigInteger(),
+                "$" + order.getTotalAmount().toBigInteger(),
                 "Razorpay"
             );
         } catch (Exception e) {
@@ -182,7 +183,7 @@ public class RazorpayService {
             String name = item.getProduct() != null ? item.getProduct().getName() : "Product";
             sb.append(String.format(
                 "<tr><td style=\"color:#F1F0F7;padding:6px 0;\">%s × %d</td>" +
-                "<td style=\"text-align:right;color:#C084FC;font-weight:700;\">₹%s</td></tr>",
+                "<td style=\"text-align:right;color:#C084FC;font-weight:700;\">$%s</td></tr>",
                 name, item.getQuantity(),
                 item.getLineTotal() != null ? item.getLineTotal().toBigInteger() : "0"
             ));
