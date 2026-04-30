@@ -35,7 +35,7 @@ router.get('/', async (req, res) => {
     if (page > 1000) return res.status(400).json({ success: false, error: 'Invalid page depth', code: 'VALIDATION_ERROR' });
 
     const gameSlug = req.query.game || req.query.categorySlug;
-    const isCacheable = page <= 10 && (!search || search.length < 30);
+    const isCacheable = page <= 10 && (!search || search.length < 30) && req.query.admin !== 'true';
     cacheKey = buildCacheKey({ ...req.query, game: gameSlug });
 
     if (isCacheable) {

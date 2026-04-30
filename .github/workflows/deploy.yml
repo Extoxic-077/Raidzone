@@ -64,6 +64,9 @@ jobs:
 
             # Restart named PM2 process
             PORT=${{ env.PORT }} NODE_ENV=production pm2 restart ${{ env.PM2_NAME }} --update-env || PORT=${{ env.PORT }} NODE_ENV=production pm2 start server.js --name ${{ env.PM2_NAME }}
+
+            # Clear Redis cache
+            redis-cli flushall || echo "Redis flush failed, continuing..."
           ENDSSH
 
       - name: Deploy Frontend & Admin (Atomic Release)
