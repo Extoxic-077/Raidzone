@@ -139,7 +139,7 @@ export function initFooter() {
     const btn = document.getElementById('footer-subscribe');
     btn.disabled = true; btn.textContent = '…';
     try {
-      const API = window.__API_BASE__ || '/api/v1';
+      const API = window.__API_BASE__ || '/api';
       const res = await fetch(`${API}/subscribe`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

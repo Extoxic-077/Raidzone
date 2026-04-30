@@ -1,20 +1,36 @@
 import { authFetch, clearAuth } from './auth.js';
 
-const BASE_URL = '/api/v1';
+console.log("Loading API Logic v2026.04.26.1...");
+
+const BASE_URL = window.__APP_CONFIG__?.API_URL?.trim() || '/api';
+
+// ─── Response Handling Helper ──────────────────────────────────────────────────
+
+async function handleResponse(res) {
+  const text = await res.text();
+  let json;
+  try {
+    json = text ? JSON.parse(text) : {};
+  } catch (e) {
+    json = { success: false, error: 'Malformed JSON response from server' };
+  }
+
+  if (!res.ok || json.success === false) {
+    const errorMsg = json.error || json.message || `API error: ${res.status}`;
+    throw new Error(errorMsg);
+  }
+  return json.data;
+}
 
 // ─── Public fetch (no auth) ───────────────────────────────────────────────────
 
-async function apiFetch(path) {
+export async function apiFetch(path) {
   console.log(`[API] Fetching: ${path}`);
   try {
     const res = await fetch(`${BASE_URL}${path}`, {
       headers: { 'Accept': 'application/json' }
     });
-    const json = await res.json();
-    if (!res.ok || json.success === false) {
-      throw new Error(json.message || `API error: ${res.status}`);
-    }
-    return json.data;
+    return await handleResponse(res);
   } catch (err) {
     if (err.name === 'TypeError' && err.message === 'Failed to fetch') {
       throw new Error('Backend unavailable - please ensure the server is running');
@@ -25,36 +41,30 @@ async function apiFetch(path) {
 
 // ─── Authenticated fetch ──────────────────────────────────────────────────────
 
-async function authApiFetch(path, options = {}) {
+export async function authApiFetch(path, options = {}) {
   const res = await authFetch(`${BASE_URL}${path}`, {
     headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options,
   });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || `API error: ${res.status}`);
-  }
-  return json.data;
+  return await handleResponse(res);
 }
 
 // ─── OAuth2 ──────────────────────────────────────────────────────────────────
 
 export async function getGoogleAuthUrl() {
   const res  = await fetch(`${BASE_URL}/auth/oauth/google`, { credentials: 'include' });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || 'Google OAuth not configured');
-  }
-  return json.data;
+  return await handleResponse(res);
 }
 
 export async function getDiscordAuthUrl() {
   const res  = await fetch(`${BASE_URL}/auth/oauth/discord`, { credentials: 'include' });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || 'Discord OAuth not configured');
-  }
-  return json.data;
+  return await handleResponse(res);
+}
+
+export async function getFilters(game, tab) {
+  // Return same shape as apiFetch (json.data) — not the { success, data } wrapper
+  if (!game || !tab) return { filters: [] };
+  return apiFetch(`/filters?game=${game}&tab=${tab}`);
 }
 
 // ─── Catalogue (public) ───────────────────────────────────────────────────────
@@ -71,21 +81,29 @@ export async function getCompanies() {
   return apiFetch('/companies');
 }
 
+// Keys that are state management internals, not query filters
+const PRODUCTS_SKIP_KEYS = new Set([
+  'page', 'game', 'tab', 'search', 'sort', 'minPrice', 'maxPrice',
+  'loading', 'allLoaded'
+]);
+
 export async function getProducts(params = {}) {
   const qs = new URLSearchParams();
-  if (params.page     != null) qs.set('page',       params.page);
-  if (params.size     != null) qs.set('size',       params.size);
-  if (params.categoryId)       qs.set('categoryId',   params.categoryId);
-  if (params.categorySlug)     qs.set('categorySlug', params.categorySlug);
-  if (params.companyId)        qs.set('companyId',    params.companyId);
-  if (params.minPrice != null) qs.set('minPrice',   params.minPrice);
-  if (params.maxPrice != null) qs.set('maxPrice',   params.maxPrice);
-  if (params.search)           qs.set('search',     params.search);
-  if (params.sort)             qs.set('sort',       params.sort);
-  if (params.minRating != null) qs.set('minRating', params.minRating);
-  if (params.productType)       qs.set('productType', params.productType);
-  if (params.blueprintTag)      qs.set('blueprintTag', params.blueprintTag);
-  qs.set('_t', Date.now());
+
+  qs.set('page', params.page || 1);
+  if (params.game)     qs.set('game', params.game);
+  if (params.tab)      qs.set('tab', params.tab);
+  if (params.search)   qs.set('search', params.search);
+  if (params.sort)     qs.set('sort', params.sort);
+  if (params.minPrice) qs.set('minPrice', params.minPrice);
+  if (params.maxPrice) qs.set('maxPrice', params.maxPrice);
+
+  // Pass dynamic attribute filters, excluding internal state keys and private (_) keys
+  Object.keys(params).forEach(key => {
+    if (PRODUCTS_SKIP_KEYS.has(key) || key.startsWith('_')) return;
+    if (params[key] != null && params[key] !== '') qs.set(key, params[key]);
+  });
+
   const query = qs.toString();
   return apiFetch(`/products${query ? '?' + query : ''}`);
 }
@@ -119,11 +137,7 @@ export async function register(data) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || `Registration failed: ${res.status}`);
-  }
-  return json.data;
+  return await handleResponse(res);
 }
 
 /**
@@ -137,11 +151,7 @@ export async function loginStep1(data) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || `Login failed: ${res.status}`);
-  }
-  return json.data;
+  return await handleResponse(res);
 }
 
 /**
@@ -154,11 +164,7 @@ export async function verifyOtp(data) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || `OTP verification failed: ${res.status}`);
-  }
-  return json.data;
+  return await handleResponse(res);
 }
 
 /**
@@ -171,11 +177,7 @@ export async function resendOtp(email) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ email }),
   });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || 'Resend failed');
-  }
-  return json.data;
+  return await handleResponse(res);
 }
 
 /**
@@ -188,11 +190,7 @@ export async function verifyEmail(data) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data),
   });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || 'Email verification failed');
-  }
-  return json.data;
+  return await handleResponse(res);
 }
 
 /**
@@ -214,11 +212,7 @@ export async function refreshToken() {
     method: 'POST',
     credentials: 'include',
   });
-  const json = await res.json();
-  if (!res.ok || json.success === false) {
-    throw new Error(json.message || 'Token refresh failed');
-  }
-  return json.data;
+  return await handleResponse(res);
 }
 
 /**
@@ -386,40 +380,38 @@ export async function adminDeleteCategory(id) {
 
 export async function adminGetProducts(page = 0, size = 20, includeInactive = false) {
   return authApiFetch(
-    `/admin/products?page=${page}&size=${size}&includeInactive=${includeInactive}`,
+    `/products?page=${page}&size=${size}&includeInactive=${includeInactive}&admin=true`,
     { method: 'GET' }
   );
 }
 
 export async function adminCreateProduct(data) {
-  return authApiFetch('/admin/products', {
+  return authApiFetch('/products', {
     method: 'POST',
     body: JSON.stringify(data),
   });
 }
 
 export async function adminUpdateProduct(id, data) {
-  return authApiFetch(`/admin/products/${id}`, {
+  return authApiFetch(`/products/${id}`, {
     method: 'PUT',
     body: JSON.stringify(data),
   });
 }
 
 export async function adminDeleteProduct(id) {
-  return authApiFetch(`/admin/products/${id}`, { method: 'DELETE' });
+  return authApiFetch(`/products/${id}`, { method: 'DELETE' });
 }
 
 export async function adminUploadImage(productId, file) {
   const formData = new FormData();
   formData.append('file', file);
   // Use authFetch so the Authorization header is set automatically and 401/refresh is handled
-  const res = await authFetch(`${BASE_URL}/admin/products/${productId}/image`, {
+  const res = await authFetch(`${BASE_URL}/products/${productId}/image`, {
     method: 'POST',
     body: formData,
   });
-  const json = await res.json();
-  if (!res.ok || json.success === false) throw new Error(json.message || 'Upload failed');
-  return json.data;
+  return await handleResponse(res);
 }
 
 export async function adminGetUsers(page = 0, size = 20) {
@@ -635,4 +627,3 @@ export async function markAllNotificationsRead() {
 export async function markNotificationRead(id) {
   return authApiFetch(`/notifications/${id}/read`, { method: 'PUT' });
 }
-

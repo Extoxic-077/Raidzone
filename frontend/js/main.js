@@ -1,9 +1,11 @@
-import { initNavbar } from './components/rz-nav.js?v=1.1.0';
-import { initFooter } from './components/rz-foot.js?v=1.1.0';
-import { SocialProof } from './components/SocialProof.js?v=1.0.0';
-import { LiveChat } from './components/rz-chat.js?v=2.0.2';
+import { initAuth } from './auth.js';
+import { initNavbar } from './components/rz-nav.js';
+import { initFooter } from './components/rz-foot.js';
+import { SocialProof } from './components/SocialProof.js';
+import { LiveChat } from './components/rz-chat.js';
 
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+  await initAuth();
   initNavbar();
   initFooter();
   SocialProof.init();

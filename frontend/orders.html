@@ -258,7 +258,7 @@
 
 <script src="/js/config.js"></script>
 <script type="module">
-import { initNavbar } from './js/components/rz-nav.js?v=1.1.0';
+import { initNavbar } from './js/components/rz-nav.js';
 import { initAuth, isLoggedIn, authFetch } from './js/auth.js';
 import { getMyOrders, createReview } from './js/api.js';
 import { showToast } from './js/components/toast.js';
@@ -518,7 +518,7 @@ root.addEventListener('click', e => {
 
 // ── Redeem / View Key flow ─────────────────────────────────────────────────────
 
-const API = window.__API_BASE__ || '/api/v1';
+const API = window.__API_BASE__ || '/api';
 const JSON_HEADERS = { 'Content-Type': 'application/json' };
 
 let redeemKeyId = null;

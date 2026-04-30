@@ -1,10 +1,10 @@
-import { getProduct, getProductBySlug, getProducts, addToCart, toggleWishlist, getWishlistStatus, getProductReviews, createReview, recordPurchase, hasPurchased } from '../api.js?v=1.1.0';
-import { createProductCard } from '../components/productCard.js?v=1.1.0';
-import { createDetailSkeleton } from '../components/skeleton.js?v=1.1.0';
-import { showToast } from '../components/toast.js?v=1.1.0';
-import { getCurrentProductId, getCurrentProductSlug } from '../router.js?v=1.1.0';
-import { isLoggedIn, getUser } from '../auth.js?v=1.1.0';
-import { makeDraggable } from '../utils/dragScroll.js?v=1.1.0';
+import { getProduct, getProductBySlug, getProducts, addToCart, toggleWishlist, getWishlistStatus, getProductReviews, createReview, recordPurchase, hasPurchased } from '../api.js';
+import { createProductCard } from '../components/productCard.js';
+import { createDetailSkeleton } from '../components/skeleton.js';
+import { showToast } from '../components/toast.js';
+import { getCurrentProductId, getCurrentProductSlug } from '../router.js';
+import { isLoggedIn, getUser } from '../auth.js';
+import { makeDraggable } from '../utils/dragScroll.js';
 import { SEO } from '../seo.js';
 
 // ── Sign-in prompt modal ──────────────────────────────────────────────────────

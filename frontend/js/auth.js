@@ -7,7 +7,7 @@
  * Refresh tokens live in an HttpOnly cookie managed by the backend.
  */
 
-const BASE_URL = '/api/v1';
+const BASE_URL = '/api';
 
 // In-memory access token — cleared on page refresh
 let _accessToken = null;
@@ -124,8 +124,7 @@ export async function authFetch(url, options = {}) {
       return fetch(url, { ...options, headers, credentials: 'include' });
     } else {
       clearAuth();
-      const page = window.location.pathname.split('/').pop() || 'index.html';
-      localStorage.setItem('redirectAfterLogin', page);
+      localStorage.setItem('redirectAfterLogin', window.location.pathname + window.location.search);
       const loginPath = window.location.pathname.includes('/admin/') ? '../login.html' : 'login.html';
       window.location.href = loginPath;
     }

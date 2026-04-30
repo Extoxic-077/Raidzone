@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <base href="/">
   <title>Browse Categories — RAIDZONE Market</title>
   <meta name="description" content="Explore our massive catalog of game currencies, accounts, items, and professional boosting services. All regions supported."/>
 
@@ -12,11 +13,11 @@
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 
   <!-- CSS -->
-  <link rel="stylesheet" href="css/variables.css"/>
-  <link rel="stylesheet" href="css/animations.css"/>
-  <link rel="stylesheet" href="css/base.css"/>
-  <link rel="stylesheet" href="css/components.css"/>
-  <link rel="stylesheet" href="css/pages/catalog.css"/>
+  <link rel="stylesheet" href="css/variables.css?v=2"/>
+  <link rel="stylesheet" href="css/animations.css?v=2"/>
+  <link rel="stylesheet" href="css/base.css?v=2"/>
+  <link rel="stylesheet" href="css/components.css?v=2"/>
+  <link rel="stylesheet" href="css/pages/catalog.css?v=2"/>
 </head>
 <body>
 
@@ -137,6 +138,9 @@
           </div>
         </div>
 
+        <!-- Active filters display -->
+        <div id="active-filters-container" style="display: none; flex-wrap: wrap; gap: 8px; margin-bottom: 16px;"></div>
+
         <!-- Status bar -->
         <div class="catalog-status-bar">
           <span class="catalog-count" id="product-count">Loading products…</span>
@@ -181,9 +185,9 @@
 
   <!-- JS entry -->
   <script src="/js/config.js"></script>
-  <script type="module" src="js/main.js?v=1.4.1"></script>
+  <script type="module" src="/js/main.js?v=1.4.2"></script>
   <script type="module">
-    import { renderCatalog } from './js/pages/catalog.js?v=1.5.7';
+    import { renderCatalog } from '/js/pages/catalog.js?v=1.4.2';
     document.addEventListener('DOMContentLoaded', () => renderCatalog());
   </script>
 </body>

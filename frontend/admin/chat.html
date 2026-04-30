@@ -163,7 +163,7 @@
 
   async function loadThreads() {
     try {
-      const res = await authFetch('/api/v1/chat/admin/threads');
+      const res = await authFetch('/api/chat/admin/threads');
       const json = await res.json();
       threads = json.data || [];
       renderThreads();
@@ -204,9 +204,9 @@
       t ? `<span class="thread-status-badge status-${t.status}">${t.status.replace(/_/g,' ')}</span>` : '';
     document.getElementById('chat-input').disabled = false;
     document.getElementById('chat-send').disabled = false;
-    await authFetch(`/api/v1/chat/threads/${id}/read`, { method: 'POST' });
+    await authFetch(`/api/chat/threads/${id}/read`, { method: 'POST' });
     if (t) { t.unreadCount = 0; renderThreads(); }
-    const msgRes = await authFetch(`/api/v1/chat/threads/${id}/messages`);
+    const msgRes = await authFetch(`/api/chat/threads/${id}/messages`);
     const msgJson = await msgRes.json();
     const msgs = msgJson.data || [];
     const mc = document.getElementById('chat-messages');
@@ -252,7 +252,7 @@
         const msg = JSON.parse(pack.body);
         if (msg.threadId === currentThreadId) {
           appendMessage(msg);
-          authFetch(`/api/v1/chat/threads/${currentThreadId}/read`, { method: 'POST' });
+          authFetch(`/api/chat/threads/${currentThreadId}/read`, { method: 'POST' });
         }
         loadThreads();
       });

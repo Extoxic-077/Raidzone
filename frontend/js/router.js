@@ -7,7 +7,8 @@ export function getCurrentProductSlug() {
   const params = new URLSearchParams(window.location.search);
   let slug = params.get('slug');
   if (!slug && window.location.pathname.startsWith('/buy/')) {
-    slug = window.location.pathname.substring(5); // Removes '/buy/'
+    const segments = window.location.pathname.split('/').filter(Boolean);
+    slug = segments[segments.length - 1]; // Last segment only — e.g. /buy/arc-raiders/items/my-product → my-product
   }
   return slug;
 }
@@ -19,6 +20,11 @@ export function getCurrentFilters() {
   
   if (!categorySlug && path.match(/^\/[\w-]+-(coins|items|weapons|boosting)$/)) {
     categorySlug = path.substring(1); // Removes leading slashes
+  }
+
+  if (!categorySlug && path.startsWith('/buy/')) {
+    const route = parseCatalogRoute();
+    categorySlug = route.game || '';
   }
 
   return {
@@ -38,6 +44,7 @@ export function getCurrentFilters() {
 
 export function parseCatalogRoute() {
   const path = window.location.pathname;
+  const params = new URLSearchParams(window.location.search);
 
   // New clean URL: /buy/arc-raiders/coins
   const newPattern = /^\/buy\/([^\/]+)\/([^\/]+)\/?$/;
@@ -55,7 +62,16 @@ export function parseCatalogRoute() {
   if (gameMatch) {
     return {
       game:        gameMatch[1],
-      subcategory: null
+      subcategory: params.get('tab') || null
+    };
+  }
+
+  // Query param URL: /catalog.html?game=arc-raiders&tab=items
+  const gameParam = params.get('game');
+  if (gameParam) {
+    return {
+      game:        gameParam,
+      subcategory: params.get('tab') || null
     };
   }
 

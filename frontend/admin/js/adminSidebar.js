@@ -13,6 +13,7 @@ const PAGES = {
   realtime:   'realtime.html',
   products:   'products.html',
   categories: 'categories.html',
+  filters:    'filters-manager.html',
   companies:  'companies.html',
   coupons:    'coupons.html',
   warehouse:  'warehouse.html',
@@ -96,7 +97,8 @@ export async function initAdminSidebar(activePage = 'dashboard') {
       </div>
       <div class="admin-nav-group" id="section-catalogue">
         ${link('products',   activePage, icons.products,   'Products')}
-        ${link('categories', activePage, icons.categories, 'Categories')}
+        ${link('categories', activePage, icons.categories, 'Games')}
+        ${link('filters',    activePage, icons.dashboard,  'Filters Manager')}
         ${link('coupons',    activePage, icons.coupons,    'Coupons')}
         ${link('warehouse',  activePage, icons.warehouse,  'Key Warehouse')}
       </div>

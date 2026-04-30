@@ -114,7 +114,7 @@ if (!isLoggedIn()) { window.location.href = 'login.html'; }
 
 await initNavbar();
 
-const API = window.__API_BASE__ || '/api/v1';
+const API = window.__API_BASE__ || '/api';
 
 function authHeaders() {
   const token = sessionStorage.getItem('hv_token');

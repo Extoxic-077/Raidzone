@@ -1,8 +1,8 @@
-import { getFeaturedProducts, getFlashDeals, getCategories, getCompanies } from '../api.js?v=1.1.0';
-import { createProductCard } from '../components/productCard.js?v=1.1.0';
-import { createProductSkeleton } from '../components/skeleton.js?v=1.1.0';
-import { showToast } from '../components/toast.js?v=1.1.0';
-import { makeDraggable } from '../utils/dragScroll.js?v=1.1.0';
+import { getFeaturedProducts, getFlashDeals, getCategories, getCompanies } from '../api.js';
+import { createProductCard } from '../components/productCard.js';
+import { createProductSkeleton } from '../components/skeleton.js';
+import { showToast } from '../components/toast.js';
+import { makeDraggable } from '../utils/dragScroll.js';
 import { SEO } from '../seo.js';
 
 // ─── PROMO SLIDER ────────────────────────────────────────────────────────────

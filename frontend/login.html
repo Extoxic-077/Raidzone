@@ -247,7 +247,7 @@
 <script src="/js/config.js"></script>
 <script type="module">
 import { loginStep1, verifyOtp, resendOtp, getGoogleAuthUrl, getDiscordAuthUrl } from './js/api.js';
-import { initAuth, setAuth, isLoggedIn } from './js/auth.js';
+import { initAuth, setAuth, isLoggedIn, clearAuth } from './js/auth.js';
 import { showToast } from './js/components/toast.js';
 
 const urlParams = new URLSearchParams(window.location.search);

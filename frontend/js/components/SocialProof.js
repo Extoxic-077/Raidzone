@@ -4,7 +4,7 @@
  */
 
 export const SocialProof = (() => {
-  const API = '/api/v1';
+  const API = '/api';
   let activityQueue = [];
   let isDisplaying = false;
   const POPUP_ID = 'social-proof-popup';

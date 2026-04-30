@@ -3,6 +3,9 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate"/>
+  <meta http-equiv="Pragma" content="no-cache"/>
+  <meta http-equiv="Expires" content="0"/>
   <title>Products — Admin — Raidzone</title>
 
   <link rel="preconnect" href="https://fonts.googleapis.com"/>
@@ -90,7 +93,7 @@
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Item Type</label>
-          <select class="admin-form-select" name="productType" id="item-type-select">
+          <select class="admin-form-select" name="itemType" id="item-type-select">
             <option value="">Select item type…</option>
           </select>
         </div>
@@ -107,7 +110,7 @@
             </div>
             <div class="multi-filter-tags" id="blueprint-tags"></div>
           </div>
-          <input type="hidden" name="blueprintTags" id="blueprint-tags-input"/>
+          <input type="hidden" name="subType" id="blueprint-tags-input"/>
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Region</label>
@@ -126,7 +129,7 @@
         </div>
         <div class="admin-form-group full">
           <label class="admin-form-label">How to Redeem</label>
-          <textarea class="admin-form-textarea" name="howToRedeem" rows="3" placeholder="Step-by-step redemption instructions (one per line)…"></textarea>
+          <textarea class="admin-form-textarea" name="instructions" rows="3" placeholder="Step-by-step redemption instructions (one per line)…"></textarea>
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Sort Order</label>
@@ -134,11 +137,11 @@
         </div>
         <div class="admin-form-group">
           <label class="admin-form-label">Stock Count</label>
-          <input class="admin-form-input" name="stockCount" type="number" value="999"/>
+          <input class="admin-form-input" name="stock" type="number" value="999"/>
         </div>
         <div class="admin-form-group" style="justify-content:flex-end;align-items:flex-start;padding-top:22px;">
           <label style="display:flex;align-items:center;gap:8px;cursor:pointer;color:var(--text-2);font-size:0.875rem;">
-            <input type="checkbox" name="isFlashDeal" style="width:16px;height:16px;accent-color:var(--violet)"/>
+            <input type="checkbox" name="isFlash" style="width:16px;height:16px;accent-color:var(--violet)"/>
             Flash Deal
           </label>
         </div>
@@ -275,7 +278,9 @@ import {
   adminGetProducts, adminCreateProduct, adminUpdateProduct, adminDeleteProduct,
   adminUploadImage, getCategories, getCategoriesFlat, adminGetCompanies,
   adminToggleProductActive, adminToggleFlashDeal, adminSetBadge, adminBulkToggleActive
-} from '../js/api.js';
+} from '../js/api.js?v=2026.04.26.1';
+
+console.log('API version loaded: 2026.04.26.1');
 
 await initAuth();
 if (!isLoggedIn() || !isAdmin()) window.location.href = '../login.html';
@@ -293,6 +298,23 @@ const modal      = document.getElementById('product-modal');
 const form       = document.getElementById('product-form');
 const countEl    = document.getElementById('products-count');
 const itemTypeSelect = document.getElementById('item-type-select');
+const typeSel = itemTypeSelect; // FIX: Define typeSel for classification logic
+
+// AUTO-CLASSIFY ON INPUT
+document.querySelector('input[name="name"]').addEventListener('input', async (e) => {
+  const name = e.target.value;
+  if (name.length < 3) return;
+  
+  // Basic frontend classification for UI feel
+  const match = BLUEPRINT_OPTIONS.find(opt => name.toLowerCase().includes(opt.toLowerCase()));
+  if (match) {
+    if (!selectedBlueprints.includes(match)) {
+      selectedBlueprints.push(match);
+      blueprintSelectorApi.renderOptions();
+      blueprintSelectorApi.sync();
+    }
+  }
+});
 
 const ITEM_TYPES = [
   'Blueprints', 'Weapons', 'Weapon Mods', 'Augments', 'Shields', 'Quick Use',
@@ -465,20 +487,20 @@ function renderTable(products) {
       ? `<div class="table-thumb"><img src="${p.imageUrl}" alt=""/></div>`
       : `<div class="table-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20" style="opacity:.4"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>`;
     const price   = p.price != null ? `$${Number(p.price).toLocaleString('en-US')}` : '—';
-    const active  = p.isActive !== false;
-    const flash   = !!p.isFlashDeal;
+    const active  = p.active !== false;
+    const flash   = !!p.isFlash;
     const badge   = p.badge || '';
-    const safeId  = p.id;
+    const safeId  = p._id;
     return `
       <tr data-id="${safeId}">
         <td style="width:36px"><input type="checkbox" class="row-check" data-id="${safeId}" style="accent-color:var(--violet)"/></td>
         <td>${imgHtml}</td>
         <td>
           <div class="table-product-name">${p.name}</div>
-          <div style="font-size:0.75rem;color:var(--text-4)">${p.slug}</div>
+          <div style="font-size:0.75rem;color:var(--text-4)">${p.game} | ${safeId.substring(0,8)}</div>
         </td>
-        <td>${p.categoryName || '—'}</td>
-        <td><span style="font-size:0.75rem;padding:2px 6px;background:rgba(255,255,255,0.05);border-radius:4px">${p.productType || '—'}</span></td>
+        <td>${p.game || '—'}</td>
+        <td><span style="font-size:0.75rem;padding:2px 6px;background:rgba(255,255,255,0.05);border-radius:4px">${p.itemType || '—'}</span></td>
         <td>${price}</td>
         <td>
           <label class="admin-toggle" title="${active ? 'Active — click to deactivate' : 'Inactive — click to activate'}">
@@ -628,15 +650,15 @@ window.openEdit = function(id) {
     form.elements['brand'].value         = p.brand || '';
     form.elements['region'].value        = p.region || 'Global';
     form.elements['badge'].value         = p.badge || '';
-    form.elements['productType'].value   = p.productType || '';
+    form.elements['itemType'].value      = p.itemType || '';
     form.elements['description'].value   = p.description || '';
-    form.elements['howToRedeem'].value   = p.howToRedeem || '';
+    form.elements['instructions'].value  = p.instructions || '';
     form.elements['sortOrder'].value     = p.sortOrder != null ? p.sortOrder : 0;
-    form.elements['stockCount'].value    = p.stockCount != null ? p.stockCount : 999;
-    form.elements['isFlashDeal'].checked = !!p.isFlashDeal;
+    form.elements['stock'].value         = p.stock != null ? p.stock : 999;
+    form.elements['isFlash'].checked     = !!p.isFlash;
 
     // Load blueprint tags
-    selectedBlueprints = p.blueprintTags ? p.blueprintTags.split(', ').filter(Boolean) : [];
+    selectedBlueprints = p.subType ? p.subType.split(', ').filter(Boolean) : [];
     if (blueprintSelectorApi) {
       blueprintSelectorApi.renderOptions();
       blueprintSelectorApi.sync();
@@ -742,30 +764,33 @@ form.addEventListener('submit', async e => {
     btn.textContent = 'Save Product';
     return;
   }
+  
+  // Find category slug for "game" field
+  const cat = categories.find(c => c.id === categoryId);
+  const game = cat ? cat.slug : categoryId; 
 
   const data = {
     name:          fd.get('name'),
-    categoryId,
-    companyId:     fd.get('companyId') || null,
+    game,
+    itemType:      fd.get('itemType') || null,
+    subType:       fd.get('subType') || null,
     price:         parseFloat(fd.get('price')),
     originalPrice: fd.get('originalPrice') ? parseFloat(fd.get('originalPrice')) : null,
     description:   fd.get('description') || null,
-    howToRedeem:   fd.get('howToRedeem') || null,
+    instructions:  fd.get('instructions') || null,
     brand:         fd.get('brand') || null,
     region:        fd.get('region') || 'Global',
     badge:         fd.get('badge') || null,
-    productType:   fd.get('productType') || null,
-    blueprintTags: fd.get('blueprintTags') || null,
-    isFlashDeal:   fd.get('isFlashDeal') === 'on',
+    isFlash:       fd.get('isFlash') === 'on',
+    stock:         parseInt(fd.get('stock')) || 0,
     sortOrder:     parseInt(fd.get('sortOrder')) || 0,
-    stockCount:    parseInt(fd.get('stockCount')) || 0,
   };
 
   try {
     const imageFile = document.getElementById('image-file-input').files[0];
 
     if (editingId) {
-      await adminUpdateProduct(editingId, data);
+      const result = await adminUpdateProduct(editingId, data);
       if (imageFile) {
         const updated = await adminUploadImage(editingId, imageFile);
         const prev = document.getElementById('image-preview');

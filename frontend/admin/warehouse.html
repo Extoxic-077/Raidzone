@@ -166,7 +166,7 @@ await initAuth();
 if (!isLoggedIn() || !isAdmin()) { window.location.href = '../login.html'; }
 await initAdminSidebar('warehouse');
 
-const API = window.__API_BASE__ || '/api/v1';
+const API = window.__API_BASE__ || '/api';
 
 async function apiFetch(path, opts = {}) {
   const headers = { 'Content-Type': 'application/json', ...(opts.headers || {}) };

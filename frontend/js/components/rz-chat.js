@@ -161,7 +161,7 @@ export const LiveChat = (() => {
       if (!user) return;
       currentUserId = user.id;
 
-      const resp = await authFetch('/api/v1/chat/my-thread');
+      const resp = await authFetch('/api/chat/my-thread');
       const data = await resp.json();
       if (!data.success) throw new Error(data.message);
       currentThreadId = data.data.id;
@@ -184,7 +184,7 @@ export const LiveChat = (() => {
       });
 
       // Load history
-      const histResp = await authFetch(`/api/v1/chat/threads/${currentThreadId}/messages`);
+      const histResp = await authFetch(`/api/chat/threads/${currentThreadId}/messages`);
       const histData = await histResp.json();
       if (!histData.success) throw new Error(histData.message);
 
@@ -208,7 +208,7 @@ export const LiveChat = (() => {
   /* ── Send ────────────────────────────────────────────────────────────────── */
   function markRead() {
     if (!currentThreadId) return;
-    authFetch(`/api/v1/chat/threads/${currentThreadId}/read`, { method: 'POST' }).catch(() => {});
+    authFetch(`/api/chat/threads/${currentThreadId}/read`, { method: 'POST' }).catch(() => {});
   }
 
   async function sendMessage(text) {

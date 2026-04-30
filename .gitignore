@@ -35,6 +35,7 @@ run_commands.md
 
 ### Secrets ###
 backend/.env
+backend/.env.*
 .env
 *.env
 

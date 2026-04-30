@@ -1,32 +1,21 @@
-# ── Stage 1: Build ────────────────────────────────────────────────────────────
-FROM maven:3.9-eclipse-temurin-21 AS build
+FROM node:20-alpine
 WORKDIR /app
 
-# Cache dependencies layer
-COPY pom.xml .
-RUN mvn dependency:go-offline -q
+RUN apk add --no-cache bash
 
-# Build the application
-COPY src ./src
-RUN mvn package -DskipTests -q
+# Install dependencies first (layer-cached unless package.json changes)
+COPY package*.json ./
+RUN npm ci --omit=dev
 
-# ── Stage 2: Runtime ──────────────────────────────────────────────────────────
-FROM eclipse-temurin:21-jre-alpine
-WORKDIR /app
+# Copy source
+COPY . .
 
-# Create non-root user
-RUN addgroup -S raidzone && adduser -S raidzone -G raidzone
+# Create uploads directory
+RUN mkdir -p /app/uploads
 
-# Copy JAR from build stage
-COPY --from=build /app/target/*.jar app.jar
-
-# Create uploads directory with correct ownership
-RUN mkdir -p /app/uploads && chown -R raidzone:raidzone /app
-
-USER raidzone
-
-# Cloud Run sets $PORT; default to 8080 for local use
 ENV PORT=8080
-EXPOSE ${PORT}
+ENV NODE_ENV=production
 
-ENTRYPOINT ["java", "-jar", "app.jar"]
+EXPOSE 8080
+
+CMD ["./start.sh"]

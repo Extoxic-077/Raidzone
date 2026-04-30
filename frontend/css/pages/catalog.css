@@ -240,8 +240,9 @@
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-3);
+  color: var(--text-2);
   margin-bottom: 12px;
+  opacity: 0.8;
 }
 
 .filter-cat-list { display: flex; flex-direction: column; gap: 6px; }
@@ -262,9 +263,18 @@
 .filter-cat-item:hover { background: var(--glass); }
 
 .filter-cat-item.active {
-  background: rgba(124,58,237,0.12);
+  background: rgba(124,58,237,0.15);
   border-color: var(--glass-border-accent);
-  color: var(--violet-light);
+  color: #fff;
+  font-weight: 600;
+}
+
+button.filter-cat-item {
+  width: 100%;
+  text-align: left;
+  background: none;
+  border: 1px solid transparent;
+  font-family: var(--font-body);
 }
 
 .filter-cat-item input[type="radio"] { display: none; }
@@ -680,4 +690,93 @@
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+/* ──────────────────────────────────────────────────────────────────────────────
+   🚀 ELITE ANIMATIONS & PREMIUM UI OVERLAYS
+   ────────────────────────────────────────────────────────────────────────────── */
+
+
+/* 1. Shimmer Loading State */
+.skeleton-shimmer {
+  background: linear-gradient(
+    90deg,
+    rgba(15, 23, 42, 0.5) 25%,
+    rgba(30, 41, 59, 1) 50%,
+    rgba(15, 23, 42, 0.5) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmerAnim 1.2s infinite;
+}
+
+@keyframes shimmerAnim {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+/* 2. Filter Bar Breathing Effect */
+.catalog-topbar.active-change {
+  animation: pulseGlow 0.4s ease;
+}
+
+@keyframes pulseGlow {
+  0% { box-shadow: 0 0 0 rgba(124, 58, 237, 0); }
+  50% { box-shadow: 0 0 20px rgba(124, 58, 237, 0.15); }
+  100% { box-shadow: 0 0 0 rgba(124, 58, 237, 0); }
+}
+
+/* 3. Sliding Tab Indicator Base */
+.cat-quick-nav {
+  position: relative; /* For indicator placement */
+}
+
+.tab-indicator {
+  position: absolute;
+  bottom: 8px; /* Align with bottom of buttons */
+  height: 3px;
+  background: linear-gradient(90deg, var(--cyan), var(--violet-light));
+  border-radius: var(--r-full);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  pointer-events: none;
+}
+
+/* 4. Depth Layering (Parallax) */
+.cat-hero {
+  transform: translateZ(0);
+}
+
+.products-grid {
+  transform-style: preserve-3d;
+  transition: transform 0.4s var(--ease-out);
+}
+
+/* 5. Premium Hover Glowing Follower */
+.product-card {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s ease;
+}
+
+.product-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mouse-x, 50%) var(--mouse-y, 50%),
+    rgba(124, 58, 237, 0.15),
+    transparent 60%);
+  opacity: 0;
+  transition: opacity 0.2s;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.product-card:hover::after {
+  opacity: 1;
+}
+
+/* 6. Grid Replacment Animation Utility */
+.grid-morphing {
+  opacity: 0;
+  transform: translateY(15px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }

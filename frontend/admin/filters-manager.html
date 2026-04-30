@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Filters Manager — Admin — Raidzone</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="../css/variables.css"/>
+  <link rel="stylesheet" href="../css/animations.css"/>
+  <link rel="stylesheet" href="../css/base.css"/>
+  <link rel="stylesheet" href="../css/components.css"/>
+  <link rel="stylesheet" href="../css/pages/admin.css"/>
+  
+  <style>
+    .manager-grid {
+      display: grid;
+      grid-template-columns: 1fr 2fr;
+      gap: 24px;
+      margin-top: 24px;
+    }
+    
+    @media (max-width: 1024px) {
+      .manager-grid { grid-template-columns: 1fr; }
+    }
+
+    .type-card {
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-md);
+      padding: 16px;
+      margin-bottom: 12px;
+      cursor: grab;
+      transition: all 0.2s ease;
+    }
+    .type-card:hover { border-color: var(--violet-light); }
+    .type-card.sortable-ghost { opacity: 0.4; background: var(--violet-dark); }
+
+    .blueprint-list {
+      min-height: 100px;
+      padding: 10px;
+      background: rgba(255,255,255,0.02);
+      border-radius: var(--r-sm);
+      border: 1px dashed var(--glass-border);
+    }
+
+    .bp-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 14px;
+      background: var(--bg-2);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--r-sm);
+      margin-bottom: 8px;
+      font-size: 0.875rem;
+    }
+    
+    .bp-info { display: flex; flex-direction: column; gap: 2px; }
+    .bp-name { font-weight: 600; color: var(--text-1); }
+    .bp-game { font-size: 10px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-4); }
+
+    .tag-input-wrap {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 8px;
+      background: var(--bg-3);
+      border-radius: var(--r-sm);
+    }
+    .tag-chip {
+      padding: 2px 8px;
+      background: var(--violet-dark);
+      color: var(--violet-light);
+      border-radius: 12px;
+      font-size: 11px;
+      display: flex;
+      align-items: center; gap: 4px;
+    }
+  </style>
+</head>
+<body>
+
+<div class="admin-layout">
+  <aside class="admin-sidebar"></aside>
+
+  <main class="admin-main">
+    <div class="admin-mobile-topbar"><span class="admin-mobile-topbar-title">Filters Manager</span></div>
+    
+    <div class="admin-header-flex">
+      <div>
+        <h1 class="admin-page-title">Filters Manager</h1>
+        <p class="admin-page-subtitle">Configure Item Types and Blueprints for auto-classification</p>
+      </div>
+      <div class="admin-header-actions">
+        <button class="btn-admin-secondary" id="add-type-btn">Add Item Type</button>
+        <button class="btn-admin-primary" id="add-blueprint-btn">Add Blueprint</button>
+      </div>
+    </div>
+
+    <div class="manager-grid">
+      <!-- Item Types -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">Item Types</h3>
+        </div>
+        <div id="type-list-container" class="sortable-list">
+          <!-- Item Types will be injected here -->
+        </div>
+      </div>
+
+      <!-- Blueprints grouped by Type -->
+      <div class="admin-card">
+        <div class="admin-card-header">
+          <h3 class="admin-card-title">Blueprint Mapping</h3>
+          <div class="admin-card-actions">
+             <select id="game-filter" class="admin-form-select" style="padding: 4px 12px; font-size: 12px;">
+                <option value="all">All Games</option>
+                <option value="arc-raiders">Arc Raiders</option>
+                <option value="cs2">CS2</option>
+             </select>
+          </div>
+        </div>
+        <div id="blueprint-mapping-container">
+          <!-- Grouped Blueprints will be injected here -->
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Modals for CRUD -->
+<div class="admin-modal-overlay" id="type-modal">
+  <div class="admin-modal" style="max-width:400px">
+     <h2 class="admin-modal-title">Item Type</h2>
+     <form id="type-form">
+       <div class="admin-form-group">
+         <label class="admin-form-label">Type Name</label>
+         <input class="admin-form-input" name="name" required placeholder="e.g. Traps"/>
+       </div>
+       <div class="admin-form-group">
+         <label class="admin-form-label">Slug</label>
+         <input class="admin-form-input" name="slug" required placeholder="e.g. traps"/>
+       </div>
+       <div class="admin-modal-footer">
+          <button type="button" class="btn-admin-cancel" onclick="closeModals()">Cancel</button>
+          <button type="submit" class="btn-admin-primary">Save Type</button>
+       </div>
+     </form>
+  </div>
+</div>
+
+<div class="admin-modal-overlay" id="blueprint-modal">
+  <div class="admin-modal" style="max-width:500px">
+     <h2 class="admin-modal-title">New Blueprint</h2>
+     <form id="blueprint-form">
+       <div class="admin-form-grid">
+          <div class="admin-form-group full">
+            <label class="admin-form-label">Blueprint Name</label>
+            <input class="admin-form-input" name="name" required placeholder="e.g. Gas Mine Blueprint"/>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Game</label>
+            <select class="admin-form-select" name="game" required>
+              <option value="arc-raiders">Arc Raiders</option>
+              <option value="cs2">CS2</option>
+            </select>
+          </div>
+          <div class="admin-form-group">
+            <label class="admin-form-label">Item Type</label>
+            <select class="admin-form-select" name="itemType" id="type-select" required>
+              <!-- Populated via JS -->
+            </select>
+          </div>
+          <div class="admin-form-group full">
+            <label class="admin-form-label">Keywords (for classification)</label>
+            <input class="admin-form-input" name="keywords" placeholder="mine, gas, trap (comma separated)"/>
+          </div>
+       </div>
+       <div class="admin-modal-footer">
+          <button type="button" class="btn-admin-cancel" onclick="closeModals()">Cancel</button>
+          <button type="submit" class="btn-admin-primary">Add Blueprint</button>
+       </div>
+     </form>
+  </div>
+</div>
+
+<div id="toast-container"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
+<script type="module" src="./js/pages/filtersManager.js"></script>
+</body>
+</html>

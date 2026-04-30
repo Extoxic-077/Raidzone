@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <base href="/">
   <title>Product — RAIDZONE</title>
   <meta name="description" content="Digital product details — instant delivery on RAIDZONE."/>
 
@@ -33,10 +34,10 @@
 
   <!-- JS entry -->
   <script src="/js/config.js"></script>
-  <script type="module" src="js/main.js?v=1.4.1"></script>
+  <script type="module" src="/js/main.js?v=1.4.1"></script>
   <script type="module">
-    import { renderProduct } from './js/pages/product.js?v=1.1.0';
-    import { initAuth } from './js/auth.js';
+    import { renderProduct } from '/js/pages/product.js';
+    import { initAuth } from '/js/auth.js';
     await initAuth();
     renderProduct();
   </script>

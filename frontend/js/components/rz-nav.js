@@ -4,32 +4,38 @@ import { logout, getCartCount, getCategories, getNotificationCount, getNotificat
 import { NotificationBroker } from './NotificationBroker.js';
 import { SocialProof } from './SocialProof.js';
 
+// ── Static game list used as fallback before API loads ────────────────────────
+
+const STATIC_GAMES = [
+  { id: '', name: 'Arc Raiders', slug: 'arc-raiders', children: [] },
+  { id: '', name: 'CS2',         slug: 'cs2',         children: [] },
+  { id: '', name: 'Delta Force', slug: 'delta-force', children: [] },
+  { id: '', name: 'Windrose',    slug: 'windrose',    children: [] }
+];
+
 // ── Mega-menu builder ─────────────────────────────────────────────────────────
 
 function buildMegaMenuHTML(categories) {
-  // categories is recursive tree
   return categories.map(cat => {
     const hasChildren = cat.children && cat.children.length > 0;
     if (!hasChildren) {
       return `<button class="nav-cat-btn" data-id="${cat.id}" data-slug="${cat.slug}">${cat.name}</button>`;
     }
 
-    // Level 2 Grouping
     const groupsHTML = cat.children.map(sub => {
       const hasGrandchildren = sub.children && sub.children.length > 0;
-      
+
       if (!hasGrandchildren) {
-        return `<a class="mega-sub-link" href="catalog.html?category=${sub.slug}" data-id="${sub.id}" data-slug="${sub.slug}">${sub.name}</a>`;
+        return `<a class="mega-sub-link" href="/catalog.html?game=${cat.slug}&tab=${sub.slug}" data-id="${sub.id}" data-slug="${sub.slug}">${sub.name}</a>`;
       }
 
-      // If it has grandchildren, render as a specialized group
       const grandchildLinks = sub.children.map(g =>
-        `<a class="mega-sub-link nested" href="catalog.html?category=${g.slug}" data-id="${g.id}" data-slug="${g.slug}">${g.name}</a>`
+        `<a class="mega-sub-link nested" href="/catalog.html?game=${cat.slug}&tab=${g.slug}" data-id="${g.id}" data-slug="${g.slug}">${g.name}</a>`
       ).join('');
 
       return `
         <div class="mega-nested-group">
-          <a class="mega-nested-title" href="catalog.html?category=${sub.slug}">${sub.name}</a>
+          <a class="mega-nested-title" href="/catalog.html?game=${cat.slug}&tab=${sub.slug}">${sub.name}</a>
           <div class="mega-nested-links">${grandchildLinks}</div>
         </div>
       `;
@@ -43,7 +49,7 @@ function buildMegaMenuHTML(categories) {
         </button>
         <div class="mega-dropdown">
           <div class="mega-dropdown-inner">
-            <a class="mega-sub-link mega-sub-all" href="catalog.html?category=${cat.slug}" data-id="${cat.id}" data-slug="${cat.slug}">
+            <a class="mega-sub-link mega-sub-all" href="/catalog.html?game=${cat.slug}" data-id="${cat.id}" data-slug="${cat.slug}">
               <span style="font-weight:700">All ${cat.name}</span>
             </a>
             <div class="mega-groups-container">
@@ -573,7 +579,7 @@ function bindDesktopEvents(el) {
   el.querySelectorAll('.nav-cat-btn:not(.has-mega)').forEach(btn => {
     btn.addEventListener('click', () => {
       const slug = btn.dataset.slug;
-      window.location.href = slug ? `catalog.html?category=${slug}` : 'catalog.html';
+      window.location.href = slug ? `/catalog.html?game=${slug}` : '/catalog.html';
     });
   });
 
@@ -618,7 +624,7 @@ function bindDesktopEvents(el) {
       // If it's a mobile touch or already open, navigate
       if (isOpen && btn.getAttribute('aria-expanded') === 'true') {
         const slug = btn.dataset.slug;
-        window.location.href = `catalog.html?category=${slug}`;
+        window.location.href = `/catalog.html?game=${slug}`;
         return;
       }
 
@@ -833,11 +839,14 @@ export function initNavbar() {
 
   injectDropdownStyles();
 
-  // PASS 1: Synchronous Optimistic Render
-  let categories = [];
+  // PASS 1: Synchronous Optimistic Render — always start with static games
+  let categories = STATIC_GAMES;
   try {
     const cached = localStorage.getItem('hv_categories');
-    if (cached) categories = JSON.parse(cached);
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.length > 0) categories = parsed;
+    }
   } catch(e) {}
 
   const renderMobile = () => {
@@ -876,13 +885,13 @@ export function initNavbar() {
 
   // PASS 2: Asynchronous Background Update
   Promise.all([
-    initAuth(),
+    initAuth().catch(err => { console.warn('Auth init failed:', err); return null; }),
     getCategories().catch(() => [])
   ]).then(([authRes, newCats]) => {
     if (newCats && newCats.length > 0) {
       localStorage.setItem('hv_categories', JSON.stringify(newCats));
       categories = newCats;
-}
+    }
     
     // Re-render to reflect new categories and exact user auth state
     if (currentIsMobile) {

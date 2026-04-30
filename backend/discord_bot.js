@@ -35,7 +35,7 @@ client.on('messageCreate', async (message) => {
                     
                     console.log(`[Discord Bot] Forwarding reply to thread ${threadId}: ${content}`);
                     
-                    const response = await fetch('https://raidzonemarket.com/api/v1/chat/discord-reply', {
+                    const response = await fetch('https://raidzonemarket.com/api/chat/discord-reply', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({

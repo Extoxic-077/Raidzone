@@ -68,7 +68,7 @@ import { showToast } from './js/components/toast.js';
 await initNavbar();
 initFooter();
 
-const API = window.__API_BASE__ || '/api/v1';
+const API = window.__API_BASE__ || '/api';
 
 document.getElementById('track-btn').addEventListener('click', async () => {
   const raw = document.getElementById('order-id-input').value.trim();
