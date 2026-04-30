@@ -52,9 +52,12 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
             # Target the actual aaPanel Nginx binary and config
-            echo "🔍 Inspecting aaPanel vhost config..."
-            cat /www/server/panel/vhost/nginx/raidzonemarket.com.conf || echo "Vhost not found"
+            echo "🔍 Finding Nginx includes..."
+            grep "include" /www/server/nginx/conf/nginx.conf || echo "No includes found"
             
+            echo "🔍 Listing /www/wwwroot content..."
+            ls -l /www/wwwroot || echo "/www/wwwroot not found"
+
             sudo /www/server/nginx/sbin/nginx -t -c /www/server/nginx/conf/nginx.conf
             sudo /www/server/nginx/sbin/nginx -s reload -c /www/server/nginx/conf/nginx.conf
           ENDSSH
