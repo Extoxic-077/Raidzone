@@ -54,11 +54,9 @@ app.use('/assets',  express.static(path.join(__dirname, '../frontend/assets')));
 // ── API routes ────────────────────────────────────────────────────────────────
 app.use('/api', routes);
 
-// ── SPA fallback ─────────────────────────────────────────────────────────────
-app.use(express.static(path.resolve(__dirname, '../dist')));
+// ── 404 for unmatched routes ──────────────────────────────────────────────────
 app.use((req, res) => {
-  if (req.path.startsWith('/api')) return res.status(404).end();
-  res.sendFile(path.resolve(__dirname, '../dist/index.html'));
+  res.status(404).json({ success: false, error: 'Not found', code: 'NOT_FOUND' });
 });
 
 // ── Centralised error handler (must be last) ──────────────────────────────────
