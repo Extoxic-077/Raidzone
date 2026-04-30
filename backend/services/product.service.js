@@ -15,8 +15,13 @@ function buildFilter(query) {
   const { game, categorySlug, tab, search, minPrice, maxPrice } = query;
   const gameSlug = game || categorySlug;
 
-  // active=true is unconditional on public endpoints; admin routes set their own filter
-  const filter = { active: true };
+  // active=true by default for public, but admin can override or see all
+  const filter = {};
+  if (query.admin !== 'true') {
+    filter.active = true;
+  } else if (query.active !== undefined) {
+    filter.active = query.active === 'true';
+  }
 
   if (gameSlug) filter.game = gameSlug;
   if (tab) filter.tab = new RegExp('^' + escapeRegex(tab) + '$', 'i');
@@ -78,8 +83,11 @@ async function queryProducts(filter, sortObj, skip, limit) {
   if (products.length === 0 && filter.$and?.length > 0) {
     const softened = { ...filter, $and: filter.$and.slice(0, -1) };
     if (!softened.$and.length) delete softened.$and;
-    const fallback = await Product.find(softened).sort(sortObj).limit(limit).select(LIST_SELECT).lean();
-    return { products: fallback, total };
+    const [fallbackProducts, fallbackTotal] = await Promise.all([
+      Product.find(softened).sort(sortObj).limit(limit).select(LIST_SELECT).lean(),
+      Product.countDocuments(softened)
+    ]);
+    return { products: fallbackProducts, total: fallbackTotal };
   }
 
   return { products, total };
