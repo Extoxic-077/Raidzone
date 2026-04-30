@@ -25,9 +25,12 @@ async function handleResponse(res) {
 // ─── Public fetch (no auth) ───────────────────────────────────────────────────
 
 export async function apiFetch(path) {
-  console.log(`[API] Fetching: ${path}`);
+  const cacheBuster = `cb=${Date.now()}`;
+  const sep = path.includes('?') ? '&' : '?';
+  const url = `${BASE_URL}${path}${sep}${cacheBuster}`;
+  console.log(`[API] Fetching: ${url}`);
   try {
-    const res = await fetch(`${BASE_URL}${path}`, {
+    const res = await fetch(url, {
       headers: { 'Accept': 'application/json' }
     });
     return await handleResponse(res);
@@ -42,7 +45,10 @@ export async function apiFetch(path) {
 // ─── Authenticated fetch ──────────────────────────────────────────────────────
 
 export async function authApiFetch(path, options = {}) {
-  const res = await authFetch(`${BASE_URL}${path}`, {
+  const cacheBuster = `cb=${Date.now()}`;
+  const sep = path.includes('?') ? '&' : '?';
+  const url = `${BASE_URL}${path}${sep}${cacheBuster}`;
+  const res = await authFetch(url, {
     headers: { 'Accept': 'application/json', 'Content-Type': 'application/json', ...(options.headers || {}) },
     ...options,
   });

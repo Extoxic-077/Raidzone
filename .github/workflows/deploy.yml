@@ -1,4 +1,4 @@
-name: Production & Staging Deploy
+name: Production & Staging Deploy (Docker)
 
 on:
   push:
@@ -11,27 +11,12 @@ jobs:
     runs-on: ubuntu-latest
     env:
       IS_PROD: ${{ github.ref == 'refs/heads/master' }}
-      BASE_PATH: ${{ github.ref == 'refs/heads/master' && '/var/www' || '/var/www/staging' }}
-      BACKEND_PATH: ${{ github.ref == 'refs/heads/master' && '~/raidzone/backend' || '~/raidzone-staging/backend' }}
-      PORT: ${{ github.ref == 'refs/heads/master' && '5000' || '5001' }}
-      PM2_NAME: ${{ github.ref == 'refs/heads/master' && 'raidzone-api' || 'raidzone-api-staging' }}
-      RELEASE_ID: ${{ github.run_id }}_${{ github.run_number }}
+      # We will deploy everything to a single project folder
+      PROJECT_PATH: ${{ github.ref == 'refs/heads/master' && '~/raidzone-prod' || '~/raidzone-staging' }}
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-          cache: 'npm'
-          cache-dependency-path: './backend/package-lock.json'
-
-      - name: Install Backend Dependencies
-        run: |
-          cd backend
-          npm install --production
 
       - name: Setup SSH
         run: |
@@ -40,51 +25,37 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Prepare Release Directories
+      - name: Prepare Project Directory
         run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-            mkdir -p ${{ env.BASE_PATH }}/frontend/releases/${{ env.RELEASE_ID }}
-            mkdir -p ${{ env.BASE_PATH }}/admin/releases/${{ env.RELEASE_ID }}
-            mkdir -p ${{ env.BACKEND_PATH }}
-          "
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ${{ env.PROJECT_PATH }}"
 
-      - name: Deploy Backend
+      - name: Sync Code to Server
         run: |
-          rsync -avz --delete -e "ssh -i ~/.ssh/id_ed25519" --exclude 'node_modules' ./backend/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ env.BACKEND_PATH }}/
+          rsync -avz --delete -e "ssh -i ~/.ssh/id_ed25519" \
+            --exclude '.git' \
+            --exclude 'node_modules' \
+            ./ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ env.PROJECT_PATH }}/
 
-      - name: Backend Post-Deploy (Migrate & Restart)
+      - name: Deploy via Docker Compose
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-            set -e
-            cd ${{ env.BACKEND_PATH }}
-            npm install --production
+            cd ${{ env.PROJECT_PATH }}
             
-            # Safe migration
-            node scripts/migrate-attributes.js || echo "Migration failed, continuing anyway..."
-
-            # Restart named PM2 process
-            PORT=${{ env.PORT }} NODE_ENV=production pm2 restart ${{ env.PM2_NAME }} --update-env || PORT=${{ env.PORT }} NODE_ENV=production pm2 start server.js --name ${{ env.PM2_NAME }}
-
-            # Clear Redis cache
-            redis-cli flushall || echo "Redis flush failed, continuing..."
+            # Rebuild and restart containers
+            docker compose -f docker-compose.prod.yml build
+            docker compose -f docker-compose.prod.yml up -d
+            
+            # Run migration inside the container
+            docker exec raidzone-backend node scripts/migrate-attributes.js || echo "Migration failed"
+            
+            # Flush Redis (if running on host or in docker)
+            redis-cli flushall || docker exec raidzone-redis redis-cli flushall || echo "Redis flush failed"
           ENDSSH
 
-      - name: Deploy Frontend & Admin (Atomic Release)
+      - name: Verify Nginx Routing
         run: |
-          rsync -avz -e "ssh -i ~/.ssh/id_ed25519" ./frontend/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ env.BASE_PATH }}/frontend/releases/${{ env.RELEASE_ID }}/
-          rsync -avz -e "ssh -i ~/.ssh/id_ed25519" ./frontend/admin/ ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}:${{ env.BASE_PATH }}/admin/releases/${{ env.RELEASE_ID }}/
-
-      - name: Switch Symlinks (Zero Downtime)
-        run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-            ln -sfn ${{ env.BASE_PATH }}/frontend/releases/${{ env.RELEASE_ID }} ${{ env.BASE_PATH }}/frontend/current
-            ln -sfn ${{ env.BASE_PATH }}/admin/releases/${{ env.RELEASE_ID }} ${{ env.BASE_PATH }}/admin/current
+          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
+            # Ensure host Nginx points to the Docker ports (8081 for backend, 3000 for frontend)
+            # We'll apply a hardened config if needed, but for now we trust the existing setup
             sudo nginx -t && sudo systemctl reload nginx
-          "
-
-      - name: Cleanup Old Releases
-        run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "
-            cd ${{ env.BASE_PATH }}/frontend/releases && ls -t | tail -n +6 | xargs rm -rf -- || true
-            cd ${{ env.BASE_PATH }}/admin/releases && ls -t | tail -n +6 | xargs rm -rf -- || true
-          "
+          ENDSSH
