@@ -50,6 +50,9 @@ jobs:
             find /var/www -name "products.html" | xargs ls -l || echo "Not found in /var/www"
             find /home -name "products.html" | xargs ls -l || echo "Not found in /home"
             
+            echo "🔍 Checking active Nginx config..."
+            cat /etc/nginx/sites-enabled/* || cat /etc/nginx/conf.d/* || echo "No config found"
+
             # Run migration inside the container
             docker exec raidzone-backend node scripts/migrate-attributes.js || echo "Migration failed"
             
