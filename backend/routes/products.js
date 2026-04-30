@@ -64,6 +64,7 @@ router.get('/', async (req, res) => {
     const result = {
       success: true,
       data: {
+        version:       '2026.04.30.debug.1',
         content:       products,
         totalElements: total,
         totalPages:    Math.ceil(total / limit),

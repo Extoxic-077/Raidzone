@@ -464,6 +464,7 @@ async function loadProducts(page = 0) {
   tbody.innerHTML = `<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-3)">Loading…</td></tr>`;
   try {
     const result = await adminGetProducts(page, 20);
+    console.log('[DEBUG] Backend version:', result.version);
     const products = result.content || [];
     countEl.textContent = `Products (${result.totalElements ?? products.length})`;
     currentPage = result.number ?? page;
