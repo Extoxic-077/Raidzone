@@ -51,9 +51,15 @@ router.get('/', async (req, res) => {
       lockMap.set(cacheKey, Date.now());
     }
 
-    const filter  = buildFilter(req.query);
+    const isAdmin = req.query.admin === 'true';
+    let filter = buildFilter(req.query);
+
+    if (isAdmin) {
+      filter = {}; // 🔥 Force admin to see all products regardless of filters
+    }
+
     const sortObj = buildSort(sort);
-    const { products, total } = await queryProducts(filter, sortObj, skip, limit);
+    const { products, total } = await queryProducts(filter, sortObj, skip, limit, isAdmin);
 
     const result = {
       success: true,

@@ -15,18 +15,8 @@ function buildFilter(query) {
   const { game, categorySlug, tab, search, minPrice, maxPrice } = query;
   const gameSlug = game || categorySlug;
 
-  // active=true by default for public, but admin can override or see all
-  const filter = {};
-  if (query.admin !== 'true') {
-    filter.active = true;
-  } else {
-    // Admin mode: only filter by active if explicitly requested via includeInactive
-    if (query.includeInactive === 'false') {
-      filter.active = true;
-    } else if (query.active !== undefined) {
-      filter.active = query.active === 'true';
-    }
-  }
+  // active=true by default for public
+  const filter = { active: true };
 
   if (gameSlug) filter.game = gameSlug;
   if (tab) filter.tab = new RegExp('^' + escapeRegex(tab) + '$', 'i');
@@ -72,7 +62,7 @@ function parsePagination(query) {
 
 const LIST_SELECT = 'name price originalPrice imageUrl slug badge stock subType itemType game tab active isFlashDeal views attributes';
 
-async function queryProducts(filter, sortObj, skip, limit) {
+async function queryProducts(filter, sortObj, skip, limit, isAdmin = false) {
   const [products, total] = await Promise.all([
     Product.find(filter)
       .sort(sortObj)
@@ -81,11 +71,11 @@ async function queryProducts(filter, sortObj, skip, limit) {
       .select(LIST_SELECT)
       .maxTimeMS(500)
       .lean(),
-    Product.countDocuments(filter).maxTimeMS(300),
+    isAdmin ? Product.countDocuments({}) : Product.countDocuments(filter).maxTimeMS(300),
   ]);
 
   // Soft fallback: if no results with dynamic filters, drop the last $and clause
-  if (products.length === 0 && filter.$and?.length > 0) {
+  if (!isAdmin && products.length === 0 && filter.$and?.length > 0) {
     const softened = { ...filter, $and: filter.$and.slice(0, -1) };
     if (!softened.$and.length) delete softened.$and;
     const [fallbackProducts, fallbackTotal] = await Promise.all([
