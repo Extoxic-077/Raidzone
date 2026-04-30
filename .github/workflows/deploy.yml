@@ -25,10 +25,6 @@ jobs:
           chmod 600 ~/.ssh/id_ed25519
           ssh-keyscan -H "${{ secrets.SSH_HOST }}" >> ~/.ssh/known_hosts
 
-      - name: Prepare Project Directory
-        run: |
-          ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} "mkdir -p ${{ env.PROJECT_PATH }}"
-
       - name: Sync Code to Server
         run: |
           rsync -avz --delete -e "ssh -i ~/.ssh/id_ed25519" \
@@ -41,29 +37,21 @@ jobs:
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
             cd ${{ env.PROJECT_PATH }}
             
-            # Rebuild and restart containers
-            docker compose -f docker-compose.prod.yml build --no-cache
-            docker compose -f docker-compose.prod.yml up -d
+            # Use docker-compose (with hyphen) for older versions, or docker compose
+            (docker-compose -f docker-compose.prod.yml build --no-cache && docker-compose -f docker-compose.prod.yml up -d) || \
+            (docker compose -f docker-compose.prod.yml build --no-cache && docker compose -f docker-compose.prod.yml up -d)
             
-            # DEBUG: Where are the files?
-            echo "🔍 Locating products.html on server..."
-            find /var/www -name "products.html" | xargs ls -l || echo "Not found in /var/www"
-            find /home -name "products.html" | xargs ls -l || echo "Not found in /home"
-            
-            echo "🔍 Checking active Nginx config..."
-            cat /etc/nginx/sites-enabled/* || cat /etc/nginx/conf.d/* || echo "No config found"
-
             # Run migration inside the container
             docker exec raidzone-backend node scripts/migrate-attributes.js || echo "Migration failed"
             
-            # Flush Redis (if running on host or in docker)
-            redis-cli flushall || docker exec raidzone-redis redis-cli flushall || echo "Redis flush failed"
+            # Flush Redis
+            docker exec raidzone-redis redis-cli flushall || redis-cli flushall || echo "Redis flush failed"
           ENDSSH
 
-      - name: Verify Nginx Routing
+      - name: Verify & Reload aaPanel Nginx
         run: |
           ssh -i ~/.ssh/id_ed25519 ${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }} << 'ENDSSH'
-            # Ensure host Nginx points to the Docker ports (8081 for backend, 3000 for frontend)
-            # We'll apply a hardened config if needed, but for now we trust the existing setup
-            sudo nginx -t && sudo systemctl reload nginx
+            # Target the actual aaPanel Nginx binary and config
+            sudo /www/server/nginx/sbin/nginx -t -c /www/server/nginx/conf/nginx.conf
+            sudo /www/server/nginx/sbin/nginx -s reload -c /www/server/nginx/conf/nginx.conf
           ENDSSH
