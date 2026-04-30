@@ -206,7 +206,16 @@ router.get('/options-bulk', async (req, res, next) => {
 
 router.post('/', verifyToken, requireAdmin, async (req, res, next) => {
   try {
-    const product = await new Product(req.body).save();
+    const data = { ...req.body };
+    // Normalise: Move dynamic fields to attributes
+    data.attributes = {
+      ...(data.attributes || {}),
+      itemType: data.itemType || data.attributes?.itemType,
+      subType:  data.subType  || data.attributes?.subType,
+      region:   data.region   || data.attributes?.region,
+      brand:    data.brand    || data.attributes?.brand
+    };
+    const product = await new Product(data).save();
     await invalidateProductCache(product.game, product.tab);
     res.status(201).json({ success: true, data: product });
   } catch (err) { next(err); }
@@ -214,7 +223,17 @@ router.post('/', verifyToken, requireAdmin, async (req, res, next) => {
 
 router.put('/:id', verifyToken, requireAdmin, async (req, res, next) => {
   try {
-    const product = await Product.findByIdAndUpdate(req.params.id, req.body, { new: true, runValidators: true });
+    const data = { ...req.body };
+    if (data.itemType || data.subType || data.region || data.brand) {
+      data.attributes = {
+        ...(data.attributes || {}),
+        itemType: data.itemType || data.attributes?.itemType,
+        subType:  data.subType  || data.attributes?.subType,
+        region:   data.region   || data.attributes?.region,
+        brand:    data.brand    || data.attributes?.brand
+      };
+    }
+    const product = await Product.findByIdAndUpdate(req.params.id, data, { new: true, runValidators: true });
     if (!product) return res.status(404).json({ success: false, error: 'Product not found', code: 'PRODUCT_NOT_FOUND' });
     await invalidateProductCache(product.game, product.tab);
     res.json({ success: true, data: product });

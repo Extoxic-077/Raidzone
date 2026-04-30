@@ -30,8 +30,8 @@ function buildFilter(query) {
     filter['$and'] = filter['$and'] || [];
     filter['$and'].push({
       $or: [
-        { [key]: regexVal },
         { [`attributes.${key}`]: val },
+        { [key]: regexVal }, // Legacy fallback (move to attributes recommended)
       ],
     });
   });
@@ -60,7 +60,7 @@ function parsePagination(query) {
   return { page, limit, skip };
 }
 
-const LIST_SELECT = 'name price originalPrice imageUrl slug badge stock subType itemType game tab active isFlashDeal views';
+const LIST_SELECT = 'name price originalPrice imageUrl slug badge stock subType itemType game tab active isFlashDeal views attributes';
 
 async function queryProducts(filter, sortObj, skip, limit) {
   const [products, total] = await Promise.all([

@@ -486,21 +486,22 @@ function renderTable(products) {
     const imgHtml = p.imageUrl
       ? `<div class="table-thumb"><img src="${p.imageUrl}" alt=""/></div>`
       : `<div class="table-thumb"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" width="20" height="20" style="opacity:.4"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg></div>`;
-    const price   = p.price != null ? `$${Number(p.price).toLocaleString('en-US')}` : '—';
-    const active  = p.active !== false;
-    const flash   = !!p.isFlash;
-    const badge   = p.badge || '';
-    const safeId  = p._id;
+    const price    = p.price != null ? `$${Number(p.price).toLocaleString('en-US')}` : '—';
+    const active   = p.active !== false;
+    const flash    = !!p.isFlash;
+    const badge    = p.badge || '';
+    const safeId   = p.id || p._id; // Ensure we get the ID correctly
+    const itemType = p.attributes?.itemType || p.itemType || '—';
     return `
       <tr data-id="${safeId}">
         <td style="width:36px"><input type="checkbox" class="row-check" data-id="${safeId}" style="accent-color:var(--violet)"/></td>
         <td>${imgHtml}</td>
         <td>
           <div class="table-product-name">${p.name}</div>
-          <div style="font-size:0.75rem;color:var(--text-4)">${p.game} | ${safeId.substring(0,8)}</div>
+          <div style="font-size:0.75rem;color:var(--text-4)">${p.game || '—'} | ${String(safeId).substring(0,8)}</div>
         </td>
         <td>${p.game || '—'}</td>
-        <td><span style="font-size:0.75rem;padding:2px 6px;background:rgba(255,255,255,0.05);border-radius:4px">${p.itemType || '—'}</span></td>
+        <td><span style="font-size:0.75rem;padding:2px 6px;background:rgba(255,255,255,0.05);border-radius:4px">${itemType}</span></td>
         <td>${price}</td>
         <td>
           <label class="admin-toggle" title="${active ? 'Active — click to deactivate' : 'Inactive — click to activate'}">
@@ -647,18 +648,19 @@ window.openEdit = function(id) {
     form.elements['name'].value          = p.name || '';
     form.elements['price'].value         = p.price != null ? p.price : '';
     form.elements['originalPrice'].value = p.originalPrice != null ? p.originalPrice : '';
-    form.elements['brand'].value         = p.brand || '';
-    form.elements['region'].value        = p.region || 'Global';
+    form.elements['brand'].value         = p.attributes?.brand || p.brand || '';
+    form.elements['region'].value        = p.attributes?.region || p.region || 'Global';
     form.elements['badge'].value         = p.badge || '';
-    form.elements['itemType'].value      = p.itemType || '';
+    form.elements['itemType'].value      = p.attributes?.itemType || p.itemType || '';
     form.elements['description'].value   = p.description || '';
     form.elements['instructions'].value  = p.instructions || '';
     form.elements['sortOrder'].value     = p.sortOrder != null ? p.sortOrder : 0;
     form.elements['stock'].value         = p.stock != null ? p.stock : 999;
     form.elements['isFlash'].checked     = !!p.isFlash;
 
-    // Load blueprint tags
-    selectedBlueprints = p.subType ? p.subType.split(', ').filter(Boolean) : [];
+    // Load blueprint tags (subType)
+    const subType = p.attributes?.subType || p.subType;
+    selectedBlueprints = subType ? subType.split(', ').filter(Boolean) : [];
     if (blueprintSelectorApi) {
       blueprintSelectorApi.renderOptions();
       blueprintSelectorApi.sync();
@@ -772,18 +774,20 @@ form.addEventListener('submit', async e => {
   const data = {
     name:          fd.get('name'),
     game,
-    itemType:      fd.get('itemType') || null,
-    subType:       fd.get('subType') || null,
     price:         parseFloat(fd.get('price')),
     originalPrice: fd.get('originalPrice') ? parseFloat(fd.get('originalPrice')) : null,
     description:   fd.get('description') || null,
     instructions:  fd.get('instructions') || null,
-    brand:         fd.get('brand') || null,
-    region:        fd.get('region') || 'Global',
     badge:         fd.get('badge') || null,
     isFlash:       fd.get('isFlash') === 'on',
     stock:         parseInt(fd.get('stock')) || 0,
     sortOrder:     parseInt(fd.get('sortOrder')) || 0,
+    attributes: {
+      itemType: fd.get('itemType') || null,
+      subType:  fd.get('subType') || null,
+      brand:    fd.get('brand') || null,
+      region:   fd.get('region') || 'Global'
+    }
   };
 
   try {

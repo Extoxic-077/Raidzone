@@ -30,7 +30,7 @@ async function preloadCatalogCache() {
       const products = await Product.find(filter)
         .sort({ views: -1, _id: -1 })
         .limit(20)
-        .select("name price originalPrice imageUrl slug badge stock subType itemType game")
+        .select("name price originalPrice imageUrl slug badge stock subType itemType game attributes")
         .lean();
 
       const total = await Product.countDocuments(filter);

@@ -47,11 +47,14 @@ app.use(cors({ origin: env.cors.origins, credentials: true }));
 app.use(express.json({ limit: '1mb' }));
 app.use('/api/', apiLimiter);
 
-// ── Static ────────────────────────────────────────────────────────────────────
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-app.use('/assets',  express.static(path.join(__dirname, '../frontend/assets')));
+// ── Static (Disabled in production — NGINX handles this) ──────────────
+if (process.env.NODE_ENV !== 'production') {
+  app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
+  app.use('/assets',  express.static(path.join(__dirname, '../frontend/assets')));
+}
 
 // ── API routes ────────────────────────────────────────────────────────────────
+app.get('/health', (req, res) => res.status(200).json({ status: 'OK', uptime: process.uptime() }));
 app.use('/api', routes);
 
 // ── 404 for unmatched routes ──────────────────────────────────────────────────
