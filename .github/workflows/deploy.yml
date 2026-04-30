@@ -42,8 +42,13 @@ jobs:
             cd ${{ env.PROJECT_PATH }}
             
             # Rebuild and restart containers
-            docker compose -f docker-compose.prod.yml build
+            docker compose -f docker-compose.prod.yml build --no-cache
             docker compose -f docker-compose.prod.yml up -d
+            
+            # DEBUG: Where are the files?
+            echo "🔍 Locating products.html on server..."
+            find /var/www -name "products.html" | xargs ls -l || echo "Not found in /var/www"
+            find /home -name "products.html" | xargs ls -l || echo "Not found in /home"
             
             # Run migration inside the container
             docker exec raidzone-backend node scripts/migrate-attributes.js || echo "Migration failed"
