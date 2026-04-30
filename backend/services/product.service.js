@@ -19,8 +19,13 @@ function buildFilter(query) {
   const filter = {};
   if (query.admin !== 'true') {
     filter.active = true;
-  } else if (query.active !== undefined) {
-    filter.active = query.active === 'true';
+  } else {
+    // Admin mode: only filter by active if explicitly requested via includeInactive
+    if (query.includeInactive === 'false') {
+      filter.active = true;
+    } else if (query.active !== undefined) {
+      filter.active = query.active === 'true';
+    }
   }
 
   if (gameSlug) filter.game = gameSlug;
